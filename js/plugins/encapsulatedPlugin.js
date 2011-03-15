@@ -25,8 +25,8 @@
 			if (!element.data(plugin)) {
 		objects.each(function () {
 				// Initialise
-				if (instance.setup) {
 				var instance = new Definition(this, options);
+				if (typeof (instance.setup) !== 'undefined' && $.isFunction(instance.setup)) {
 					// If there is a setup function supplied, call it.
 					instance.setup();
 				}
@@ -46,7 +46,7 @@
 			var template = result[0];
 			if (template) {
 				for ( var i in template) {
-					if (typeof (template[i]) == 'function') {
+					if (typeof (template[i]) !== 'undefined' && $.isFunction(template[i])) {
 						result[i] = makeIteratorFunction(i, result);
 					}
 				}
