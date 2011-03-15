@@ -4,13 +4,13 @@
  * 
  * @author Jamie Talbot
  */
-(function($) {
+(function ($) {
 
-	$.fn.encapsulatedPlugin = function(plugin, definition, objects, options) {
+	$.fn.encapsulatedPlugin = function (plugin, Definition, objects, options) {
 
 		// Creates a function that calls the function of the same name on each member of the supplied set.
 		function makeIteratorFunction(f, set) {
-			return function() {
+			return function () {
 				var result = [];
 				for ( var i = 0; i < set.length; i++) {
 					result.push(set[i][f].apply(set[i][f], arguments));
@@ -20,13 +20,13 @@
 		}
 
 		var result = [];
-		objects.each(function() {
 			var element = $(this);
 
 			if (!element.data(plugin)) {
+		objects.each(function () {
 				// Initialise
-				var instance = new definition(this, options);
 				if (instance.setup) {
+				var instance = new Definition(this, options);
 					// If there is a setup function supplied, call it.
 					instance.setup();
 				}
@@ -42,7 +42,7 @@
 			// We now have a set of plugin instances.
 			result = $(result);
 
-			// Take the public functions from the definition and make them available across the set.
+			// Take the public functions from the Definition and make them available across the set.
 			var template = result[0];
 			if (template) {
 				for ( var i in template) {
