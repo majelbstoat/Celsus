@@ -20,10 +20,8 @@
 		}
 
 		var result = [];
-			var element = $(this);
-
-			if (!element.data(plugin)) {
 		objects.each(function () {
+			if (!$.data(this, plugin)) {
 				// Initialise
 				var instance = new Definition(this, options);
 				if (typeof (instance.setup) !== 'undefined' && $.isFunction(instance.setup)) {
@@ -32,9 +30,9 @@
 				}
 
 				// Store the new functions in a validation data object.
-				element.data(plugin, instance);
+				$.data(this, plugin, instance);
 			}
-			result.push(element.data(plugin));
+			result.push($.data(this, plugin));
 		});
 
 		if (result.length > 1) {
