@@ -1,23 +1,19 @@
 <?php
+/**
+ * Celsus PHP Library
+ *
+ * @category Celsus
+ * @copyright Copyright (c) 2008-2010 Jamie Talbot (http://jamietalbot.com)
+ * @version $Id: VersionedResource.php 69 2010-09-08 12:32:03Z jamie $
+ */
 
-class Celsus_View_Helper_VersionedResource {
-
-		const RESOURCE_LIST = 'configs/resources.ini';
-		protected $_view;
-
-		/**
-		 * An array of resources that are under version control for caching.
-		 * @var Zend_Config_Ini
-		 */
-		protected static $_resources = null;
-
-    public function setView(Zend_View_Interface $view) {
-        $this->_view = $view;
-    }
-
-    public static function setupResources() {
-    	self::$_resources = new Zend_Config_Ini(APPLICATION_PATH . '/' . self::RESOURCE_LIST);
-    }
+/**
+ * Versions a static resource based on file modification time or version number.
+ *
+ * @class Celsus_View_Helper_VersionedResource
+ * @ingroup Celsus_View_Helpers
+ */
+class Celsus_View_Helper_VersionedResource extends Zend_View_Helper_Abstract {
 
     /**
      * Returns the URL to a static file, prepended with the base URL,
@@ -27,34 +23,7 @@ class Celsus_View_Helper_VersionedResource {
      * @return string
      */
     public function versionedResource($resource) {
-    	if (Celsus_Application::isDevelopment()) {
-    		return $this->_view->baseUrl() . '/' . $resource;
-    	}
-
-    	if (null === self::$_resources) {
-    		self::setupResources();
-    	}
-
-    	list($path, $extension) = explode('.', $resource, 2);
-    	$subSections = explode('/', $path);
-    	try {
-    		$versionedResource = self::$_resources;
-    		foreach ($subSections as $subSection) {
-    			if (!isset($versionedResource->$subSection)) {
-    				$versionedResource = null;
-    				break;
-    			}
-    			$versionedResource = $versionedResource->$subSection;
-    		}
-    		if (null == $versionedResource) {
-    			throw new Celsus_Exception("$resource cannot be versioned!");
-    		}
-    		$version = $versionedResource;
-    	} catch (Exception $e) {
-    		// Can't version this file, so just return the prepended resource.
-    		return $this->_view->baseUrl() . '/' . $resource;
-    	}
-      return $this->_view->baseUrl() . '/' . preg_replace('/\.([a-z]+?)$/', ".v$version.\$1", $resource);
+    	return Celsus_Resource::version($resource);
     }
 }
 ?>

@@ -1,19 +1,34 @@
 <?php
+/**
+ * Celsus
+ *
+ * @category Celsus
+ * @copyright Copyright (c) 2010 Jamie Talbot (http://jamietalbot.com)
+ * @version $Id: Grid.php 69 2010-09-08 12:32:03Z jamie $
+ */
 
 /**
- * Abstract class representing a grid layout used to display and filter information.
+ * Grid layout functionality
+ *
+ * @defgroup Celsus_Grid Celsus Grid
+ */
+
+/**
+ * Defines default grid functionality, for displaying multiple records on the same page.
+ *
+ * @ingroup Celsus_Grid
  */
 abstract class Celsus_Grid implements Countable {
-	
+
 	const DEFAULT_PAGE_LIMIT = 30;
-	
+
 	/**
 	 * The columns to display in the grid.
-	 * 
+	 *
 	 * @var array
 	 */
 	protected $_columns = array();
-	
+
 	/**
 	 * Decorators used to render this grid.
 	 *
@@ -30,11 +45,11 @@ abstract class Celsus_Grid implements Countable {
 
 	/**
 	 * The number of rows to display per page.
-	 * 
+	 *
 	 * @var int
 	 */
 	protected $_pageLimit = self::DEFAULT_PAGE_LIMIT;
-	
+
 	/**
 	 * The class representing a single row of the grid.
 	 *
@@ -153,7 +168,7 @@ abstract class Celsus_Grid implements Countable {
 	}
 
 	// Magic functions
-	
+
 	/**
 	 * Syntactic sugar to allow for direct echoing of the grid.  Proxies to {@link render()}.
 	 *
@@ -165,10 +180,10 @@ abstract class Celsus_Grid implements Countable {
 	}
 
 	// Getters and Setters
-	
+
 	/**
 	 * Gets the columns for this grid.
-	 * 
+	 *
 	 * @return array
 	 */
 	public function getColumns() {
@@ -206,10 +221,10 @@ abstract class Celsus_Grid implements Countable {
 		$this->_rowSet = $rowSet;
 		return $this;
 	}
-	
+
 	/**
 	 * Gets the number of rows to display per page.
-	 * 
+	 *
 	 * @return int
 	 */
 	public function getPageLimit() {
@@ -218,7 +233,7 @@ abstract class Celsus_Grid implements Countable {
 
 	/**
 	 * Gets the number of rows to display per page.
-	 * 
+	 *
 	 * @param int
 	 * @throws Celsus_Exception
 	 */

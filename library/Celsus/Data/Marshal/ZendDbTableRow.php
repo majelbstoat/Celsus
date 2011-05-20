@@ -19,7 +19,7 @@ class Celsus_Data_Marshal_ZendDbTableRow  implements Celsus_Data_Marshal_Interfa
 		if (!$object instanceof Zend_Db_Table_Row_Abstract) {
 			throw new Celsus_Exception("Must implement Zend_Db_Table_Row_Abstract");
 		}
-		$object->setFromArray($data)->save();
+		return $object->setFromArray($data)->save();
 	}
 }
 

@@ -5,7 +5,7 @@
  * @category Celsus
  * @package Celsus_Auth
  * @copyright Copyright (c) 2008-2010 Jamie Talbot (http://jamietalbot.com)
- * @version $Id$
+ * @version $Id: Test.php 69 2010-09-08 12:32:03Z jamie $
  */
 
 /**
@@ -14,7 +14,7 @@
  * @category Celsus
  * @package Celsus_Auth
  */
-class Celsus_Auth_Adapter_Test implements Zend_Auth_Adapter_Interface {
+class Celsus_Auth_Adapter_Test implements Celsus_Auth_Adapter_Interface {
 
 	protected $_identities = null;
 
@@ -58,7 +58,7 @@ class Celsus_Auth_Adapter_Test implements Zend_Auth_Adapter_Interface {
 		return $this->_result;
 	}
 
-	public function getResultRowObject() {
+	public function getResult() {
 		// Mock object doesn't need to worry about hiding passwords etc.
 		return $this->_result;
 	}

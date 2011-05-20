@@ -1,17 +1,20 @@
 <?php
+/**
+ * Celsus PHP Library
+ *
+ * @category Celsus
+ * @copyright Copyright (c) 2008-2010 Jamie Talbot (http://jamietalbot.com)
+ * @version $Id: DisplayFeedback.php 72 2010-09-14 01:56:33Z jamie $
+ */
 
 /**
  * View helper to display any feedback, information or error messages
  * in a formatted box.
  *
+ * @class Celsus_View_Helper_DisplayFeedback
+ * @ingroup Celsus_View_Helpers
  */
-class Celsus_View_Helper_DisplayFeedback {
-	
-	protected $_view;
-
-	public function setView(Zend_View_Interface $view) {
-		$this->_view = $view;
-	}
+class Celsus_View_Helper_DisplayFeedback extends Zend_View_Helper_Abstract {
 
 	/**
 	 * Displays feedback, information or error messages.
@@ -19,21 +22,25 @@ class Celsus_View_Helper_DisplayFeedback {
 	 * @param string $type
 	 * @return string
 	 */
-	public function displayFeedback($type) {
-		$feedback = Celsus_Feedback::get($type, true);
-		if (!$feedback) {
-			return '';
+	public function displayFeedback($type = array()) {
+
+		$feedbackGroups = Celsus_Feedback::get($type, true);
+		if (!$feedbackGroups) {
+			return;
 		}
-		ob_start();
-		if (Celsus_Feedback::ERROR == $type) {			
-			$feedback[0] = '<strong>Error:</strong> ' . $feedback[0];
+
+		$feedback = array();
+		foreach ($feedbackGroups as $type => $feedbackItems) {
+			foreach ($feedbackItems as $feedbackItem) {
+				$item = new stdClass();
+				$item->type = $type;
+				$item->message = $feedbackItem['message'];
+				$item->callback = $feedbackItem['callback'];
+				$feedback[] = $item;
+			}
 		}
-		?>
-		<div class="feedback <?= $type ?>">
-		<p><?= implode('</p><p>', $feedback) ?></p>
-		</div>
-		<?php
-		return ob_get_clean();
+		$feedback = Zend_Json::encode($feedback);
+		$this->view->getHelper('jQuery')->addJavascript("$.fn.displayFeedback.feedback = $feedback;");
 	}
 }
 ?>

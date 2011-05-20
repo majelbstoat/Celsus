@@ -5,7 +5,7 @@
  * @category Celsus
  * @package Celsus_Auth
  * @copyright Copyright (c) 2008-2010 Jamie Talbot (http://jamietalbot.com)
- * @version $Id$
+ * @version $Id: RpxNow.php 69 2010-09-08 12:32:03Z jamie $
  */
 
 /**
@@ -14,7 +14,7 @@
  * @category Celsus
  * @package Celsus_Auth
  */
-class Celsus_Auth_Adapter_RpxNow implements Zend_Auth_Adapter_Interface {
+class Celsus_Auth_Adapter_RpxNow implements Celsus_Auth_Adapter_Interface {
 
 	const DEFAULT_RPX_URL = 'https://rpxnow.com/api/v2/auth_info';
 

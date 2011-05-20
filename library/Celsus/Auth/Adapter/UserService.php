@@ -1,10 +1,12 @@
 <?php
 
-class Celsus_Auth_Adapter_UserService implements Zend_Auth_Adapter_Interface {
+class Celsus_Auth_Adapter_UserService implements Celsus_Auth_Adapter_Interface {
 
 	protected $_credential = null;
 
 	protected $_identity = null;
+
+	protected $_result = null;
 
 	protected $_userClass = null;
 
@@ -42,7 +44,7 @@ class Celsus_Auth_Adapter_UserService implements Zend_Auth_Adapter_Interface {
 			$resultInfo['code'] = Zend_Auth_Result::FAILURE_IDENTITY_AMBIGUOUS;
 			$resultInfo['messages'] = array('More than one user matches the supplied identity.');
 		} else {
-			$result = rewind($results);
+			$result = $results[0];
 
 			// Additional checks to make sure the view is returning the field we want.
 			$expectedField = $userClass::getIdentityField();
@@ -65,6 +67,10 @@ class Celsus_Auth_Adapter_UserService implements Zend_Auth_Adapter_Interface {
 		}
 
 		return new Zend_Auth_Result($resultInfo['code'], $resultInfo['identity'], $resultInfo['messages']);
+	}
+
+	public function getResult() {
+		return $this->_result;
 	}
 
 }

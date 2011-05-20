@@ -1,43 +1,60 @@
 <?php
 /**
- * Celsus PHP Library
+ * Celsus
  *
  * @category Celsus
- * @package Celsus_Application
- * @copyright Copyright (c) 2008-2010 Jamie Talbot (http://jamietalbot.com)
- * @version $Id$
+ * @copyright Copyright (c) 2010 Jamie Talbot (http://jamietalbot.com)
+ * @version $Id: Application.php 69 2010-09-08 12:32:03Z jamie $
  */
 
 require_once 'Zend/Application.php';
 
 /**
- * Provides an application definition that can optionally be cached.
+ * Application functionality
  *
- * @category Celsus
- * @package Celsus_Application
+ * @defgroup Celsus_Application Celsus Application
+ */
+
+/**
+ * Defines an application that can lazily-load a config from a cache
+ * or definition file.
+ *
+ * @ingroup Celsus_Application
  */
 abstract class Celsus_Application extends Zend_Application {
+
+	/**
+	 * Defines the cache where routes and configs are stored.  By default
+	 * lives in its own cache.
+	 *
+	 * @var string
+	 */
+	protected $_bootstrapCacheName = 'bootstrap';
 
 	/**
 	 * The options used to populate the cache.
 	 *
 	 * @var array
 	 */
-	protected $_cacheOptions = null;
+	protected $_bootstrapCacheTemplate = null;
+
+	protected static $_rootUrl = null;
+
+	protected static $_tenantName = null;
+
+	protected static $_scheme = null;
+
+	protected static $_host = null;
 
 	/**
 	 * Whether or not to load config and routes from cache.
 	 *
 	 * @var boolean
 	 */
-	protected $_useCache = false;
-
-	protected static $_rootUrl = null;
-
-	protected static $_tenantName = null;
+	protected $_useCacheForBootstrap = false;
 
 	public static function getTenantName() {
-		return self::_tenantName;
+		return self::$_tenantName;
 	}
 
 	public static function setTenantName($tenantName) {
@@ -61,26 +78,24 @@ abstract class Celsus_Application extends Zend_Application {
 	 *
 	 * @param $environment
 	 * @param $configPaths
+	 * @param $useCacheForBootstrap
 	 */
-	public function __construct($environment, array $configPaths, $useCache = false) {
+	public function __construct($environment, array $configPaths, $useCacheForBootstrap = true) {
 		// Hydrate or create an application instance.
-		$this->_useCache = $useCache;
 
 		require_once 'Zend/Config/Ini.php';
 
-		require_once 'Celsus/Cache.php';
-
 		$config = null;
 		$serialisedPaths = serialize($configPaths);
-		$configCacheKey = md5(APPLICATION_NAME . "-$serialisedPaths-$environment-config");
+		$configCacheKey = "__$environment" . "__config__";
 
-		if ($this->_useCache) {
-			// First see if we can find a config in the cache.
-			Celsus_Cache::initialise($this->_cacheOptions);
+		require_once 'Celsus/Cache/Manager.php';
 
-			$config = Celsus_Cache::load($configCacheKey);
-		}
+		// First see if we can find a config in the cache.
+		$this->_bootstrapCacheTemplate['enabled'] = $useCacheForBootstrap;
+		Celsus_Cache_Manager::addCacheTemplate($this->_bootstrapCacheName, $this->_bootstrapCacheTemplate);
 
+		$config = Celsus_Cache_Manager::cache($this->_bootstrapCacheName)->shared()->load($configCacheKey);
 		if (!$config) {
 			$configPath = array_shift($configPaths);
 
@@ -88,22 +103,26 @@ abstract class Celsus_Application extends Zend_Application {
 			foreach ($configPaths as $configPath) {
 				$config->merge(new Zend_Config_Ini($configPath, $environment));
 			}
-			if ($this->_useCache) {
-				Celsus_Cache::save($config, $configCacheKey);
-			}
+
+			Celsus_Cache_Manager::cache($this->_bootstrapCacheName)->shared()->save($config, $configCacheKey, array('config'));
 		}
 
 		require_once 'Zend/Registry.php';
 		Zend_Registry::set('config', $config);
 
-		self::$_rootUrl = $config->url->scheme . $config->url->host;
+		self::$_scheme = $config->url->scheme;
+		self::$_host = $config->url->host;
 
 		// Store a reference to the instance, should we need to retrieve it later.
 		return parent::__construct($environment, $config);
 	}
 
 	public static function rootUrl() {
-		return self::$_rootUrl;
+		return self::$_scheme . self::$_host;
+	}
+
+	public static function tenantUrl() {
+		return self::$_scheme . self::$_tenantName . '.' . self::$_host;
 	}
 
 	/**
@@ -114,19 +133,23 @@ abstract class Celsus_Application extends Zend_Application {
 	public function getRoutes() {
 
 		// Hydrate or generate application routes.
-		if ($this->_useCache) {
-			$routesCacheKey = md5(APPLICATION_NAME . "-routes");
-			$routes = Celsus_Cache::load($routesCacheKey);
-			if (!$routes) {
-				$config = Zend_Registry::get('config');
-				$routes = new Zend_Config_Ini($config->routes->path);
-				Celsus_Cache::save($routes, $routesCacheKey);
-			}
-		} else {
+		$routesCacheKey = "__routes__";
+		$routes = Celsus_Cache_Manager::cache($this->_bootstrapCacheName)->shared()->load($routesCacheKey);
+		if (!$routes) {
 			$config = Zend_Registry::get('config');
 			$routes = new Zend_Config_Ini($config->routes->path);
+			Celsus_Cache_Manager::cache($this->_bootstrapCacheName)->shared()->save($routes, $routesCacheKey, array('routes'));
 		}
 		return $routes;
 	}
 
+	/**
+	 * Bootstraps the application, and allows for excluding of resources.
+	 *
+	 * @param null|string|array $resource
+	 * @param array $excludedResources
+	 */
+	public function bootstrap($resource = null, array $excludedResources = array()) {
+		return $this->getBootstrap()->setExcludedResources($excludedResources)->bootstrap($resource);
+	}
 }

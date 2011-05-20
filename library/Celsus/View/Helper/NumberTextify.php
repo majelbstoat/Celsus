@@ -1,12 +1,19 @@
 <?php
+/**
+ * Celsus PHP Library
+ *
+ * @category Celsus
+ * @copyright Copyright (c) 2008-2010 Jamie Talbot (http://jamietalbot.com)
+ * @version $Id: NumberTextify.php 69 2010-09-08 12:32:03Z jamie $
+ */
 
-class Celsus_View_Helper_NumberTextify {
-
-	protected $_view;
-
-    public function setView(Zend_View_Interface $view) {
-        $this->_view = $view;
-    }
+/**
+ * Converts a number from an integer into a string representation
+ *
+ * @class Celsus_View_Helper_NumberTextify
+ * @ingroup Celsus_View_Helpers
+ */
+class Celsus_View_Helper_NumberTextify extends Zend_View_Helper_Abstract {
 
     protected static $_units = array(
     	1 => "One",

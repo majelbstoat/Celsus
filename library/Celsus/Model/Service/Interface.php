@@ -20,4 +20,18 @@ interface Celsus_Model_Service_Interface {
 	 */
 	public static function fetchOrCreateRecord($identifier);
 
+	/**
+	 * Returns the validators used to validate this model.
+	 *
+	 * @return array
+	 */
+	public static function getValidators();
+
+	/**
+	 * Returns data in a format suitable to be used for lookups.
+	 *
+	 * @return array
+	 */
+	public static function getLookupValues();
+
 }

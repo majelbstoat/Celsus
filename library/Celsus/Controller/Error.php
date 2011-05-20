@@ -5,7 +5,7 @@
  * @category Celsus
  * @package Celsus_Controller
  * @copyright Copyright (c) 2008-2010 Jamie Talbot (http://jamietalbot.com)
- * @version $Id$
+ * @version $Id: Error.php 72 2010-09-14 01:56:33Z jamie $
  */
 
 /**
@@ -22,9 +22,11 @@ abstract class Celsus_Controller_Error extends Zend_Controller_Action {
 			return $this->_redirect("/");
 		}
 		parent::init();
+
 	}
 
 	public function errorAction() {
+		$this->_helper->layout->setLayout('layout');
 		$error = $this->_getParam('error_handler');
 		if (null === $error) {
 			return;
@@ -32,14 +34,21 @@ abstract class Celsus_Controller_Error extends Zend_Controller_Action {
 
 		$exceptions = array();
 		foreach ($this->getResponse()->getException() as $exception) {
-			$exceptions[] = $exception->getMessage();
+			$exceptions[] = $exception->getMessage() . " " . $exception->getFile() . " " . $exception->getLine();
 		}
 		$this->view->exceptions = $exceptions;
 
-		switch ($error) {
+		$errorType = ($error->type) ? $error->type : $error;
+
+		if (Zend_Controller_Plugin_ErrorHandler::EXCEPTION_OTHER == $errorType) {
+			// This was an error triggered during the application.
+			$errorType = $error->exception->getCode();
+		}
+
+		switch ($errorType) {
 			case Zend_Controller_Plugin_ErrorHandler::EXCEPTION_NO_CONTROLLER:
 			case Zend_Controller_Plugin_ErrorHandler::EXCEPTION_NO_ACTION:
-			case Celsus_Error::EXCEPTION_NOT_FOUND:
+			case Celsus_Http::NOT_FOUND:
 
 				// 404 error -- controller or action not found
 				$this->getResponse()->setHttpResponseCode(Celsus_Http::NOT_FOUND);

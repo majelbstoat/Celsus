@@ -1,18 +1,34 @@
 <?php
+/**
+ * Celsus
+ *
+ * @category Celsus
+ * @copyright Copyright (c) 2010 Jamie Talbot (http://jamietalbot.com)
+ * @version $Id: Auth.php 69 2010-09-08 12:32:03Z jamie $
+ */
 
+/**
+ * Authentication functionality
+ *
+ * @defgroup Celsus_Auth Celsus Authentication
+ */
+
+/**
+ * Defines authentication, and allows adapters to be switched for mocking.
+ *
+ * @ingroup Celsus_Auth
+ */
 class Celsus_Auth extends Zend_Auth {
 
 	protected static $_authAdapter = null;
 
-	public static function setAuthAdapter($authAdapter) {
+	public static function setAuthAdapter(Zend_Auth_Adapter_Interface $authAdapter) {
 		self::$_authAdapter = $authAdapter;
 	}
 
 	public static function getAuthAdapter() {
 		if (null == self::$_authAdapter) {
-			//self::$_authAdapter = new Celsus_Auth_Adapter_UserService('ForceField_Model_Service_User');
-			self::$_authAdapter = new Celsus_Auth_Adapter_DbTable(Celsus_Db::getAdapter(Celsus_Db::getDefaultAdapterName()), 't_user AS u', 'p.email', 'u.password', 'MD5(?)');
-			self::$_authAdapter->setJoin('t_person AS p', 'u.person_id = p.id');
+			throw new Celsus_Exception("Auth adapter has not been set!");
 		}
 		return self::$_authAdapter;
 	}
@@ -20,6 +36,5 @@ class Celsus_Auth extends Zend_Auth {
 	public static function resetAuthAdapter() {
 		self::$_authAdapter = null;
 	}
-
 }
 ?>

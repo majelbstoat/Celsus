@@ -6,24 +6,24 @@ class Celsus_Form_Element_NullSelect extends Zend_Form_Element_Select {
 	 * @var string
 	 */
 	protected $_defaultTitle = 'Not Set';
-	
-	public function setMultiOptions($array) {
-		$array = array('' => $this->_defaultTitle) + $array;
+
+	public function setMultiOptions(array $data) {
+		$array = array('' => $this->_defaultTitle) + $data;
 		return parent::setMultiOptions($array);
 	}
-	
+
 	/**
 	 * Sets the select box's default title.
-	 * 
+	 *
 	 * @param string $title
 	 */
 	public function setDefaultTitle($title) {
 		$this->_defaultTitle = $title;
 	}
-	
+
 	/**
 	 * Returns a null value if the default option is selected, otherwise the standard value.
-	 * 
+	 *
 	 * @return mixed
 	 */
 	public function getValue() {

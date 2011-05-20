@@ -4,14 +4,14 @@ interface Celsus_Model_Base_Interface {
 
 	/**
 	 * Finds records based on identifier.
-	 * @return Celsus_Data_Collection
+	 * @return mixed
 	 */
 	public function find();
 
 
 	/**
 	 * Finds multiple records based on the supplied parameters.
-	 * @return Celsus_Data_Collection
+	 * @return mixed
 	 *
 	 */
 	public function fetchAll();
@@ -24,7 +24,13 @@ interface Celsus_Model_Base_Interface {
 
 	/**
 	 * Creates a new record, filled with default data, ready to be populated.
-	 * @return Celsus_Data_Object
+	 * @return mixed
 	 */
 	public function createRecord(array $data = array());
+
+	/**
+	 * Returns a list of the fields in this base class.
+	 * @return array
+	 */
+	public function getFields();
 }

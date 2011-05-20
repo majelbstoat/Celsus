@@ -5,7 +5,7 @@
  * @category Celsus
  * @package Celsus_Controller
  * @copyright Copyright (c) 2008-2010 Jamie Talbot (http://jamietalbot.com)
- * @version $Id$
+ * @version $Id: MultiTenanting.php 69 2010-09-08 12:32:03Z jamie $
  */
 
 /**
@@ -65,12 +65,11 @@ class Celsus_Controller_Plugin_MultiTenanting extends Zend_Controller_Plugin_Abs
 	public function preDispatch(Zend_Controller_Request_Abstract $request) {
 		$frontController = Zend_Controller_Front::getInstance();
 
-		$server = $_SERVER['SERVER_NAME'];
+		$server = $_SERVER['HTTP_HOST'];
 
 		// Check that the organisational and reseller accounts exist and match.
 		$subdomains = explode('.', $server);
 		$tenantDomain = $subdomains[0];
-		Celsus_Application::setTenantName($tenantDomain);
 
 		// @todo Choose the username to bind to.
 		$databaseAdapterName = $this->_databaseAdapterName;
@@ -104,6 +103,7 @@ class Celsus_Controller_Plugin_MultiTenanting extends Zend_Controller_Plugin_Abs
 		}
 
 		// Store tenant information.
+		Celsus_Application::setTenantName($tenantDomain);
 		Zend_Registry::set('tenant', $tenant);
 	}
 

@@ -4,12 +4,15 @@ class Celsus_Form_Decorator_ClientSideValidated extends Zend_Form_Decorator_Abst
 
 	protected $_validatedFields = array();
 
+	protected $_validationTriggers = array();
+
 	/**
 	 * Plugin loader to load validation objects for form-level validation.
 	 *
-	 * @var Zend_Loader_PluginLoader
+	 * @var Zend_Loader_PluginLoader $_validationLoader
 	 */
 	protected $_validationLoader = null;
+
 
 	/**
 	 * Converts server side validating classes for an element into client side
@@ -32,6 +35,10 @@ class Celsus_Form_Decorator_ClientSideValidated extends Zend_Form_Decorator_Abst
 				'situations' => array(),
 				'conditions' => array($name => $constraints)
 			);
+			if (!array_key_exists($name, $this->_validationTriggers)) {
+				$this->_validationTriggers[$name] = array();
+			}
+			$this->_validationTriggers[$name][$name] = true;
 		}
 
 	}
@@ -46,28 +53,33 @@ class Celsus_Form_Decorator_ClientSideValidated extends Zend_Form_Decorator_Abst
 		foreach ($formValidators as $validator) {
 			$situations = array();
 			$conditions = array();
-			$targets = array();
 			if (isset($validator['situations'])) {
 				foreach ($validator['situations'] as $name => $validators) {
-					$targets[$name] = true;
 					$situations[$name] = $this->_generateClientSideValidation($name, $this->_convertFormValidation($validators), false);
 				}
 			}
 			foreach ($validator['conditions'] as $name => $validators) {
-				$targets[$name] = true;
+				// Make the field trigger itself.
+				if (!array_key_exists($name, $this->_validationTriggers)) {
+					$this->_validationTriggers[$name] = array();
+				}
+				$this->_validationTriggers[$name][$name] = true;
+
 				$clientsideValidation = $this->_generateClientSideValidation($name, $this->_convertFormValidation($validators));
 				if (isset($validator['message'])) {
 					foreach ($clientsideValidation as $rule => & $message) {
 						$message = $validator['message'];
 					}
 				}
-				$conditions[$name] = $clientsideValidation;
-			}
-			foreach (array_keys($targets) as $target) {
-				$this->_validatedFields[$target][] = array(
+				$this->_validatedFields[$name][] = array(
 					'situations' => $situations,
-					'conditions' => $conditions
+					'conditions' => array($name => $clientsideValidation)
 				);
+
+				// Now ensure that each element that determines whether the condition needs to be satisfied trigger the checks on this element.
+				foreach (array_keys($situations) as $trigger) {
+					$this->_validationTriggers[$trigger][$name] = true;
+				}
 			}
 		}
 	}
@@ -94,9 +106,10 @@ class Celsus_Form_Decorator_ClientSideValidated extends Zend_Form_Decorator_Abst
 		if (empty($options)) {
 			return new $name;
 		} else {
+			//return new $name($options);
 			$r = new ReflectionClass($name);
 			if ($r->hasMethod('__construct')) {
-				return $r->newInstanceArgs((array) $options);
+				return $r->newInstanceArgs($options);
 			} else {
 				return new $name;
 			}
@@ -107,14 +120,19 @@ class Celsus_Form_Decorator_ClientSideValidated extends Zend_Form_Decorator_Abst
 	 * Converts an array of validator strings and optional arguments into a validator object suitable
 	 * for creating client side validation code from.
 	 *
-	 * @var array $validators
+	 * @var array|string $validators
 	 * @return array
 	 */
 	protected function _convertFormValidation($validators) {
+		if (!is_array($validators)){
+			$validators = array($validators);
+		}
 		foreach ($validators as $validator) {
 			if (is_array($validator)) {
 				// This is a validator with options
-				$return[$validator[0]] = $this->_createValidator($validator[0], $validator[1]);
+				$arguments = $validator;
+				$validator = array_shift($arguments);
+				$return[$validator] = $this->_createValidator($validator, $arguments);
 			} else {
 				// This is just a plain class base name.
 				$return[$validator] = $this->_createValidator($validator);
@@ -137,10 +155,10 @@ class Celsus_Form_Decorator_ClientSideValidated extends Zend_Form_Decorator_Abst
 			$base = (false !== strpos($type, '_')) ? end($components) : $type;
 			if ($validation = $validator->getClientSideValidation($name)) {
 				list($test, $message) = $validation;
-				if ($ignoreBlank && ('mandatory' != $test) && ('Empty' != $base)) {
+				//if ($ignoreBlank && ('mandatory' != $test) && ('Empty' != $base)) {
 					// For non-mandatory constraints, we don't want to validate if the value is empty.
-					$test = "'' === \$V('$name') || " . $test;
-				}
+				//	$test = "_inputs.$name.blank() || " . $test;
+			//	}
 				$tests[$test] = $message;
 			}
 		}
@@ -152,19 +170,21 @@ class Celsus_Form_Decorator_ClientSideValidated extends Zend_Form_Decorator_Abst
 			return '';
 		}
 
-		ob_start();
-		$formName = $this->getElement()->getName();
-		echo "Celsus.addLoadEvent(Celsus.Validation.initialise, '$formName', [";
-		$output = array();
+		$output = new stdClass();
 		foreach ($this->_validatedFields as $element => $validationSet) {
 			$object = new StdClass();
-			$object->field = $element;
+
+			if (array_key_exists($element, $this->_validationTriggers)) {
+				// Mark this element as triggering others.
+				$object->triggers = array_keys($this->_validationTriggers[$element]);
+			}
+
 			foreach ($validationSet as $validation) {
 				if (isset($validation['situations']) && $validation['situations']) {
 					$situationRules = array();
 					foreach ($validation['situations'] as $field => $situations) {
 						foreach (array_keys($situations) as $situation) {
-							$situationRules[] = ('mandatory' == $situation) ? "\$V('$field', false)" : $situation;
+							$situationRules[] = ('mandatory' == $situation) ? "!_inputs[model].$field.blank()" : str_replace('%element%', "_inputs[model].$field", $situation);
 						}
 					}
 					$situation = implode(' && ', $situationRules);
@@ -176,10 +196,10 @@ class Celsus_Form_Decorator_ClientSideValidated extends Zend_Form_Decorator_Abst
 						$info = new StdClass();
 						$info->situation = $situation;
 						if ($constraint == 'mandatory') {
-							$info->condition = "\$V('$field', false)";
+							$info->condition = "!_inputs[model].$field.blank()";
 							$info->mandatory = true;
 						} else {
-							$info->condition = str_replace('%element%', $field, $constraint);
+							$info->condition = str_replace('%element%', "_inputs[model].$field", $constraint);
 						}
 						$info->message = $message;
 						$info->target = $field;
@@ -187,27 +207,53 @@ class Celsus_Form_Decorator_ClientSideValidated extends Zend_Form_Decorator_Abst
 					}
 				}
 			}
-			$output[] = Zend_Json::encode($object);
+			$output->$element = $object;
 		}
-		echo implode(',', $output);
-		$validateNow = Zend_Controller_Front::getInstance()->getRequest()->isPost() ? 'true' : 'false';
-		echo "], '$formName', $validateNow);";
-		return ob_get_clean();
+
+		$formName = $this->getElement()->getInternalName();
+		$constraints = Zend_Json::encode($output);
+
+		return <<<FORM_VALIDATION
+(function($) {
+	Celsus.Validation.Rules["$formName"] = $constraints;
+})(jQuery);
+FORM_VALIDATION;
 	}
 
 	public function render($content) {
-		$elements = $this->getElement()->getElements();
-		foreach ($elements as $element) {
+		$this->_processForm();
+		$form = $this->getElement();
+		foreach ($form->getElements() as $element) {
 			$validators = $element->getValidators();
 			$required = $element->isRequired();
 			if ($required || $validators) {
 				$this->_processElement($element, $validators);
 			}
 		}
-		$this->_processForm();
+
+		// Write all this information to a file in js/validation/model-{serialised-validation-rules}.js
 
 		$validation = $this->_buildValidators();
-		return $content . '<script type="text/javascript">' . $validation . '</script>';
+		file_put_contents(PROJECT_ROOT . '/html/js/validation/' . $form->getInternalName() . '.js', $validation);
+
+		// Set up the jQuery view helpers to render this form.
+		$jQuery = Zend_Layout::getMvcInstance()->getView()->getHelper('jQuery');
+		$jQuery->addPlugin('validate');
+//			->addPlugin('formerize')
+//			->addValidation($form->getInternalName());
+
+		//foreach ($form->getAdditionalValidation() as $name => $validation) {
+			//$jQuery->addValidation($validation, $name);
+		//}
+
+		$jQuery->addPlugin($form->getName(), 'validation');
+
+		if (Zend_Controller_Front::getInstance()->getRequest()->isPost()) {
+			$jQuery->addJavascript("Celsus.Validation.validateOnLoad = true;");
+		}
+
+
+		return $content;
 	}
 }
 

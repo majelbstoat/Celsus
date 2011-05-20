@@ -94,6 +94,12 @@ class Celsus_Data_Object extends Celsus_Data_Abstract {
 		return $this;
 	}
 
+	public function setFromArray($data) {
+		foreach ($data as $key => $value) {
+			$this->$key = $value;
+		}
+	}
+
 	/**
 	 * Sets the filter to be used for this data object.
 	 *
@@ -222,7 +228,7 @@ class Celsus_Data_Object extends Celsus_Data_Abstract {
 
 		// If the data hasn't changed, do nothing.
 		if ($this->_data[$field] === $value) {
-			return true;
+			return false;
 		}
 
 		$this->_dirty = true;

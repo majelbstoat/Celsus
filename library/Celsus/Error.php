@@ -1,5 +1,23 @@
 <?php
+/**
+ * Celsus
+ *
+ * @category Celsus
+ * @copyright Copyright (c) 2010 Jamie Talbot (http://jamietalbot.com)
+ * @version $Id: Error.php 72M 2010-09-20 21:32:08Z (local) $
+ */
 
+/**
+ * Error handling functionality
+ *
+ * @defgroup Celsus_Error Celsus Error
+ */
+
+/**
+ * Provides error triggering and handling.
+ *
+ * @ingroup Celsus_Error
+ */
 class Celsus_Error {
 
 	const EXCEPTION_APPLICATION_ERROR = 'EXCEPTION_APPLICATION_ERROR';
@@ -23,7 +41,8 @@ class Celsus_Error {
 			// Sets the parameter on the request.
 			$request->setParam('error_handler', self::EXCEPTION_APPLICATION_ERROR);
 		}
-		throw new Celsus_Exception($message . " " . $file . " " . $line, $type);
+		die('<pre>' . $message . "\n" . $file . " " . $line . '</pre>');
+		throw new Celsus_Exception($message . "\n" . $file . " " . $line, $type);
 	}
 
 }

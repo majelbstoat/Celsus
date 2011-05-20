@@ -1,19 +1,45 @@
 <?php
+/**
+ * Celsus
+ *
+ * @category Celsus
+ * @copyright Copyright (c) 2010 Jamie Talbot (http://jamietalbot.com)
+ * @version $Id: Model.php 69 2010-09-08 12:32:03Z jamie $
+ */
 
 /**
- * Representation of a business entity.  Acts as a data transfer object with build in security and validation.
+ * Functionality relating to the manipulation of business entities.
  *
- * @author majelbstoat
- *
+ * @defgroup Celsus_Model Celsus Model
  */
-abstract class Celsus_Model extends Celsus_Data_Object implements Zend_Validate_Interface {
+
+/**
+ * Represents a business entity.  Acts as a data transfer object with build in security and validation.
+ *
+ * @ingroup Celsus_Model
+ */
+abstract class Celsus_Model extends Celsus_Data_Object {
+
+	/**
+	 * The mapper that links the model to the underlying.
+	 *
+	 * @var Celsus_Model_Mapper
+	 */
+	protected $_mapper = null;
+
+	/**
+	 * A breakdown of which marshal is used for each source.
+	 *
+	 * @param Celsus_Data_Marshal_Interface
+	 */
+	protected $_marshalledSources = array();
 
 	/**
 	 * A breakdown of which fields are from which source.
 	 *
 	 * @param array
 	 */
-	protected $_marshalledFields = null;
+	protected $_sourceFieldMap = null;
 
 	/**
 	 * Where the data originally came from.
@@ -23,11 +49,11 @@ abstract class Celsus_Model extends Celsus_Data_Object implements Zend_Validate_
 	protected $_sources = null;
 
 	/**
-	 * The service that describes this model.
+	 * A flag to specify whether the model data is valid.
 	 *
-	 * @param Celsus_Model_Service_Interface
+	 * @var boolean
 	 */
-	protected $_service = null;
+	protected $_valid = null;
 
 	/**
 	 * The messages returned by failed validation.
@@ -37,138 +63,63 @@ abstract class Celsus_Model extends Celsus_Data_Object implements Zend_Validate_
 	protected $_validationMessages = array();
 
 	/**
+	 * The rules to validate against.
+	 *
+	 * @param array
+	 */
+	protected $_validationRules = array();
+
+
+	/**
 	 * Constructs a new Celsus Model.
 	 *
 	 * @param array $options
 	 */
 	public function __construct(array $config) {
 
-		// Check that a service is specified.
-		if (!isset($config['service'])) {
-			throw new Celsus_Exception("Can't instantiate a model without a service definition");
+		// Check that a mapper is specified.
+		if (!isset($config['mapper'])) {
+			throw new Celsus_Exception("Can't instantiate a model without a mapper.");
 		}
-		$this->_service = $config['service'];
+		$this->_mapper = $config['mapper'];
 
 		// Check that data was specified.
 		if (!isset($config['data'])) {
-			throw new Celsus_Exception("Can't instantiate a model instance without data");
+			throw new Celsus_Exception("Can't instantiate a model instance without data.");
 		}
 		parent::__construct($config['data']);
 
 	}
 
+	// Validation
+
 	/**
-	 * Tests to see if the supplied data is valid for this model.
-	 * Required by Zend_Validate_Interface
-	 *
-	 * @todo Allow this to handle partial updates, where only a subset of the
-	 * full required data is supplied.
-	 * @param mixed $data
-	 * @return bool
+	 * Uses the model service to determine if the data is valid.
 	 */
-	public function isValid($data) {
-		$this->_prepareValidators($data);
-		$result = true;
-		foreach ($this->_validationRules as $field => $rule) {
-			$value = $data->$field;
-			if (!Zend_Validate::is($value, $rule[0], array(
-			$rule[1]
-			), $this->_validatorNamespaces)) {
-				$this->_validationMessages = Celsus_Validate::getValidateMessages();
-				$result = false;
-			}
+	public function isValid() {
+		if (null === $this->_valid) {
+			$this->_validationMessages = array();
+			$service = $this->_mapper->getService();
+			$this->_valid = $service::validate($this);
 		}
-		return $result;
+		return $this->_valid;
 	}
 
-	/**
-	 * Given the set of data, determines which constraints have to be applied
-	 * to which fields.
-	 * @param $data
-	 * @return unknown_type
-	 */
-	protected function _prepareValidators($data) {
-		foreach ($this->getValidators() as $validator) {
-			if (isset($validator['situations'])) {
-				foreach ($validator['situations'] as $field => $situations) {
-					foreach ($situations as $situation) {
-						$value = $data->$field;
-						if (is_array($situation)) {
-							$validatorBase = $situation[0];
-							$validatorArgs = array(
-							$situation[1]
-							);
-						} else {
-							$validatorBase = $situation;
-							$validatorArgs = array();
-						}
-						if (!Zend_Validate::is($value, $validatorBase, $validatorArgs, $this->_validatorNamespaces)) {
-							// There is a situation for this validation and it isn't satisfied, so ignore the conditions.
-							continue 3;
-						}
-					}
-				}
-			}
-
-			foreach ($validator['conditions'] as $field => $condition) {
-				$validatorBase = $condition[0];
-				$validatorArgs = (count($condition) > 1) ? $condition[1] : array();
-				if ('NotEmpty' == $validatorBase) {
-					//$element->setRequired(true);
-				} else {
-					$this->_validationRules[$field] = array(
-					$validatorBase,
-					true,
-					$validatorArgs
-					);
-				}
-			}
-		}
+	public function setValidationMessages($field, $messages) {
+		$this->_validationMessages[$field] = $messages;
 	}
 
-	/**
-	 * Returns the messages given when a model fails validation.
-	 *
-	 * @return array
-	 */
-	public function getMessages() {
+	public function getValidationMessages() {
 		return $this->_validationMessages;
 	}
 
-	/**
-	 * Gets the human-readable title of this model.
-	 *
-	 * @return string
-	 */
-	public function getTitle() {
-		if (is_null($this->_title)) {
-			// Generate a default title, based on the class name.
-			$class = get_class($this);
-			$this->_title = substr($class, strrpos($class, '_') + 1);
-		}
-		return $this->_title;
-	}
-
-	/**
-	 * Gets the default values for a new row.
-	 */
-	public function getDefaultValues() {
-		if (is_null($this->_defaultValues)) {
-			$this->_setupDefaultValues();
-		}
-		return $this->_defaultValues;
-	}
-
-	/**
-	 * Returns the default fields for this model.
-	 *
-	 * @return array
-	 */
-	public function getDefaultFields() {
-		return array_keys($this->_defaultFields);
-	}
-
 	// Data Transfer Properties
+
+	public function __set($field, $value) {
+		if (parent::__set($field, $value)) {
+			$this->_valid = null;
+		}
+	}
 
 	protected function _setData($data) {
 		if (!is_array($data)) {
@@ -176,6 +127,7 @@ abstract class Celsus_Model extends Celsus_Data_Object implements Zend_Validate_
 			$data = array($data);
 		}
 
+		$fieldMap = array_flip($this->_mapper->getFieldMap());
 		$marshalled = false;
 		foreach ($data as $sourceKey => $item) {
 			if (is_object($item)) {
@@ -184,10 +136,15 @@ abstract class Celsus_Model extends Celsus_Data_Object implements Zend_Validate_
 						// We have a provider that can marshal this object.
 						$providedData = call_user_func(array($marshal, 'provide'), $item);
 						foreach ($providedData as $key => $value) {
-							$this->_data[$key] = $value;
-							$this->_marshalledFields[$marshal][] = $key;
+							if (array_key_exists($key, $fieldMap)) {
+								$this->_data[$fieldMap[$key]] = $value;
+							} else {
+								$this->_data[$key] = $value;
+							}
+							$this->_sourceFieldMap[$sourceKey][] = $key;
 						}
-						$this->_sources[$marshal] = $item;
+						$this->_sources[$sourceKey] = $item;
+						$this->_marshalledSources[$sourceKey] = $marshal;
 						$marshalled = true;
 						break;
 					}
@@ -203,22 +160,64 @@ abstract class Celsus_Model extends Celsus_Data_Object implements Zend_Validate_
 		return $this;
 	}
 
+	/**
+	 * Returns all the data, subject to the current identity's permissions.
+	 * Runs recursively over sub-records.
+	 *
+	 * @return array;
+	 */
+	public function getData() {
+		if (null === $this->_readableFields) {
+			$this->_determineReadableFields();
+		}
+		$return = array_intersect_key($this->_data, array_flip($this->_readableFields));
+		foreach ($return as $field => $data) {
+			if ($data instanceof self) {
+				$return[$field] = $data->getData();
+			}
+		}
+		return $return;
+	}
+
 
 	// Persistence
 
-
 	/**
-	 * Short circuit this when the object is not dirty.
+	 * @todo Handle complex save operations where split ids need to be set.
 	 */
 	public function save() {
-
-		if (!$this->_dirty) {
-			// Or a better return type.
-			return true;
+		$return = false;
+		if ($this->id && !$this->_dirty) {
+			// No changes have been made to the object
+			$return = $this->id;
+		} else {
+			if ($this->isValid()) {
+				$modelFieldMap = $this->_mapper->getFieldMap();
+				foreach ($this->_sourceFieldMap as $sourceKey => $fields) {
+					// Build an array of data to save to this underlying, making use of the model field map to
+					// convert between business model fields and underlying fields.
+					$data = array();
+					foreach ($this->_data as $key => $value) {
+						if (array_key_exists($key, $modelFieldMap)) {
+							$data[$modelFieldMap[$key]] = $value;
+						} else {
+							$data[$key] = $value;
+						}
+					}
+					$id = call_user_func_array(array($this->_marshalledSources[$sourceKey], 'save'), array($data, $this->_sources[$sourceKey]));
+					if (!$this->id) {
+						// @todo consider implications of atomicity.
+						$this->id = $id;
+						break;
+					} elseif (!isset($return)) {
+						// Assumes that for complex, multi-part objects, the primary part is going to first.
+						$return = $id;
+					}
+				}
+			} else {
+				throw new Celsus_Model_Exception_InvalidData("One or more fields were invalid.  Please check your data and try again.");
+			}
 		}
-
-		// @todo Needs to be rewritten to take account of all the marshals that provide different fields.
-
-		return call_user_func_array(array($this->_marshal, 'save'), array($this->_data, $this->_source));
+		return $return;
 	}
 }

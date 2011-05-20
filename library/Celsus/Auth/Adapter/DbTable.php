@@ -1,6 +1,6 @@
 <?php
 
-class Celsus_Auth_Adapter_DbTable extends Zend_Auth_Adapter_DbTable {
+class Celsus_Auth_Adapter_DbTable extends Celsus_Auth_Adapter_Interface {
 
 	/**
 	 * Name of table to join to used for complex authentications.

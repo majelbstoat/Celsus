@@ -1,5 +1,23 @@
 <?php
+/**
+ * Celsus
+ *
+ * @category Celsus
+ * @copyright Copyright (c) 2010 Jamie Talbot (http://jamietalbot.com)
+ * @version $Id: Db.php 69 2010-09-08 12:32:03Z jamie $
+ */
 
+/**
+ * Dabatase functionality
+ *
+ * @defgroup Celsus_Db Celsus Database
+ */
+
+/**
+ * Database connection broker, with profiling and logging support.
+ *
+ * @ingroup Celsus_Db
+ */
 class Celsus_Db {
 
 	/**

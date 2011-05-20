@@ -5,7 +5,7 @@
  * @category Celsus
  * @package Celsus_Auth
  * @copyright Copyright (c) 2008-2010 Jamie Talbot (http://jamietalbot.com)
- * @version $Id$
+ * @version $Id: Couch.php 69 2010-09-08 12:32:03Z jamie $
  */
 
 /**
@@ -14,7 +14,7 @@
  * @category Celsus
  * @package Celsus_Auth
  */
-class Celsus_Auth_Adapter_Couch implements Zend_Auth_Adapter_Interface {
+class Celsus_Auth_Adapter_Couch implements Celsus_Auth_Adapter_Interface {
 
 	const EXCEPTION_COUCH_AUTH_ERROR = 'EXCEPTION_COUCH_AUTH_ERROR';
 
@@ -116,7 +116,7 @@ class Celsus_Auth_Adapter_Couch implements Zend_Auth_Adapter_Interface {
 			$resultInfo['code'] = Zend_Auth_Result::FAILURE_IDENTITY_AMBIGUOUS;
 			$resultInfo['messages'] = array('More than one document matches the supplied identity.');
 		} else {
-			$result = new Celsus_Data_Object($results->rewind());
+			$result = $results[0];
 
 			// Additional checks to make sure the view is returning the field we want.
 			$identityField = $result->{$this->_identityField};

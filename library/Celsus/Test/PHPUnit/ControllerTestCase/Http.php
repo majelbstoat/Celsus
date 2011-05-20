@@ -5,7 +5,7 @@
  * @category Celsus
  * @package Celsus_Test
  * @copyright Copyright (c) 2008-2010 Jamie Talbot (http://jamietalbot.com)
- * @version $Id$
+ * @version $Id: Http.php 69 2010-09-08 12:32:03Z jamie $
  */
 require_once 'Zend/Test/PHPUnit/ControllerTestCase.php';
 /**
@@ -29,6 +29,14 @@ class Celsus_Test_PHPUnit_ControllerTestCase_Http extends Zend_Test_PHPUnit_Cont
 	 * @var array
 	 */
 	protected $_bootstrapComponents = null;
+
+	/**
+	 * Defines application components not needed for these tests.  Ignored if
+	 * $this->_bootstrapComponents is set.
+	 *
+	 * @var array
+	 */
+	protected $_excludedBootstrapComponents = array();
 
 	/**
 	 * Broker that provides mocking capabilities.
@@ -64,7 +72,7 @@ class Celsus_Test_PHPUnit_ControllerTestCase_Http extends Zend_Test_PHPUnit_Cont
 		APPLICATION_PATH . '/configs/common.ini',
 		APPLICATION_PATH . '/configs/web.ini'
 		));
-		$this->_application->bootstrap($this->_bootstrapComponents);
+		$this->_application->bootstrap($this->_bootstrapComponents, $this->_excludedBootstrapComponents);
 	}
 
 	public function setUp() {
@@ -116,6 +124,22 @@ class Celsus_Test_PHPUnit_ControllerTestCase_Http extends Zend_Test_PHPUnit_Cont
 
 	public function getMockObject() {
 		return call_user_func_array(array($this, 'getMock'), func_get_args());
+	}
+
+	// Additional Assertions
+
+	/**
+	 * Asserts that we are in the expect context (json, xml etc).
+	 *
+	 * @param string $context
+	 */
+	public function assertContext($context) {
+		$this->_incrementAssertionCount();
+		$actualContext = Zend_Controller_Action_HelperBroker::getStaticHelper('ContextSwitch')->getCurrentContext();
+		if ($context != $actualContext) {
+			$msg = sprintf('Failed asserting context <"%s"> was "%s"', $actualContext, $context);
+			$this->fail($msg);
+		}
 	}
 
 }
