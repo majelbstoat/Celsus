@@ -117,12 +117,18 @@ abstract class Celsus_Application extends Zend_Application {
 		return parent::__construct($environment, $config);
 	}
 
+	/**
+	 * Returns the URL to the application root, regardless of tenancy.
+	 */
 	public static function rootUrl() {
 		return self::$_scheme . self::$_host;
 	}
 
+	/**
+	 * Returns the URL to the application root, taking into account multi-tenancy if specified.
+	 */
 	public static function tenantUrl() {
-		return self::$_scheme . self::$_tenantName . '.' . self::$_host;
+		return self::$_tenantName ? self::$_scheme . self::$_tenantName . '.' . self::$_host : self::$_scheme . self::$_host;
 	}
 
 	/**
