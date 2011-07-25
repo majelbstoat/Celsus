@@ -26,6 +26,13 @@ class Celsus_Model_Base_Couch implements Celsus_Model_Base_Interface {
 	 */
 	protected $_designDocument = null;
 
+	/**
+	 * The fields that are present in the underlying representation of this model.
+	 *
+	 * @var array
+	 */
+	protected $_fields = null;
+
 	public function __construct(array $config = array()) {
 		$this->_adapter = isset($config['adapter']) ? $config['adapter'] : self::getDefaultAdapter();
 	}
@@ -83,14 +90,43 @@ class Celsus_Model_Base_Couch implements Celsus_Model_Base_Interface {
 
 	/**
 	 * Creates a new record, filled with default data, ready to be populated.
-	 * @return Celsus_Data_Object
+	 *
+	 * Note that this is a little restrictive when compared to the free-for-all nature
+	 * often assumed with NoSQL databases.  However, we still need some idea of the structure
+	 * of the data to instantiate the Celsus_Data_Object later and we want to retain the
+	 * safeguards on just adding arbitrary data.
+	 *
+	 * (Future application requirements may force us to rethink this and allow Celsus_Data_Objects
+	 * with no pre-defined schema, however we could easily enforce a CDO with a single field 'data'
+	 * which could contain arbitrary values.)
+	 *
+	 * @return Celsus_Db_Document_Couch
 	 */
 	public function createRecord(array $data = array()) {
+		$fields = $this->getFields();
+		$defaults = array_combine($fields, array_fill(0, count($fields), null));
+		$defaults['type'] = $this->_name;
+
 		$record = new Celsus_Db_Document_Couch(array(
 			'adapter' => $this->getAdapter(),
-			'data' => $data
+			'data' => array_merge($defaults, $data)
 		));
 		return $record;
+	}
+
+	/**
+	 * Returns the fields that represent this model in the underlying couchdb database.  Looks for a
+	 * specific document with the same _id as $this->_name, and adds _id, _rev and type to the fields
+	 * field it finds there.
+	 *
+	 * @return array
+	 */
+	public function getFields() {
+		if (null == $this->_fields) {
+			$documents = $this->getAdapter()->find($this->_name)->toArray();
+			$this->_fields = array_merge(array('_id', '_rev'), $documents[0]['fields'], array('type'));
+		}
+		return $this->_fields;
 	}
 
 	/**

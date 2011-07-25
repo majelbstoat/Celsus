@@ -23,7 +23,8 @@ abstract class Celsus_Controller_Auth_RpxNow extends Celsus_Controller_Auth {
 
 		if ($this->getRequest()->isPost()) {
 
-			$adapter = new Celsus_Auth_Adapter_RpxNow($_POST['token'], Zend_Registry::get('config')->auth->rpx->key);
+			$adapter = Celsus_Auth::getAuthAdapter();
+			$adapter->setToken($_POST['token']);
 			$result = $adapter->authenticate();
 
 			if (!$result->isValid()) {
@@ -31,24 +32,46 @@ abstract class Celsus_Controller_Auth_RpxNow extends Celsus_Controller_Auth {
 				$this->getRequest()->setParam('error_handler', Celsus_Auth_Adapter_RpxNow::EXCEPTION_RPX_ERROR);
 				$this->_forward('error', 'error');
 			} else {
-				Zend_Registry::set('rpxData', $adapter->getResult());
+				$rpxData = $adapter->getResult();
+				Zend_Registry::set('rpxData', $rpxData);
 			}
 
-			$auth = Zend_Auth::getInstance();
+			$auth = Celsus_Auth::getInstance();
 			if ($auth->hasIdentity()) {
 				// Already has a session, so offer the choice of adding this identity.
 				$this->_forward('merge');
 			} else {
-				// Application specific handling of new identities.
-				$this->_loginOrRegister();
+				// Check the RPX data received against the local adapter.
+
+				$localAdapter = $adapter->getLocalAuthAdapter();
+				$localAdapter->setCredential($rpxData['identifier'])->setIdentity($rpxData['identifier']);
+				$result = $localAdapter->authenticate();
+
+				if ($result->isValid()) {
+					// The user is successfully authenticated, so redirect them back to from whence they came.
+					$auth->getStorage()->write($adapter->getResult());
+					$redirectSession = new Zend_Session_Namespace('Redirect');
+					$location = $redirectSession->location ? $redirectSession->location : '/';
+					$this->_redirect($location);
+				} else {
+					if (Zend_Auth_Result::FAILURE_IDENTITY_AMBIGUOUS == $result->getCode()) {
+						// More than one result matched that provider, which is weird.
+
+					} elseif (Zend_Auth_Result::FAILURE_IDENTITY_NOT_FOUND == $result->getCode()) {
+						// User not found, so register them.
+						$this->_forward('register');
+					} else {
+						// Another unspecified error.
+						$this->getRequest()->setParam('error_handler', Celsus_Auth_Adapter_Couch::EXCEPTION_COUCH_AUTH_ERROR);
+						$this->_forward('error', 'error');
+					}
+				}
 			}
 		} else {
 			// Trying to access this URL by means other than POST is disallowed.
 			$this->_redirect('/');
 		}
 	}
-
-	abstract protected function _loginOrRegister();
 
 	abstract public function registerAction();
 

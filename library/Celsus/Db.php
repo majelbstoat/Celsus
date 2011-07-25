@@ -56,6 +56,14 @@ class Celsus_Db {
 	}
 
 	/**
+	 * Returns the application's default adapter.
+	 * @return mixed
+	 */
+	public static function getDefaultAdapter() {
+		return self::getAdapter(self::getDefaultAdapterName());
+	}
+
+	/**
 	 * Instantiates a database adapter handle.
 	 *
 	 * @param string $name The internal name of the database to connect to.

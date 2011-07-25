@@ -80,28 +80,39 @@ class Celsus_Db_Document_Couch {
 			throw new Celsus_Exception("Not specifying an ID is a performance issue and is prohibited");
 		}
 		if ($this->getRevision()) {
-			$this->_update();
+			return $this->_update();
 		} else {
-			$this->_insert();
-		}
 
-		// Ensure you update the rev id.
+			// Unset the revision for new documents, just to be sure.
+			unset($this->_data['_rev']);
+			return $this->_insert();
+		}
 	}
 
+	/**
+	 * Updates a document in the database and returns its id.
+	 */
 	public function _update() {
 		//$this->_preUpdate();
 
 		$this->_data['_rev'] = $this->_adapter->save($this, Zend_Http_Client::PUT);
+		return $this->getId();
 
 		//$this->_postUpdate();
 	}
 
+	/**
+	 * Inserts a document into the database and returns its id.
+	 *
+	 * @return mixed
+	 */
 	public function _insert() {
-		$this->_preInsert();
+		//$this->_preInsert();
 
-		$this->_data['_rev'] = $this->_adapter->save($this, Zend_Http_Client::POST);
+		$this->_data['_rev'] = $this->_adapter->save($this, Zend_Http_Client::PUT);
+		return $this->getId();
 
-		$this->_postInsert();
+		//$this->_postInsert();
 	}
 
 	public function toArray() {
@@ -110,5 +121,9 @@ class Celsus_Db_Document_Couch {
 
 	public function toJson() {
 		return Zend_Json::encode($this->_data);
+	}
+
+	public function __get($index) {
+		return $this->_data[$index];
 	}
 }

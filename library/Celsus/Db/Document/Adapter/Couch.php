@@ -264,7 +264,7 @@ class Celsus_Db_Document_Adapter_Couch {
 
 		// Set the raw data to be saved.
 		$this->getHttpClient()->setRawData($document->toJson());
-		$response = $this->_prepare("/$db/$id/")->_execute($method);
+		$response = $this->_prepare("/$db/$id")->_execute($method);
 
 		$status = $response->getStatus();
 		switch ($status) {
@@ -272,6 +272,8 @@ class Celsus_Db_Document_Adapter_Couch {
 			case Celsus_Http::CREATED:
 
 				Celsus_Debug::print_r($response);
+				$decodedResponse = Zend_Json::decode($response->getBody());
+				$revision = $decodedResponse['rev'];
 				break;
 
 			case Celsus_Http::PRECONDITION_FAILED:
@@ -282,11 +284,19 @@ class Celsus_Db_Document_Adapter_Couch {
 				throw new Celsus_Exception("There was a conflict updating the database");
 				break;
 
+			case Celsus_Http::UNAUTHORISED:
+				throw new Celsus_Exception("Database username and password were incorrect");
+				break;
+
+			case Celsus_Http::BAD_REQUEST:
+				throw new Celsus_Exception("Error in call: " . $response->getBody());
+				break;
+
 			default:
-				throw new Celsus_Exception("Response code $status not handled.");
+				throw new Celsus_Exception("Response code $status not handled." . $response->getBody());
 				break;
 		}
-
+		return $revision;
 	}
 
 	protected function _getBaseUri() {

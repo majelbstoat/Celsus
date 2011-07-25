@@ -20,11 +20,10 @@ class Celsus_Data_Marshal_CouchDocument implements Celsus_Data_Marshal_Interface
 	}
 
 	public static function save(array $data, $object) {
-		throw new Celsus_Exception("We need to do some stuff here");
 		if (!$object instanceof Celsus_Db_Document_Couch) {
 			throw new Celsus_Exception("Must implement Celsus_Db_Document_Couch");
 		}
-		$object->setFromArray($data)->save();
+		return $object->setFromArray($data)->save();
 	}
 }
 

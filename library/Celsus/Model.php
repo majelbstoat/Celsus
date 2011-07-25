@@ -21,6 +21,13 @@
 abstract class Celsus_Model extends Celsus_Data_Object {
 
 	/**
+	 * The ID of this model instance.
+	 *
+	 * @var mixed $id
+	 */
+	public $id;
+
+	/**
 	 * The mapper that links the model to the underlying.
 	 *
 	 * @var Celsus_Model_Mapper
@@ -193,6 +200,7 @@ abstract class Celsus_Model extends Celsus_Data_Object {
 		} else {
 			if ($this->isValid()) {
 				$modelFieldMap = $this->_mapper->getFieldMap();
+				$fieldMap = array_flip($this->_mapper->getFieldMap());
 				foreach ($this->_sourceFieldMap as $sourceKey => $fields) {
 					// Build an array of data to save to this underlying, making use of the model field map to
 					// convert between business model fields and underlying fields.
@@ -204,7 +212,20 @@ abstract class Celsus_Model extends Celsus_Data_Object {
 							$data[$key] = $value;
 						}
 					}
+
+					// Save the document and store the return ID.
 					$id = call_user_func_array(array($this->_marshalledSources[$sourceKey], 'save'), array($data, $this->_sources[$sourceKey]));
+
+					// Now, re-source the data from the underlying entity as triggers might have updated additional data fields in the underlying.
+					$providedData = call_user_func(array($this->_marshalledSources[$sourceKey], 'provide'), $this->_sources[$sourceKey]);
+					foreach ($providedData as $key => $value) {
+						if (array_key_exists($key, $fieldMap)) {
+							$this->_data[$fieldMap[$key]] = $value;
+						} else {
+							$this->_data[$key] = $value;
+						}
+					}
+
 					if (!$this->id) {
 						// @todo consider implications of atomicity.
 						$this->id = $id;

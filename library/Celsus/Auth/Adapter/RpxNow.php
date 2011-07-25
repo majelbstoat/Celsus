@@ -20,6 +20,13 @@ class Celsus_Auth_Adapter_RpxNow implements Celsus_Auth_Adapter_Interface {
 
 	const EXCEPTION_RPX_ERROR = 'EXCEPTION_RPX_ERROR';
 
+	/**
+	 * The adapter to use to authenticate locally, once the RPX data has authenticated successfully.
+	 *
+	 * @var Celsus_Auth_Adapter_Interface $_localAuthAdapter
+	 */
+	protected $_localAuthAdapter = null;
+
 	protected $_token = null;
 
 	protected $_apiKey = null;
@@ -28,16 +35,31 @@ class Celsus_Auth_Adapter_RpxNow implements Celsus_Auth_Adapter_Interface {
 
 	protected $_url = self::DEFAULT_RPX_URL;
 
-	public function __construct($token, $apiKey = null, $url = null) {
-		$this->_token = $token;
-
-		if (null !== $apiKey) {
-			$this->setApiKey($apiKey);
-		}
+	public function __construct($apiKey, $localAuthAdapter, $url = null) {
+		$this->setApiKey($apiKey);
+		$this->setLocalAuthAdapter($localAuthAdapter);
 
 		if (null !== $url) {
 			$this->setUrl($url);
 		}
+	}
+
+	public function setLocalAuthAdapter($localAuthAdapter) {
+		$this->_localAuthAdapter = $localAuthAdapter;
+	}
+
+	/**
+	 * Gets the adapter used to authenticate locally.
+	 *
+	 * @return Celsus_Auth_Adapter_Interface
+	 */
+	public function getLocalAuthAdapter() {
+		return $this->_localAuthAdapter;
+	}
+
+	public function setToken($token) {
+		$this->_token = $token;
+		return $this;
 	}
 
 	public function setApiKey($apiKey) {

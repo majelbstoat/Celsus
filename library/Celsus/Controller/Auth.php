@@ -25,7 +25,7 @@ abstract class Celsus_Controller_Auth extends Zend_Controller_Action {
 			$auth->clearIdentity();
 		}
 		$redirectSession = new Zend_Session_Namespace('Redirect');
-		$location = $redirectSession ? $redirectSession->location : '/';
+		$location = $redirectSession->location ? $redirectSession->location : '/';
 		$this->_redirect($location);
 	}
 }

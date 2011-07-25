@@ -25,6 +25,7 @@ abstract class Celsus_Model_Service implements Celsus_Model_Service_Interface {
 	const FIELD_TYPE_PASSWORD = 'password';
 	const FIELD_TYPE_REFERENCE = 'reference';
 	const FIELD_TYPE_PARENT_REFERENCE = 'parentReference';
+	const FIELD_TYPE_ARRAY = 'array';
 
 	/**
 	 * Used for caching results.
@@ -316,7 +317,7 @@ abstract class Celsus_Model_Service implements Celsus_Model_Service_Interface {
 	 * @return Celsus_Model
 	 * @throws Celsus_Exception When the supplied $identifier is invalid.
 	 */
-	public static function fetchOrCreateRecord($identifier) {
+	public static function fetchOrCreateRecord($identifier = null) {
 		if ($identifier) {
 			$records = self::_underlying()->multiple()->find($identifier);
 			// Find always retrieves multiple records, even if there is only one result.

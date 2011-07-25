@@ -13,6 +13,10 @@ class Celsus_Application_Module_Autoloader extends Zend_Application_Module_Autol
 				'namespace' => 'Model_Base',
 				'path' => 'models/bases',
 			),
+			'modelset' => array(
+				'namespace' => 'Model_Set',
+				'path' => 'models/sets',
+			),
 			'record' => array(
 				'namespace' => 'Record',
 				'path' => 'records',

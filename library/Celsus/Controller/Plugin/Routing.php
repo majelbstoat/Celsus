@@ -14,7 +14,7 @@
  * @category Celsus
  * @package Celsus_Controller
  */
-class Henka_Controller_Plugin_Routing extends Zend_Controller_Plugin_Abstract {
+class Celsus_Controller_Plugin_Routing extends Zend_Controller_Plugin_Abstract {
 
 	/**
 	 * Determines what the default module should be, based on the server name.

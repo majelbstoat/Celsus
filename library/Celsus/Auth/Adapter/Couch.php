@@ -25,6 +25,8 @@ class Celsus_Auth_Adapter_Couch implements Celsus_Auth_Adapter_Interface {
 	 */
 	protected $_adapter = null;
 
+	protected $_adapterName = null;
+
 	protected $_designDocument = null;
 
 	protected $_view = null;
@@ -37,8 +39,8 @@ class Celsus_Auth_Adapter_Couch implements Celsus_Auth_Adapter_Interface {
 
 	protected $_result;
 
-	public function __construct(Celsus_Db_Document_Adapter_Couch $adapter, $designDocument = null, $view = null, $identityField = null) {
-		$this->_adapter = $adapter;
+	public function __construct($adapterName, $designDocument = null, $view = null, $identityField = null) {
+		$this->_adapterName = $adapterName;
 
 		if (null !== $view) {
 			$this->setView($view);
@@ -56,6 +58,22 @@ class Celsus_Auth_Adapter_Couch implements Celsus_Auth_Adapter_Interface {
 	public function setDesignDocument($designDocument) {
 		$this->_designDocument = $designDocument;
 		return $this;
+	}
+
+	/**
+	 * Gets the database adapter used to authenticate.
+	 *
+	 * @throws Celsus_Exception
+	 * @return Celsus_Db_Document_Adapter_Couch
+	 */
+	public function getAdapter() {
+		if (null == $this->_adapter) {
+			if (null === $this->_adapterName) {
+				throw new Celsus_Exception("Adapter name not specified!");
+			}
+			$this->_adapter = Celsus_Db::getAdapter($this->_adapterName);
+		}
+		return $this->_adapter;
 	}
 
 	public function setView($view) {
@@ -88,7 +106,7 @@ class Celsus_Auth_Adapter_Couch implements Celsus_Auth_Adapter_Interface {
 	 */
 	public function authenticate() {
 
-		if (!$this->_credential || !$this->_view || !$this->_designDocument) {
+		if (!$this->_credential || !$this->_view || !$this->_designDocument || !$this->_identityField) {
 			throw new Zend_Auth_Adapter_Exception("Missing information for Couch authentication.");
 		}
 
@@ -101,7 +119,7 @@ class Celsus_Auth_Adapter_Couch implements Celsus_Auth_Adapter_Interface {
 			'designDocument' => $this->_designDocument,
 			'parameters' => $parameters
 		));
-		$results = $this->_adapter->view($view);
+		$results = $this->getAdapter()->view($view);
 
 		// Assume it was all good.
 		$resultInfo['code'] = Zend_Auth_Result::SUCCESS;
@@ -116,7 +134,7 @@ class Celsus_Auth_Adapter_Couch implements Celsus_Auth_Adapter_Interface {
 			$resultInfo['code'] = Zend_Auth_Result::FAILURE_IDENTITY_AMBIGUOUS;
 			$resultInfo['messages'] = array('More than one document matches the supplied identity.');
 		} else {
-			$result = $results[0];
+			$result = $results->current();
 
 			// Additional checks to make sure the view is returning the field we want.
 			$identityField = $result->{$this->_identityField};

@@ -26,6 +26,11 @@ class Celsus_Auth extends Zend_Auth {
 		self::$_authAdapter = $authAdapter;
 	}
 
+	/**
+	 * Enter description here ...
+	 * @throws Celsus_Exception
+	 * @return Celsus_Auth_Adapter_Interface
+	 */
 	public static function getAuthAdapter() {
 		if (null == self::$_authAdapter) {
 			throw new Celsus_Exception("Auth adapter has not been set!");
