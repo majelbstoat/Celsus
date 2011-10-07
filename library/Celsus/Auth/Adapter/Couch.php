@@ -33,13 +33,13 @@ class Celsus_Auth_Adapter_Couch implements Celsus_Auth_Adapter_Interface {
 
 	protected $_identity = null;
 
-	protected $_identityField = null;
+	protected $_identityField = 'id';
 
 	protected $_credential = null;
 
 	protected $_result;
 
-	public function __construct($adapterName, $designDocument = null, $view = null, $identityField = null) {
+	public function __construct($adapterName, $identityField = null, $designDocument = null, $view = null) {
 		$this->_adapterName = $adapterName;
 
 		if (null !== $view) {
@@ -106,20 +106,30 @@ class Celsus_Auth_Adapter_Couch implements Celsus_Auth_Adapter_Interface {
 	 */
 	public function authenticate() {
 
-		if (!$this->_credential || !$this->_view || !$this->_designDocument || !$this->_identityField) {
+		if (!$this->_credential || !$this->_identityField) {
 			throw new Zend_Auth_Adapter_Exception("Missing information for Couch authentication.");
 		}
 
-		$parameters = array(
-			"key" => $this->_credential,
-			"include_docs" => true
-		);
-		$view = new Celsus_Db_Document_View(array(
-			'name' => $this->_view,
-			'designDocument' => $this->_designDocument,
-			'parameters' => $parameters
-		));
-		$results = $this->getAdapter()->view($view);
+		if ($this->_view) {
+			if (!$this->_designDocument) {
+				throw new Zend_Auth_Adapter_Exception("Must supply a design document when authenticating with views.");
+			}
+
+			// We are authenticating using a view.
+			$parameters = array(
+				"key" => $this->_credential,
+				"include_docs" => true
+			);
+			$view = new Celsus_Db_Document_View(array(
+				'name' => $this->_view,
+				'designDocument' => $this->_designDocument,
+				'parameters' => $parameters
+			));
+			$results = $this->getAdapter()->view($view);
+		} else {
+			// We are authenticating based on the id.
+			$results = $this->getAdapter()->find($this->_credential);
+		}
 
 		// Assume it was all good.
 		$resultInfo['code'] = Zend_Auth_Result::SUCCESS;

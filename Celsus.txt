@@ -1,0 +1,72 @@
+Important to define the differences between business model and the underlying storage of it.
+Different data can be stored in different places.
+Some complex models might draw data from multiple underlying sources
+ - e.g. Brennan Client coming from CRM and Network Management Tool.
+
+Model_Service
+- defines the fields on the business model and their types.
+- defines validation rules.
+- single definition of validation rules provides client side and server side validation.
+
+Model_Base_*  {Couch, DbTable, Memcached}
+- defines the underlying representation of the data.
+- has an adapter of the required type, which is stored in a globally available adapters registry.
+
+Model_Mapper
+- defines how the underlying representation maps to the business model.
+- in most cases is simple - a single joined DBTable row is one instance.
+- sometimes complex - like in concrete database inheritance.
+- sometimes even distributed - with data for a single business object coming from multiple sources.
+- get() operations are all funnelled through the mapper which makes it a convenient place to cache.
+
+Model
+- a single instance of the business object.
+- has the actual data that represents a single user / house / product / business object
+- follows the Data Transfer Object pattern.
+- has built in field-level read and write permissions, as specified by a filter.
+- provides a standard interface for accessing business data no matter what the underlying data is.
+- provides a simple interface to save() data, only allowing it when it is validated.
+- has smarts to determine when fields have changed
+- uses formatters to represent stored data as XML, JSON, PHP array etc (extensible).
+
+MultiTenanting
+
+Uses Postgres Database schema and multiple database users to enforce total separation of data, while allowing access to shared data (lookup tables etc).
+
+Caching
+
+- caches bootstrap config
+- supports multitenanting.
+- allows expiration by tag of memcached caches.
+- can be used to save sessions.
+
+Data Access
+
+- a set of CouchDB interface classes, similar to ZendDb.
+- factory method to get data handles.
+- lazily loaded, and globally available through registry.
+- allows data to be drawn from Soap, Rest, Couch, Memcached, PDO and treated in the same manner.
+
+Set Operations
+
+- allows Inclusion and Exclusion of sets to be specified.
+- combined with some Temporal objects, allows recurrence to be defined and tested quickly.
+
+Resource Versioning
+
+- combined with some htaccess or equivalent nginx rules, allows static assets to have far future expiration.
+
+REST
+
+- improved REST-based routing.
+- support for PUT and DELETE, either natively or through X-HTTP-Method
+- authentication through HTTP headers for cruft-free application URLs
+- support for context switching based on data return type requested through HTTP headers.
+
+Celsus
+
+Lazy loading of data handlers
+Caching with memcached
+
+
+

@@ -58,7 +58,7 @@ class Celsus_Db_Document_Adapter_Couch {
 		if (!preg_match('/^[a-z][a-z0-9_$()+-\/]+$/', $db)) {
 			throw new Celsus_Exception(sprintf('Invalid database specified: "%s"', htmlentities($db)));
 		}
-		$this->_db = $db;
+		$this->_config['db'] = $db;
 		$this->_dirty = true;
 		return $this;
 	}
@@ -69,7 +69,7 @@ class Celsus_Db_Document_Adapter_Couch {
 	 * @return string|null
 	 */
 	public function getDb() {
-		return $this->_db;
+		return $this->_config['db'];
 	}
 
 	/**
@@ -78,7 +78,7 @@ class Celsus_Db_Document_Adapter_Couch {
 	 * @param bool $ssl
 	 */
 	public function setSsl($ssl) {
-		$this->_ssl = !!$ssl;
+		$this->_config['ssl'] = !!$ssl;
 		$this->_dirty = true;
 		return $this;
 	}
@@ -89,7 +89,7 @@ class Celsus_Db_Document_Adapter_Couch {
 	 * @return bool
 	 */
 	public function getSsl() {
-		return $this->_ssl;
+		return $this->_config['ssl'];
 	}
 
 	/**
@@ -98,7 +98,7 @@ class Celsus_Db_Document_Adapter_Couch {
 	 * @param string $username
 	 */
 	public function setUsername($username) {
-		$this->_username = $username;
+		$this->_config['username'] = $username;
 		$this->_dirty = true;
 		return $this;
 	}
@@ -109,7 +109,7 @@ class Celsus_Db_Document_Adapter_Couch {
 	 * @return string
 	 */
 	public function getUsername() {
-		return $this->_username;
+		return $this->_config['username'];
 	}
 
 	/**
@@ -118,7 +118,7 @@ class Celsus_Db_Document_Adapter_Couch {
 	 * @param string $password
 	 */
 	public function setPassword($password) {
-		$this->_password = $password;
+		$this->_config['password'] = $password;
 		$this->_dirty = true;
 		return $this;
 	}
@@ -129,7 +129,7 @@ class Celsus_Db_Document_Adapter_Couch {
 	 * @return string
 	 */
 	public function getPassword() {
-		return $this->_password;
+		return $this->_config['password'];
 	}
 
 	/**
@@ -139,7 +139,7 @@ class Celsus_Db_Document_Adapter_Couch {
 	 * @return Celsus_Db_Document_Adapter_Couch
 	 */
 	public function setHost($host) {
-		$this->_host = $host;
+		$this->_config['host'] = $host;
 		$this->_dirty = true;
 		return $this;
 	}
@@ -150,7 +150,7 @@ class Celsus_Db_Document_Adapter_Couch {
 	 * @return string
 	 */
 	public function getHost() {
-		return $this->_host;
+		return $this->_config['host'];
 	}
 
 	/**
@@ -160,7 +160,7 @@ class Celsus_Db_Document_Adapter_Couch {
 	 * @return Celsus_Db_Document_Adapter_Couch
 	 */
 	public function setPort($port) {
-		$this->_port = (int) $port;
+		$this->_config['port'] = (int) $port;
 		$this->_dirty = true;
 		return $this;
 	}
@@ -171,7 +171,7 @@ class Celsus_Db_Document_Adapter_Couch {
 	 * @return int
 	 */
 	public function getPort() {
-		return $this->_port;
+		return $this->_config['port'];
 	}
 
 	/**
@@ -245,6 +245,18 @@ class Celsus_Db_Document_Adapter_Couch {
 				return null;
 				break;
 
+			case Celsus_Http::UNAUTHORISED:
+				throw new Celsus_Exception("Database username and password were incorrect");
+				break;
+
+			case Celsus_Http::BAD_REQUEST:
+				throw new Celsus_Exception("Error in call: " . $response->getBody());
+				break;
+
+			case Celsus_Http::UNSUPPORTED_MEDIA_TYPE:
+				throw new Celsus_Exception("Content type must be application/json");
+				break;
+
 			default:
 				throw new Celsus_Exception("Response code $status not handled.");
 				break;
@@ -271,7 +283,6 @@ class Celsus_Db_Document_Adapter_Couch {
 			case Celsus_Http::OK:
 			case Celsus_Http::CREATED:
 
-				Celsus_Debug::print_r($response);
 				$decodedResponse = Zend_Json::decode($response->getBody());
 				$revision = $decodedResponse['rev'];
 				break;
@@ -292,6 +303,10 @@ class Celsus_Db_Document_Adapter_Couch {
 				throw new Celsus_Exception("Error in call: " . $response->getBody());
 				break;
 
+			case Celsus_Http::UNSUPPORTED_MEDIA_TYPE:
+				throw new Celsus_Exception("Content type must be application/json");
+				break;
+
 			default:
 				throw new Celsus_Exception("Response code $status not handled." . $response->getBody());
 				break;
@@ -304,7 +319,7 @@ class Celsus_Db_Document_Adapter_Couch {
 			return $this->_baseUri;
 		}
 		$portNumber = $this->getPort();
-		if ($this->_ssl) {
+		if ($this->_config['ssl']) {
 			$s = 's';
 			$port = (443 != $portNumber) ? ":$portNumber" : '';
 		} else {
@@ -336,6 +351,7 @@ class Celsus_Db_Document_Adapter_Couch {
 
 	public function _prepare($path, $parameters = null) {
 		$client = $this->getHttpClient();
+		$client->setHeaders('Content-Type', 'application/json');
 		$base = $this->_getBaseUri();
 		$path = ltrim($path, '/');
 		$client->setUri("$base/$path");

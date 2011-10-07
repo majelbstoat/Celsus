@@ -16,12 +16,10 @@
  */
 class Celsus_Model_Mapper_Complex extends Celsus_Model_Mapper {
 
-	protected $_baseClassPrefix = 'ForceField_Model_Base_';
-
 	/**
-	 * The underlying object.
+	 * The underlying objects.
 	 *
-	 * @var Celsus_Model_Base_Interface
+	 * @var array
 	 */
 	protected $_bases = array();
 
@@ -54,17 +52,31 @@ class Celsus_Model_Mapper_Complex extends Celsus_Model_Mapper {
 	 * @return Celsus_Model_Base_Interface
 	 */
 	public function getBase($name) {
-		if (!array_key_exists($name, $this->_bases)) {
-			$baseClass = $this->_baseClassPrefix . ucfirst($name);
-			$this->_bases[$name] = new $baseClass();
+		$bases = $this->getBases();
+		return $bases[$name];
+	}
+
+	/**
+	 * Gets the base objects that store the underlying data.
+	 *
+	 * @return array
+	 */
+	public function getBases() {
+		if (!$this->_bases) {
+			$prefix = str_replace('Model_Mapper', 'Model_Base', get_class($this)) . '_';
+			foreach ($this->_baseComponents as $baseComponent) {
+				$baseClass = $prefix . ucfirst($baseComponent);
+				$config = array('service' => $this->_service);
+				$this->_bases[$baseComponent] = new $baseClass($config);
+			}
 		}
-		return $this->_bases[$name];
+		return $this->_bases;
 	}
 
 	protected function _getFieldMap() {
 		if (null === $this->_fieldMap) {
-			foreach ($this->_baseComponents as $baseComponent) {
-				$base = $this->getBase($baseComponent);
+			$bases = $this->getBases();
+			foreach ($bases as $baseComponent => $base) {
 				$this->_fieldMap[$baseComponent] = $base->getFields();
 			}
 		}
@@ -92,8 +104,11 @@ class Celsus_Model_Mapper_Complex extends Celsus_Model_Mapper {
 	}
 
 	protected function _execute($method, $arguments) {
-		$base = $this->getBase($this->_primaryBaseComponent);
-		return call_user_func_array(array($base, $method), $arguments);
+		$return = array();
+		foreach ($this->getBases() as $base) {
+			$return[] = call_user_func_array(array($base, $method), $arguments);
+		}
+		return $return;
 	}
 
 	protected function _splitResult($result) {

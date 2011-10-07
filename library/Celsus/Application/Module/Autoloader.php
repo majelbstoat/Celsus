@@ -9,6 +9,10 @@ class Celsus_Application_Module_Autoloader extends Zend_Application_Module_Autol
 				'namespace' => 'Model_Service',
 				'path' => 'models/services',
 			),
+			'modelmapper' => array(
+				'namespace' => 'Model_Mapper',
+				'path' => 'models/mappers',
+			),
 			'modelbase' => array(
 				'namespace' => 'Model_Base',
 				'path' => 'models/bases',

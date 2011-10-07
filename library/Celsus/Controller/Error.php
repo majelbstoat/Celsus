@@ -26,7 +26,7 @@ abstract class Celsus_Controller_Error extends Zend_Controller_Action {
 	}
 
 	public function errorAction() {
-		$this->_helper->layout->setLayout('layout');
+		$this->_helper->layout->setLayout('error');
 		$error = $this->_getParam('error_handler');
 		if (null === $error) {
 			return;
