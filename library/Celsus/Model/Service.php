@@ -42,6 +42,13 @@ abstract class Celsus_Model_Service implements Celsus_Model_Service_Interface {
 	protected static $_descriptiveField = null;
 
 	/**
+	 * The separator to use between segments of the descriptive title.
+	 *
+	 * @var string $_descriptiveSeparator
+	 */
+	protected static $_descriptiveSeparator = ' ';
+
+	/**
 	 * Human-readable titles used for labels and column headings.
 	 */
 	protected static $_defaultFields = null;
@@ -314,13 +321,20 @@ abstract class Celsus_Model_Service implements Celsus_Model_Service_Interface {
 	 * Fetches data from the underlying base, given the specified data.
 	 *
 	 * @param mixed $identifier
+	 * @param boolean $useCommonIdentifer If false, always interpret the identifier as an id.
+	 *
 	 * @return Celsus_Model
 	 * @throws Celsus_Exception When the supplied $identifier is invalid.
 	 */
-	public static function fetchOrCreateRecord($identifier = null) {
+	public static function fetchOrCreateRecord($identifier = null, $useCommonIdentifer = true) {
 		if ($identifier) {
-			$records = self::_underlying()->multiple()->find($identifier);
-			// Find always retrieves multiple records, even if there is only one result.
+			if ($useCommonIdentifer) {
+				$records = static::findByCommonIdentifier($identifier);
+			} else {
+				$records = self::_underlying()->multiple()->find($identifier);
+			}
+
+			// Find functions always retrieve record sets, even if there is only one result.
 			$record = $records[0];
 			if (!$record) {
 				// Identifier was invalid.
@@ -358,6 +372,27 @@ abstract class Celsus_Model_Service implements Celsus_Model_Service_Interface {
 	}
 
 	/**
+	 * Finds a single record from the underlying using the common identifier from a URL.
+	 *
+	 * By default, this just assumes that the route identifier is an ID:
+	 *
+	 * /users/id/
+	 *
+	 * However, subclasses may reimplement with a specific lookup mechanism, for example in
+	 * the case of:
+	 *
+	 * /users/username/
+	 *
+	 * where user.username is not the same as user.id
+	 *
+	 * @param string|int $identifier
+	 * @return Celsus_Model
+	 */
+	public static function findByCommonIdentifier($identifier) {
+		return static::find($identifier);
+	}
+
+	/**
 	 * Given a model, a model id or an array containing model data, returns its descriptive name.
 	 *
 	 * @param Celsus_Model|array|string $model
@@ -376,30 +411,29 @@ abstract class Celsus_Model_Service implements Celsus_Model_Service_Interface {
 		foreach($descriptiveFields as $descriptiveField) {
 			$return[] = $data[$descriptiveField];
 		}
-		return implode(" ", $return);
+		return implode(static::$_descriptiveSeparator, $return);
 	}
 
 	/**
 	 * Retuns lookup values in a format suitable for populating a select box.
 	 *
+	 * If $term is supplied, only returns items that match the term.
+	 *
 	 * @return array
 	 */
-	public static function getLookupValues($options = null) {
-		$data = static::_getLookupData($options);
-		$fields = (is_array(static::$_descriptiveField)) ? static::$_descriptiveField : array(static::$_descriptiveField);
-		$return = array();
+	public static function getLookupValues($term = null) {
+		$data = static::_getLookupData($term);
 
 		foreach ($data as $item) {
-			$components = array();
-			foreach ($fields as $component) {
-				$components[] = $item->$component;
+			$value = static::getDescription($item);
+			if (!$term || (false !== strpos(strtolower($value), strtolower($term)))) {
+				$return[$item->id] = $value;
 			}
-			$return[$item->id] = implode(' ', $components);
 		}
 		return $return;
 	}
 
-	protected static function _getLookupData($options = null) {
+	protected static function _getLookupData() {
 		throw new Celsus_Exception(__FUNCTION__ . ' must be overridden in ' . get_called_class());
 	}
 

@@ -43,7 +43,7 @@ class Celsus_Feedback {
 	 *
 	 * @param string $type
 	 * @param string|int $message
-	 * @param string $callback The URL to put to to acknowledge the message.
+	 * @param string $callback The URL to PUT to to acknowledge the message.
 	 */
 	public static function add($type, $message, $callback = null) {
 		self::_ensureSession();

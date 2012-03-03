@@ -60,6 +60,12 @@ class Celsus_Db_Document_CouchSet implements Iterator, Countable, ArrayAccess {
 		return $this->_adapter;
 	}
 
+	public function augment($fields) {
+		foreach ($this->_documents as $document) {
+			$document->augment($fields);
+		}
+	}
+
 	/**
 	 * Adds a document to the document set.
 	 *

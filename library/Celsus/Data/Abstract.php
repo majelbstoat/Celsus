@@ -31,7 +31,7 @@ abstract class Celsus_Data_Abstract implements Celsus_Data_Interface {
 	 *
 	 * @var boolean
 	 */
-	protected $_dirty = false;
+	protected $_dirty = array();
 
 	/**
 	 * The original, pristine data in the object.

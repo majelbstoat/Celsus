@@ -31,7 +31,8 @@ abstract class Celsus_Controller_Common extends Zend_Rest_Controller implements 
 		'post' => 'json',
 		'delete' => 'json',
 		'get' => 'json',
-		'lookup' => 'json'
+		'lookup' => 'json',
+		'error' => 'json'
 	);
 
 	/**
@@ -39,7 +40,7 @@ abstract class Celsus_Controller_Common extends Zend_Rest_Controller implements 
 	 *
 	 * @var string $_identifier
 	 */
-	protected $_identifier = 'id';
+	protected $_identifier = 'identifier';
 
 	/**
 	 * The resource Id of this controller.
@@ -91,7 +92,8 @@ abstract class Celsus_Controller_Common extends Zend_Rest_Controller implements 
 		return parent::init();
 	}
 
-	public function indexAction() {}
+	public function indexAction() {
+	}
 
 	public function deleteAction() {}
 
@@ -162,9 +164,15 @@ abstract class Celsus_Controller_Common extends Zend_Rest_Controller implements 
 		if ($parent) {
 			$parentService = $parentReferences[$parent['field']];
 			$parentTitle = $parentService::getTitle();
-			$parentDescription = $parentService::getDescription($parent['id']);
+			$parentModels = $parentService::findByCommonIdentifier($parent['identifier']);
+
+			// @todo Do something here when the parent record identifier is invalid.
+
+			$parentModel = $parentModels[0];
+
+			$parentDescription = $parentService::getDescription($parentModel);
 			if ($record) {
-				$record->{$parent['field']} = $parent['id'];
+				$record->{$parent['field']} = $parentModel->id;
 			}
 			$this->view->headTitle()->prepend($parentDescription);
 			$this->view->headTitle()->prepend($parentTitle);
@@ -195,7 +203,7 @@ abstract class Celsus_Controller_Common extends Zend_Rest_Controller implements 
 				$this->_helper->processor()->success($record);
 			} catch (Exception $e) {
 				$this->getResponse()->setHttpResponseCode(Celsus_Http::INTERNAL_SERVER_ERROR);
-				$this->_helper->processor()->error($record);
+				$this->_helper->processor()->error($record, $e->getMessage());
 			}
 		} else {
 			$this->getResponse()->setHttpResponseCode(Celsus_Http::PRECONDITION_FAILED);
@@ -205,6 +213,8 @@ abstract class Celsus_Controller_Common extends Zend_Rest_Controller implements 
 
 	/**
 	 * Gets the record for processing, and handles the case where an invalid identifier is specified.
+	 *
+	 * @todo Make this work for route identifiers that are not records IDs (i.e. usernames).
 	 *
 	 * @param int $id
 	 * @return Celsus_Model

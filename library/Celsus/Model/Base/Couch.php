@@ -22,16 +22,9 @@ class Celsus_Model_Base_Couch implements Celsus_Model_Base_Interface {
 	/**
 	 * The design document used for querying views.
 	 *
-	 * @var unknown_type
+	 * @var string
 	 */
 	protected $_designDocument = null;
-
-	/**
-	 * The fields that are present in the underlying representation of this model.
-	 *
-	 * @var array
-	 */
-	protected $_fields = null;
 
 	public function __construct(array $config = array()) {
 		$this->_adapter = isset($config['adapter']) ? $config['adapter'] : self::getDefaultAdapter();
@@ -62,6 +55,7 @@ class Celsus_Model_Base_Couch implements Celsus_Model_Base_Interface {
 			$identifiers = array($identifiers);
 		}
 
+		$fields = $this->getFields();
 		return $this->getAdapter()->find($identifiers);
 	}
 
@@ -77,6 +71,7 @@ class Celsus_Model_Base_Couch implements Celsus_Model_Base_Interface {
 		if (!$view instanceof Celsus_Db_Document_View) {
 			throw new Celsus_Exception("Must supply a valid view.");
 		}
+		$fields = $this->getFields();
 		return $this->getAdapter()->view($view);
 	}
 
@@ -115,18 +110,16 @@ class Celsus_Model_Base_Couch implements Celsus_Model_Base_Interface {
 	}
 
 	/**
-	 * Returns the fields that represent this model in the underlying couchdb database.  Looks for a
-	 * specific document with the same _id as $this->_name, and adds _id, _rev and type to the fields
-	 * field it finds there.
+	 * Returns the fields that represent this model in the underlying couchdb database.
+	 *
+	 * Given that CouchDB documents are schema-less, relying on a schema document in the database
+	 * is very brittle and deletion of that document will break the entire model, therefore
+	 * we enumerate the fields directly in code.
 	 *
 	 * @return array
 	 */
 	public function getFields() {
-		if (null == $this->_fields) {
-			$documents = $this->getAdapter()->find($this->_name)->toArray();
-			$this->_fields = array_merge(array('_id', '_rev'), $documents[0]['fields'], array('type'));
-		}
-		return $this->_fields;
+		return array_merge(array('_id', '_rev'), static::$_fields, array('type'));
 	}
 
 	/**
@@ -138,5 +131,3 @@ class Celsus_Model_Base_Couch implements Celsus_Model_Base_Interface {
 		return $this->_adapter;
 	}
 }
-
-?>

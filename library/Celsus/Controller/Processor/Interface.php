@@ -12,7 +12,7 @@ interface Celsus_Controller_Processor_Interface {
 
 	public function success(Celsus_Model $record);
 
-	public function error(Celsus_Model $record);
+	public function error(Celsus_Model $record, $message);
 
 	public function invalid(Celsus_Model $record);
 

@@ -194,6 +194,7 @@ class Celsus_Db_Document_Adapter_Couch {
 					'adapter' => $this,
 					'data' => $response->getBody()
 				));
+
 				break;
 
 			case Celsus_Http::NOT_FOUND:
@@ -235,10 +236,28 @@ class Celsus_Db_Document_Adapter_Couch {
 		$status = $response->getStatus();
 		switch ($status) {
 			case Celsus_Http::OK:
-				return new Celsus_Db_Document_CouchSet(array(
-					'adapter' => $this,
-					'data' => $response->getBody()
-				));
+
+				// Getting a 200 doesn't mean that we've found it
+				$response = Zend_Json::decode($this->_client->getLastResponse()->getBody());
+				$return = null;
+				if ($response['rows']) {
+					foreach ($response ['rows'] as $row) {
+						if (!array_key_exists('error', $row) && !array_key_exists('deleted', $row['value'])) {
+							if (null === $return) {
+								$return = new Celsus_Db_Document_CouchSet(array(
+									'adapter' => $this
+								));
+							}
+							$document = new Celsus_Db_Document_Couch(array(
+								'adapter' => $this,
+								'data' => $row
+							));
+							$return->add($document);
+						}
+					}
+				}
+
+				return $return;
 				break;
 
 			case Celsus_Http::NOT_FOUND:

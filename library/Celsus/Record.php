@@ -158,6 +158,7 @@ abstract class Celsus_Record extends Celsus_Form {
 			$return = $this->render();
 			return $return;
 		} catch (Exception $e) {
+			return $e->getMessage();
 			trigger_error($e->getMessage(), E_USER_WARNING);
 			return '';
 		}

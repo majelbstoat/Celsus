@@ -9,12 +9,12 @@
  */
 
 /**
- * Allows authentication using Facebook.
+ * Allows authentication using the Facebook Registration Plugin.
  *
  * @category Celsus
  * @package Celsus_Auth
  */
-class Celsus_Auth_Adapter_Facebook implements Celsus_Auth_Adapter_Interface {
+class Celsus_Auth_Adapter_Facebook_ClientSide implements Celsus_Auth_Adapter_Interface {
 
 	const EXCEPTION_BAD_SIGNATURE = 'EXCEPTION_BAD_SIGNATURE';
 
@@ -74,6 +74,15 @@ class Celsus_Auth_Adapter_Facebook implements Celsus_Auth_Adapter_Interface {
 		$this->_signedRequest = $signedRequest;
 		return $this;
 	}
+
+	public function populateAuthorisationPayload() {
+		$this->setSignedRequest($_POST['signed_request']);
+	}
+
+	public function canAuthenticate() {
+		return array_key_exists('signed_request', $_POST);
+	}
+
 
 	public function setUrl($url) {
 		$this->_url = $url;

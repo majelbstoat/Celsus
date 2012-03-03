@@ -16,6 +16,8 @@
 /**
  * Provides useful functionality for the pluralisation of English nouns.
  *
+ * Mostly stolen from Cake PHP.
+ *
  * @ingroup Celsus_Inflection
  */
 class Celsus_Inflector {
@@ -53,7 +55,7 @@ class Celsus_Inflector {
 	),
 		'uninflected' => array(
 			'.*[nrlm]ese', '.*deer', '.*fish', '.*measles', '.*ois', '.*pox', '.*sheep', 'people'
-			),
+	),
 		'irregular' => array(
 			'atlas' => 'atlases',
 			'beef' => 'beefs',
@@ -195,8 +197,8 @@ class Celsus_Inflector {
 		 *
 		 * @param string $type The type of inflection, either 'singular' or 'plural'
 		 * @param array $rules Array of rules to be added. Example usage:
-		 *					   Inflector::rules('plural', array('/^(inflect)or$/i' => '\1ables'));
-		 *					   Inflector::rules('plural', array(
+		 *					   self::rules('plural', array('/^(inflect)or$/i' => '\1ables'));
+		 *					   self::rules('plural', array(
 		 *							'rules' => array('/^(inflect)ors$/i' => '\1ables'),
 		 *							'uninflected' => array('dontinflectme'),
 		 *							'irregular' => array('red' => 'redlings')
@@ -210,11 +212,17 @@ class Celsus_Inflector {
 
 			foreach ($rules as $rule => $pattern) {
 				if (is_array($pattern)) {
-			  self::${$type}[$rule] = array_merge($pattern, self::${$type}[$rule]);
-			  unset($rules[$rule], self::${$type}['cache' . ucfirst($rule)], self::${$type}['merged'][$rule]);
+			  self::${
+			  	$type}[$rule] = array_merge($pattern, self::${
+			  		$type}[$rule]);
+			  		unset($rules[$rule], self::${
+			  			$type}['cache' . ucfirst($rule)], self::${
+			  				$type}['merged'][$rule]);
 				}
 			}
-			self::${$type}['rules'] = array_merge($rules, self::${$type}['rules']);
+			self::${
+				$type}['rules'] = array_merge($rules, self::${
+					$type}['rules']);
 
 		}
 
@@ -274,8 +282,7 @@ class Celsus_Inflector {
 		 * @static
 		 * @link http://book.cakephp.org/view/572/Class-methods
 		 */
-		public static function singularize($word)
-		{
+		public static function singularize($word) {
 
 			if (isset(self::$_singularized[$word])) {
 				return self::$_singularized[$word];
@@ -364,7 +371,7 @@ class Celsus_Inflector {
 		 * @link http://book.cakephp.org/view/572/Class-methods
 		 */
 		public static function tableize($className) {
-			return Inflector::pluralize(Inflector::underscore($className));
+			return self::pluralize(self::underscore($className));
 		}
 
 		/**
@@ -390,7 +397,7 @@ class Celsus_Inflector {
 		 * @link http://book.cakephp.org/view/572/Class-methods
 		 */
 		public static function variable($string) {
-			$string = Inflector::camelize(Inflector::underscore($string));
+			$string = self::camelize(self::underscore($string));
 			$replace = strtolower(substr($string, 0, 1));
 			return preg_replace('/\\w/', $replace, $string, 1);
 		}

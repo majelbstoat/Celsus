@@ -12,7 +12,11 @@ class Celsus_Data_Marshal_ZendDbTableRow  implements Celsus_Data_Marshal_Interfa
 		if (!$object instanceof Zend_Db_Table_Row_Abstract) {
 			throw new Celsus_Exception("Must implement Zend_Db_Table_Row_Abstract");
 		}
-		return $object->toArray();
+		$data = $object->toArray();
+		$id = $data['id'];
+		unset($data['id']);
+
+		return array($id, $data);
 	}
 
 	public static function save(array $data, $object) {

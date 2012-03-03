@@ -41,7 +41,6 @@ class Celsus_Error {
 			// Sets the parameter on the request.
 			$request->setParam('error_handler', self::EXCEPTION_APPLICATION_ERROR);
 		}
-		die('<pre>' . $message . "\n" . $file . " " . $line . '</pre>');
 		throw new Celsus_Exception($message . "\n" . $file . " " . $line, $type);
 	}
 

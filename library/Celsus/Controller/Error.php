@@ -14,21 +14,22 @@
  * @category Celsus
  * @package Celsus_Controller
  */
-abstract class Celsus_Controller_Error extends Zend_Controller_Action {
+abstract class Celsus_Controller_Error extends Celsus_Controller_Common {
 
 	public function init() {
 		if (null === $this->_getParam('error_handler')) {
 			// No error parameters means that the controller has been accessed directly, which is disallowed.
 			return $this->_redirect("/");
 		}
-		parent::init();
 
+		$this->_helper->layout->setLayout('error');
+
+		parent::init();
 	}
 
 	public function errorAction() {
-		$this->_helper->layout->setLayout('error');
-		$error = $this->_getParam('error_handler');
-		if (null === $error) {
+		$errorHandler = $this->_getParam('error_handler');
+		if (null === $errorHandler) {
 			return;
 		}
 
@@ -36,13 +37,14 @@ abstract class Celsus_Controller_Error extends Zend_Controller_Action {
 		foreach ($this->getResponse()->getException() as $exception) {
 			$exceptions[] = $exception->getMessage() . " " . $exception->getFile() . " " . $exception->getLine();
 		}
-		$this->view->exceptions = $exceptions;
+		$error = new stdClass();
+		$error->exceptions = $exceptions;
 
-		$errorType = ($error->type) ? $error->type : $error;
+		$errorType = ($errorHandler->type) ? $errorHandler->type : $errorHandler;
 
 		if (Zend_Controller_Plugin_ErrorHandler::EXCEPTION_OTHER == $errorType) {
 			// This was an error triggered during the application.
-			$errorType = $error->exception->getCode();
+			$errorType = $errorHandler->exception->getCode();
 		}
 
 		switch ($errorType) {
@@ -53,16 +55,20 @@ abstract class Celsus_Controller_Error extends Zend_Controller_Action {
 				// 404 error -- controller or action not found
 				$this->getResponse()->setHttpResponseCode(Celsus_Http::NOT_FOUND);
 				$this->_helper->viewRenderer->setScriptAction(Celsus_Http::NOT_FOUND);
-				$this->view->message = 'Page Not Found';
+				$error->type = Celsus_Http::NOT_FOUND;
+				$error->detail = 'Page Not Found';
 				break;
 
 			case Celsus_Error::EXCEPTION_APPLICATION_ERROR:
 			default:
 				$this->getResponse()->setHttpResponseCode(Celsus_Http::INTERNAL_SERVER_ERROR);
 				$this->_helper->viewRenderer->setScriptAction(Celsus_Http::INTERNAL_SERVER_ERROR);
-				$this->view->message = 'Application Error';
+				$error->type = Celsus_Http::INTERNAL_SERVER_ERROR;
+				$error->detail = 'Application Error';
 				break;
 		}
+
+		$this->view->error = $error;
 	}
 
 }

@@ -90,12 +90,17 @@ abstract class Celsus_Model extends Celsus_Data_Object {
 		}
 		$this->_mapper = $config['mapper'];
 
+		// Initialise empty fields based on the service definition.
+		$service = $this->_mapper->getService();
+		$fields = array_keys($service::getFields());
+		$this->_data = array_combine($fields, array_fill(0, count($fields), null));
+
 		// Check that data was specified.
 		if (!isset($config['data'])) {
 			throw new Celsus_Exception("Can't instantiate a model instance without data.");
 		}
-		parent::__construct($config['data']);
 
+		parent::__construct($config['data']);
 	}
 
 	// Validation
@@ -135,13 +140,14 @@ abstract class Celsus_Model extends Celsus_Data_Object {
 		}
 
 		$fieldMap = array_flip($this->_mapper->getFieldMap());
+
 		$marshalled = false;
 		foreach ($data as $sourceKey => $item) {
 			if (is_object($item)) {
 				foreach (parent::$_marshals as $provided => $marshal) {
 					if ($item instanceof $provided) {
 						// We have a provider that can marshal this object.
-						$providedData = call_user_func(array($marshal, 'provide'), $item);
+						list ($this->id, $providedData) = call_user_func(array($marshal, 'provide'), $item);
 						foreach ($providedData as $key => $value) {
 							if (array_key_exists($key, $fieldMap)) {
 								$this->_data[$fieldMap[$key]] = $value;
@@ -183,6 +189,10 @@ abstract class Celsus_Model extends Celsus_Data_Object {
 				$return[$field] = $data->getData();
 			}
 		}
+
+		// Append the ID.
+		$return['id'] = $this->id;
+
 		return $return;
 	}
 
@@ -190,22 +200,35 @@ abstract class Celsus_Model extends Celsus_Data_Object {
 	// Persistence
 
 	/**
-	 * @todo Handle complex save operations where split ids need to be set.
+	 * Saves data back to the underlying source(s).  Only saves if fields have changed.  Only saves to those backends
+	 * which hold a field that has changed.
+	 *
+	 * @throws Celsus_Model_Exception_InvalidData
 	 */
 	public function save() {
 		$return = false;
-		if ($this->id && !$this->_dirty) {
-			// No changes have been made to the object
-			$return = $this->id;
-		} else {
+		if (!$this->id || $this->_dirty) {
 			if ($this->isValid()) {
+
+				// Allow setting of model specific data before committing to the backend.
+				if ($this->id) {
+					$this->_update();
+				} else {
+					$this->_insert();
+				}
+
 				$modelFieldMap = $this->_mapper->getFieldMap();
-				$fieldMap = array_flip($this->_mapper->getFieldMap());
+				$fieldMap = array_flip($modelFieldMap);
 				foreach ($this->_sourceFieldMap as $sourceKey => $fields) {
 					// Build an array of data to save to this underlying, making use of the model field map to
 					// convert between business model fields and underlying fields.
 					$data = array();
-					foreach ($this->_data as $key => $value) {
+					foreach ($this->_dirty as $key) {
+						if (!in_array($key, $fields) && !in_array($modelFieldMap[$key], $fields)) {
+							// This field isn't from this underlying.
+							continue;
+						}
+						$value = $this->_data[$key];
 						if (array_key_exists($key, $modelFieldMap)) {
 							$data[$modelFieldMap[$key]] = $value;
 						} else {
@@ -214,31 +237,47 @@ abstract class Celsus_Model extends Celsus_Data_Object {
 					}
 
 					// Save the document and store the return ID.
-					$id = call_user_func_array(array($this->_marshalledSources[$sourceKey], 'save'), array($data, $this->_sources[$sourceKey]));
 
-					// Now, re-source the data from the underlying entity as triggers might have updated additional data fields in the underlying.
-					$providedData = call_user_func(array($this->_marshalledSources[$sourceKey], 'provide'), $this->_sources[$sourceKey]);
-					foreach ($providedData as $key => $value) {
-						if (array_key_exists($key, $fieldMap)) {
-							$this->_data[$fieldMap[$key]] = $value;
-						} else {
-							$this->_data[$key] = $value;
+					if ($data) {
+
+						// Ensure the id is set.
+						$data['id'] = $this->id;
+
+						// Save the data.
+						$this->id = call_user_func_array(array($this->_marshalledSources[$sourceKey], 'save'), array($data, $this->_sources[$sourceKey]));
+
+						// Now, re-source the data from the underlying entity as triggers might have updated additional data fields in the underlying.
+						list ($this->id, $providedData) = call_user_func(array($this->_marshalledSources[$sourceKey], 'provide'), $this->_sources[$sourceKey]);
+
+						foreach ($providedData as $key => $value) {
+							if (array_key_exists($key, $fieldMap)) {
+								$this->_data[$fieldMap[$key]] = $value;
+							} else {
+								$this->_data[$key] = $value;
+							}
 						}
 					}
 
-					if (!$this->id) {
-						// @todo consider implications of atomicity.
-						$this->id = $id;
-						break;
-					} elseif (!isset($return)) {
-						// Assumes that for complex, multi-part objects, the primary part is going to first.
-						$return = $id;
-					}
+					// Reset the dirtiness of those fields.
+					$this->_dirty = array_diff($this->_dirty, array_keys($data));
 				}
+
 			} else {
 				throw new Celsus_Model_Exception_InvalidData("One or more fields were invalid.  Please check your data and try again.");
 			}
 		}
-		return $return;
+
+		return $this->id;
 	}
+
+	/**
+	 * Allows models to set specific generated data just before an insert.
+	 */
+	protected function _insert() {}
+
+	/**
+	 * Allows models to set specific generated data just before an update.
+	 */
+	protected function _update() {}
+
 }

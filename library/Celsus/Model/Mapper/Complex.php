@@ -73,36 +73,6 @@ class Celsus_Model_Mapper_Complex extends Celsus_Model_Mapper {
 		return $this->_bases;
 	}
 
-	protected function _getFieldMap() {
-		if (null === $this->_fieldMap) {
-			$bases = $this->getBases();
-			foreach ($bases as $baseComponent => $base) {
-				$this->_fieldMap[$baseComponent] = $base->getFields();
-			}
-		}
-		return $this->_fieldMap;
-	}
-
-	/**
-	 * Determines which bases are required for the query, based on the fields supplied.
-	 *
-	 * @param array $fields
-	 * @return array
-	 */
-	protected function _determineComponents($fields) {
-		$fieldMap = $this->_getFieldMap();
-		var_dump($fieldMap);
-		var_dump($fields);
-		$return = array();
-		foreach ($fieldMap as $component => $componentFields) {
-			$intersectingFields = array_intersect($fields, $componentFields);
-			if ($intersectingFields) {
-				$return[$component] = $intersectingFields;
-			}
-		}
-		return $return;
-	}
-
 	protected function _execute($method, $arguments) {
 		$return = array();
 		foreach ($this->getBases() as $base) {
@@ -111,29 +81,29 @@ class Celsus_Model_Mapper_Complex extends Celsus_Model_Mapper {
 		return $return;
 	}
 
-	protected function _splitResult($result) {
-		$fieldMap = $this->_getFieldMap();
-		foreach ($fieldMap as $name => $fieldList) {
-			$fields = array_flip($fieldList);
-			$base = $this->getBase($name);
-			$return[] = $base->createRecord(array_intersect_key($result->toArray(), $fields));
-		}
-		return $return;
-	}
-
 	protected function _wrap($data) {
+
 		if ($this->_single) {
 			// We are expecting a single row.
-			$return = $this->_splitResult($data);
+			$keyedData = $data;
 		} else {
 			// We are expecting a multi row set.
-			foreach ($data as $result) {
-				$return[] = $this->_splitResult($result);
+
+			// First, group the data by id.
+			$keyedData = array();
+			foreach ($data as $resultSet) {
+				foreach ($resultSet as $id => $result) {
+					if (array_key_exists($id, $keyedData)) {
+						$keyedData[$id][] = $result;
+					} else {
+						$keyedData[$id] = array($result);
+					}
+				}
 			}
 		}
 
 		$config = array(
-			'data' => $return,
+			'data' => $keyedData,
 			'mapper' => $this
 		);
 		$replacement = $this->_single ? 'Model' : 'Model_Set';

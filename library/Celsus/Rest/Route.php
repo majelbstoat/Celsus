@@ -66,7 +66,7 @@ class Celsus_Rest_Route extends Zend_Rest_Route {
 		switch (count($path)) {
 			case 3:
 				// Possible options are:
-				// 	/controller/id/controller/new/ -> /clients/1/contracts/new (Structure for adding a contract to client 1).
+				// 	/controller/identifier/controller/new/ -> /clients/1/contracts/new (Structure for adding a contract to client 1).
 				$parentControllerName = $controllerName;
 				$controllerName = $path[1];
 
@@ -76,14 +76,15 @@ class Celsus_Rest_Route extends Zend_Rest_Route {
 				$parent = Celsus_Inflector::singularize($parentControllerName);
 				$params['parent'] = array(
 						'field' => $parent,
-						'id' => $path[0]
+						'identifier' => $path[0]
 				);
 				break;
 
 			case 2:
 				// Possible patterns are:
-				//	/controller/id/controller/ -> /countries/1/regions/ (The regions of country 1).
-				//  /controller/id/action/ -> /countries/1/edit/ (Edit country 1)
+				//	/controller/identifier/controller/ -> /countries/1/regions/ (The regions of country 1).
+				//  /controller/identifier/action/ -> /countries/1/edit/ (Edit country 1)
+
 				// By default, go to the primary controller on path[0] and assume it's an action on the controller.
 				$actionName = (('edit' == $path[1]) && ('post' == $requestMethod)) ? 'post' : $path[1];
 
@@ -95,31 +96,40 @@ class Celsus_Rest_Route extends Zend_Rest_Route {
 					$parent = Celsus_Inflector::singularize($parentControllerName);
 					$params['parent'] = array(
 						'field' => $parent,
-						'id' => $path[0]
+						'identifier' => $path[0]
 					);
 					$controllerName = $actionName;
 					$actionName = 'index';
 				} else {
-					$params['id'] = $path[0];
+					$params['identifier'] = $path[0];
 				}
 				break;
 
 			case 1;
 				// Possible patterns are:
-				// /controller/id/ -> /countries/1/ (Country 1)
+				// /controller/identifier/ -> /countries/1/ (Country 1)
 				// /controller/action/ -> /countries/new/ (Structure for entering a new country).
 				if ('new' == $path[0]) {
 					// If we are POSTing to 'new', we are actually PUTting a new record.
 					$actionName = ('post' == $requestMethod) ?  'put' : 'new';
-				} elseif (ctype_digit($path[0])) {
-					$params['id'] = $path[0];
 				} else {
-					$actionName = $path[0];
+					// Load the controller class so we can check for the supplied action.
+					$controllerClass = ucfirst($controllerName) . 'Controller';
+					$controllerPaths = $dispatcher->getControllerDirectory();
+					$controllerFilePath =  $controllerPaths['default'] . DIRECTORY_SEPARATOR . $dispatcher->classToFilename($controllerClass);
+					include_once($controllerFilePath);
+
+					if (method_exists($controllerClass, $path[0] . 'Action')) {
+						// Assume that we are looking up a record rather than performing an action on the controller.
+						$actionName = $path[0];
+					} else {
+						$params['identifier'] = $path[0];
+					}
 				}
 				break;
 
 			case 0;
-				// Posibble patterns are:
+				// Possible patterns are:
 				// /controller/
 				$actionName = 'index';
 				break;
@@ -137,7 +147,6 @@ class Celsus_Rest_Route extends Zend_Rest_Route {
 
 		return $result;
 	}
-
 
 	/**
 	 * Sub-classed class returning a Celsus_Rest_Route instead of a Zend_Rest_Route.

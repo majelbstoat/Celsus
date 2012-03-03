@@ -24,7 +24,7 @@ class Celsus_View_Helper_DisplayFeedback extends Zend_View_Helper_Abstract {
 	 */
 	public function displayFeedback($type = array()) {
 
-		$feedbackGroups = Celsus_Feedback::get($type, true);
+		$feedbackGroups = Celsus_Feedback::get($type);
 		if (!$feedbackGroups) {
 			return;
 		}

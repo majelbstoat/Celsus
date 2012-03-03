@@ -16,13 +16,21 @@ class Celsus_Data_Marshal_CouchDocument implements Celsus_Data_Marshal_Interface
 		if (array_key_exists('doc', $data)) {
 			$data = $data['doc'];
 		}
-		return $data;
+		$id = $data['_id'];
+		unset($data['_id']);
+
+		// Revision and document type are implementation details that should be hidden from the application layer.
+		unset($data['type']);
+		unset($data['_rev']);
+		return array($id, $data);
 	}
 
 	public static function save(array $data, $object) {
 		if (!$object instanceof Celsus_Db_Document_Couch) {
 			throw new Celsus_Exception("Must implement Celsus_Db_Document_Couch");
 		}
+		$data['_id'] = $data['id'];
+		unset($data['id']);
 		return $object->setFromArray($data)->save();
 	}
 }

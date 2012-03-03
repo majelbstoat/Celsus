@@ -82,7 +82,14 @@ class Celsus_Model_Base_Facebook implements Celsus_Model_Base_Interface {
 	}
 
 	public function createRecord(array $data = array()) {
-		throw new Celsus_Exception("Not implemented");
+		$fields = $this->getFields();
+		$defaults = array_combine($fields, array_fill(0, count($fields), null));
+
+		$record = new Celsus_Db_Document_Facebook(array(
+			'adapter' => $this->getAdapter(),
+			'data' => array_merge($defaults, $data)
+		));
+		return $record;
 	}
 
 	/**

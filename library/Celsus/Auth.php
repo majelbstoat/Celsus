@@ -13,12 +13,15 @@
  * @defgroup Celsus_Auth Celsus Authentication
  */
 
+    
 /**
  * Defines authentication, and allows adapters to be switched for mocking.
  *
  * @ingroup Celsus_Auth
  */
 class Celsus_Auth extends Zend_Auth {
+
+	const EXCEPTION_AUTH_ERROR = 'EXCEPTION_AUTH_ERROR';
 
 	protected static $_authAdapter = null;
 

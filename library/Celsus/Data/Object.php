@@ -197,7 +197,8 @@ class Celsus_Data_Object extends Celsus_Data_Abstract {
 	 */
 	public function __get($field) {
 		if (!array_key_exists($field, $this->_data)) {
-			throw new Celsus_Exception("Unknown field $field in $this->_name Celsus Data Object.");
+			return null;
+			//throw new Celsus_Exception("Unknown field $field in $this->_name Celsus Data Object.");
 		}
 
 		if (!$this->isReadable($field)) {
@@ -218,7 +219,8 @@ class Celsus_Data_Object extends Celsus_Data_Abstract {
 	public function __set($field, $value) {
 
 		if (!array_key_exists($field, $this->_data)) {
-			throw new Celsus_Exception("Unknown field $field in $this->_name Celsus Data Object.");
+			return false;
+			//throw new Celsus_Exception("Unknown field $field in $this->_name Celsus Data Object.");
 		}
 
 		// If we can't write to this field, do nothing.
@@ -231,7 +233,7 @@ class Celsus_Data_Object extends Celsus_Data_Abstract {
 			return false;
 		}
 
-		$this->_dirty = true;
+		$this->_dirty[] = $field;
 		if (null === $this->_originalData) {
 			// Make a copy of the original data, in case we need access to it later.
 			$this->_originalData = $this->_data;

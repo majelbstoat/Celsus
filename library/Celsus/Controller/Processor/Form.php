@@ -45,8 +45,8 @@ class Celsus_Controller_Processor_Form extends Celsus_Controller_Processor {
 		Zend_Controller_Action_HelperBroker::getStaticHelper('Redirector')->gotoUrl($location);
 	}
 
-	public function error(Celsus_Model $record) {
-		$this->_fail($record, "There was an error saving your data.");
+	public function error(Celsus_Model $record, $message) {
+		$this->_fail($record, "There was an error saving your data. $message");
 	}
 
 	public function invalid(Celsus_Model $record) {

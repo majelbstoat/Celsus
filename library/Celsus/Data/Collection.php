@@ -64,6 +64,14 @@ class Celsus_Data_Collection implements Iterator, Countable, ArrayAccess {
 			), $args);
 		}
 	}
+
+	public function toArray() {
+		$return = array();
+		foreach ($this->_objects as $object) {
+			$return[] = $object->toArray();
+		}
+		return $return;
+	}
 }
 
 ?>

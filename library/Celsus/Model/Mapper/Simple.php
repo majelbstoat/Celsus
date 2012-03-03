@@ -86,6 +86,10 @@ class Celsus_Model_Mapper_Simple extends Celsus_Model_Mapper {
 	}
 
 	protected function _wrap($data) {
+
+		// First, ensure that every field for this underlying representation is present.
+		$data->augment($this->getBase()->getFields());
+
 		$config = array(
 			'data' => $data,
 			'mapper' => $this

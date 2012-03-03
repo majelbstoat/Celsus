@@ -61,7 +61,7 @@ class Celsus_Db_Document_Couch {
 		if (null === $id) {
 			unset($this->_data['_id']);
 		} else {
-			$this->_data['id'] = $id;
+			$this->_data['_id'] = $id;
 		}
 		return $this;
 	}
@@ -74,11 +74,32 @@ class Celsus_Db_Document_Couch {
 		return isset($this->_data['_rev']) ? $this->_data['_rev'] : null;
 	}
 
+	/**
+	 * When an ID is not specified, generates a base-64 shortened id derived from
+	 * the number of microseconds since the epoch, plus two random base-64 digits.
+	 *
+	 */
+	protected function _generateId() {
+		list($microseconds, $seconds) = explode(" ", microtime());
+		$now = $seconds . substr($microseconds, 2, 6);
+		$this->_data['_id'] = Celsus_Encoder::encode($now) . Celsus_Encoder::encode(rand(0, 4095));
+	}
+
 	public function save() {
 		if (!$this->getId()) {
 			// Performance check.
-			throw new Celsus_Exception("Not specifying an ID is a performance issue and is prohibited");
+			$this->_generateId();
 		}
+
+		// Document oriented databases don't need to store nulls, so if a field is empty, remove the field.
+		// The application layer will take care of exposing the non-existence to the outside world.
+		$fields = array_keys($this->_data);
+		foreach ($fields as $field) {
+			if (null === $this->_data[$field]) {
+				unset($this->_data[$field]);
+			}
+		}
+
 		if ($this->getRevision()) {
 			return $this->_update();
 		} else {
@@ -90,15 +111,20 @@ class Celsus_Db_Document_Couch {
 	}
 
 	/**
+	 * Ensures that this document contains items for the supplied fields (which will be null if previously missing).
+	 *
+	 * @param unknown_type $fields
+	 */
+	public function augment($fields) {
+		$this->_data = array_merge(array_combine($fields, array_fill(0, count($fields), null)), $this->_data);
+	}
+
+	/**
 	 * Updates a document in the database and returns its id.
 	 */
 	public function _update() {
-		//$this->_preUpdate();
-
 		$this->_data['_rev'] = $this->_adapter->save($this, Zend_Http_Client::PUT);
 		return $this->getId();
-
-		//$this->_postUpdate();
 	}
 
 	/**
@@ -107,12 +133,8 @@ class Celsus_Db_Document_Couch {
 	 * @return mixed
 	 */
 	public function _insert() {
-		//$this->_preInsert();
-
 		$this->_data['_rev'] = $this->_adapter->save($this, Zend_Http_Client::PUT);
 		return $this->getId();
-
-		//$this->_postInsert();
 	}
 
 	public function toArray() {

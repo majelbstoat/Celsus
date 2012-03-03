@@ -11,11 +11,6 @@ abstract class Celsus_Model_Mapper {
 	const MAPPER_TYPE_CUSTOM = 'Custom';
 
 	/**
-	 * The service requiring access to the underlying.
-	 */
-	protected $_service = null;
-
-	/**
 	 * Whether or not to cache the next call.
 	 *
 	 * @var boolean
@@ -37,12 +32,11 @@ abstract class Celsus_Model_Mapper {
 	protected $_cacheTags = array();
 
 	/**
-	 * Flag to wrap the next query in a single model.
+	 * How fields in the business model map to fields in the underlying.
 	 *
-	 * @var boolean
+	 * @var array $_fieldMap
 	 */
-	protected $_single = false;
-
+	protected $_fieldMap = array();
 
 	/**
 	 * Flag to wrap the next query in a model set.
@@ -50,6 +44,19 @@ abstract class Celsus_Model_Mapper {
 	 * @var boolean
 	 */
 	protected $_multiple = false;
+
+	/**
+	 * The service requiring access to the underlying.
+	 */
+	protected $_service = null;
+
+	/**
+	 * Flag to wrap the next query in a single model.
+	 *
+	 * @var boolean
+	 */
+	protected $_single = false;
+
 
 	/**
 	 * Indicates the next function call is cacheable.
@@ -91,15 +98,17 @@ abstract class Celsus_Model_Mapper {
 	 * @return array
 	 */
 	public function getFieldMap() {
-		$service = $this->_service;
-		$fieldData = $service::getFields();
-		foreach ($fieldData as $field => $definition) {
-			$return[$field] = (in_array($definition['type'], array(
-				Celsus_Model_Service::FIELD_TYPE_REFERENCE,
-				Celsus_Model_Service::FIELD_TYPE_PARENT_REFERENCE
-			))) ? $field . '_id' : $field;
+		if (!$this->_fieldMap) {
+			$service = $this->_service;
+			$fieldData = $service::getFields();
+			foreach ($fieldData as $field => $definition) {
+				$this->_fieldMap[$field] = (in_array($definition['type'], array(
+					Celsus_Model_Service::FIELD_TYPE_REFERENCE,
+					Celsus_Model_Service::FIELD_TYPE_PARENT_REFERENCE
+				))) ? $field . '_id' : $field;
+			}
 		}
-		return $return;
+		return $this->_fieldMap;
 	}
 
 	/**

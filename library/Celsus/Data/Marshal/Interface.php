@@ -4,6 +4,11 @@ interface Celsus_Data_Marshal_Interface {
 
 	/**
 	 * Provides the data from the underyling source for a CDO.
+	 *
+	 * Returns an array like array($id, $data);
+	 *
+	 * @param object $object
+	 * @return array
 	 */
 	public static function provide($object);
 
