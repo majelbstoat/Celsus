@@ -17,7 +17,7 @@
 abstract class Celsus_Controller_Error extends Celsus_Controller_Common {
 
 	public function init() {
-		if (null === $this->_getParam('error_handler')) {
+		if (null === $this->_getParam(Celsus_Error::ERROR_FLAG)) {
 			// No error parameters means that the controller has been accessed directly, which is disallowed.
 			return $this->_redirect("/");
 		}
@@ -28,7 +28,7 @@ abstract class Celsus_Controller_Error extends Celsus_Controller_Common {
 	}
 
 	public function errorAction() {
-		$errorHandler = $this->_getParam('error_handler');
+		$errorHandler = $this->_getParam(Celsus_Error::ERROR_FLAG);
 		if (null === $errorHandler) {
 			return;
 		}

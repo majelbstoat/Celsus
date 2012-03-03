@@ -32,7 +32,7 @@ abstract class Celsus_Controller_Auth_Facebook extends Celsus_Controller_Auth {
 
 		if (!$result->isValid()) {
 			// This shouldn't be possible, but just in case, bail gracefully.
-			$this->getRequest()->setParam('error_handler', Celsus_Auth::EXCEPTION_AUTH_ERROR);
+			$this->getRequest()->setParam(Celsus_Error::ERROR_FLAG, Celsus_Auth::EXCEPTION_AUTH_ERROR);
 			$this->_forward('error', 'error');
 		} else {
 			$facebookData = $adapter->getResult();
@@ -74,7 +74,7 @@ abstract class Celsus_Controller_Auth_Facebook extends Celsus_Controller_Auth {
 					$this->_register();
 				} else {
 					// Another unspecified error.
-					$this->getRequest()->setParam('error_handler', Celsus_Auth::EXCEPTION_AUTH_ERROR);
+					$this->getRequest()->setParam(Celsus_Error::ERROR_FLAG, Celsus_Auth::EXCEPTION_AUTH_ERROR);
 					$this->_forward('error', 'error');
 				}
 			}

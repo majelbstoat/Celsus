@@ -20,6 +20,8 @@
  */
 class Celsus_Error {
 
+	const ERROR_FLAG = 'error_handler';
+
 	const EXCEPTION_APPLICATION_ERROR = 'EXCEPTION_APPLICATION_ERROR';
 
 	const EXCEPTION_NOT_FOUND = 'EXCEPTION_NOT_FOUND';
@@ -39,9 +41,9 @@ class Celsus_Error {
 		$request = Zend_Controller_Front::getInstance()->getRequest();
 		if ($request) {
 			// Sets the parameter on the request.
-			$request->setParam('error_handler', self::EXCEPTION_APPLICATION_ERROR);
+			$request->setParam(Celsus_Error::ERROR_FLAG, self::EXCEPTION_APPLICATION_ERROR);
 		}
-		throw new Celsus_Exception($message . "\n" . $file . " " . $line, $type);
+		throw new Celsus_Exception("$message\n in $file on line $line", $type);
 	}
 
 }

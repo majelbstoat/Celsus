@@ -24,7 +24,7 @@ class Celsus_Controller_Plugin_Auth extends Zend_Controller_Plugin_Abstract {
 	public function preDispatch(Zend_Controller_Request_Abstract $request) {
 		// If we're on a non-existant route, or we're in the auth controller, don't bother to check.
 		$frontController = Zend_Controller_Front::getInstance();
-		if (!$frontController->getDispatcher()->isDispatchable($request) || in_array($request->getControllerName(), $this->_ignoredControllers) || $request->getParam('error_handler')) {
+		if (!$frontController->getDispatcher()->isDispatchable($request) || in_array($request->getControllerName(), $this->_ignoredControllers) || $request->getParam(Celsus_Error::ERROR_FLAG)) {
 			return;
 		}
 

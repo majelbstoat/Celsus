@@ -110,14 +110,14 @@ class Celsus_Auth_Adapter_Facebook_ClientSide implements Celsus_Auth_Adapter_Int
 
 		// Check for correct signing algorithm.
 		if (strtoupper($data['algorithm']) !== 'HMAC-SHA256') {
-			$this->getRequest()->setParam('error_handler', Celsus_Auth_Adapter_Facebook::EXCEPTION_UNKNOWN_ALGORITHM);
+			$this->getRequest()->setParam(Celsus_Error::ERROR_FLAG, Celsus_Auth_Adapter_Facebook::EXCEPTION_UNKNOWN_ALGORITHM);
 			$this->_forward('error', 'error');
 		}
 
 		// Check for correct signature
 		$expectedSignature = hash_hmac('sha256', $payload, $this->_applicationSecret, $raw = true);
 		if ($signature !== $expectedSignature) {
-			$this->getRequest()->setParam('error_handler', Celsus_Auth_Adapter_Facebook::EXCEPTION_BAD_SIGNATURE);
+			$this->getRequest()->setParam(Celsus_Error::ERROR_FLAG, Celsus_Auth_Adapter_Facebook::EXCEPTION_BAD_SIGNATURE);
 			$this->_forward('error', 'error');
 		}
 

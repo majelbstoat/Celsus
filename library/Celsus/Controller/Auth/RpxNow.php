@@ -29,7 +29,7 @@ abstract class Celsus_Controller_Auth_RpxNow extends Celsus_Controller_Auth {
 
 			if (!$result->isValid()) {
 				// Something went wrong with RPX.  Bail Gracefully.
-				$this->getRequest()->setParam('error_handler', Celsus_Auth_Adapter_RpxNow::EXCEPTION_RPX_ERROR);
+				$this->getRequest()->setParam(Celsus_Error::ERROR_FLAG, Celsus_Auth_Adapter_RpxNow::EXCEPTION_RPX_ERROR);
 				$this->_forward('error', 'error');
 			} else {
 				$rpxData = $adapter->getResult();
@@ -62,7 +62,7 @@ abstract class Celsus_Controller_Auth_RpxNow extends Celsus_Controller_Auth {
 						$this->_forward('register');
 					} else {
 						// Another unspecified error.
-						$this->getRequest()->setParam('error_handler', Celsus_Auth_Adapter_Couch::EXCEPTION_COUCH_AUTH_ERROR);
+						$this->getRequest()->setParam(Celsus_Error::ERROR_FLAG, Celsus_Auth_Adapter_Couch::EXCEPTION_COUCH_AUTH_ERROR);
 						$this->_forward('error', 'error');
 					}
 				}

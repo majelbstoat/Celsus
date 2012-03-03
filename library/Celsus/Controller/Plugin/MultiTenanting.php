@@ -81,7 +81,7 @@ class Celsus_Controller_Plugin_MultiTenanting extends Zend_Controller_Plugin_Abs
 		$tenant = $tenantClass::findBySubdomain($tenantDomain);
 		if (!$tenant) {
 			// Can't use an exception because this is pre-dispatch and the error handler has not been loaded.
-			$request->setParam("error_handler", Celsus_Error::EXCEPTION_NOT_FOUND);
+			$request->setParam(Celsus_Error::ERROR_FLAG, Celsus_Error::EXCEPTION_NOT_FOUND);
 			$request->setActionName('error')->setControllerName('error');
 			return;
 		}
@@ -95,7 +95,7 @@ class Celsus_Controller_Plugin_MultiTenanting extends Zend_Controller_Plugin_Abs
 			$reseller = $resellerClass::findByDomain($resellerDomain);
 			if (!$reseller) {
 				// Can't use an exception because this is pre-dispatch and the error handler has not been loaded.
-				$request->setParam("error_handler", Celsus_Error::EXCEPTION_NOT_FOUND);
+				$request->setParam(Celsus_Error::ERROR_FLAG, Celsus_Error::EXCEPTION_NOT_FOUND);
 				$request->setActionName('error')->setControllerName('error');
 			}
 			// Store reseller information.
