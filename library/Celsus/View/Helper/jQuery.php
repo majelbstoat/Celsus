@@ -46,8 +46,8 @@ class Celsus_View_Helper_JQuery extends ZendX_JQuery_View_Helper_JQuery {
 	 * Enables jQuery and sets it to use the local version.
 	 */
 	public function enable() {
-		$this->setLocalPath(Celsus_Resource::version("js/jquery.js"))
-			->setUiLocalPath(Celsus_Resource::version("js/jquery-ui.js"))
+		$this->setLocalPath(Celsus_Resource::version("js/external/jquery.js"))
+			->setUiLocalPath(Celsus_Resource::version("js/external/jquery-ui.js"))
 			->enable();
 	}
 }

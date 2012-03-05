@@ -372,7 +372,7 @@ abstract class Celsus_Model_Service implements Celsus_Model_Service_Interface {
 	}
 
 	/**
-	 * Finds a single record from the underlying using the common identifier from a URL.
+	 * Finds a single record from the underlying using the common identifier.
 	 *
 	 * By default, this just assumes that the route identifier is an ID:
 	 *

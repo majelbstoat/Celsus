@@ -191,6 +191,7 @@ abstract class Celsus_Controller_Common extends Zend_Rest_Controller implements 
 		$service = $this->_service;
 		$id = $this->getRequest()->getParam($this->_identifier);
 		$record = $this->_getRecord($id);
+
 		$record->setFromArray(array_intersect_key($this->_helper->processor()->getData(), $service::getFields()));
 
 		$record = $this->_attachParent($record);
