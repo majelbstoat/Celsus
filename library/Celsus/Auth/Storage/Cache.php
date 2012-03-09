@@ -2,6 +2,8 @@
 
 class Celsus_Auth_Storage_Cache implements Zend_Auth_Storage_Interface {
 
+	const KEY_PREFIX = '__auth-';
+
 	/**
 	 * The key to store against.
 	 *
@@ -33,7 +35,7 @@ class Celsus_Auth_Storage_Cache implements Zend_Auth_Storage_Interface {
 
 	public function write($contents) {
 		$value = $contents[$this->$_identityField];
-		$this->_key = md5('__auth-' . $value);
+		$this->_key = md5(self::KEY_PREFIX . $value);
 		Celsus_Cache::save($contents, $this->_key);
 	}
 

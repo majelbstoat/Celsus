@@ -71,7 +71,6 @@ class Celsus_Model_Base_Couch implements Celsus_Model_Base_Interface {
 		if (!$view instanceof Celsus_Db_Document_View) {
 			throw new Celsus_Exception("Must supply a valid view.");
 		}
-		$fields = $this->getFields();
 		return $this->getAdapter()->view($view);
 	}
 

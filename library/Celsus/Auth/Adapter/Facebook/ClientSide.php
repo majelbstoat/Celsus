@@ -135,4 +135,3 @@ class Celsus_Auth_Adapter_Facebook_ClientSide implements Celsus_Auth_Adapter_Int
 		return $this->_result;
 	}
 }
-?>

@@ -60,12 +60,16 @@ abstract class Celsus_Model_Service implements Celsus_Model_Service_Interface {
 	 */
 	protected static $_defaultValues = null;
 
+	protected static $_lookupFields = array();
+
 	/**
 	 * The mapper type for the service.
 	 *
 	 * @var string
 	 */
 	protected static $_mapperType = Celsus_Model_Mapper::MAPPER_TYPE_SIMPLE;
+
+	protected static $_name = null;
 
 	/**
 	 * The resource id of this model for ACL purposes.
@@ -422,12 +426,18 @@ abstract class Celsus_Model_Service implements Celsus_Model_Service_Interface {
 	 * @return array
 	 */
 	public static function getLookupValues($term = null) {
-		$data = static::_getLookupData($term);
+		$data = self::_underlying()->cache(array(static::$_name, 'lookup'))->multiple()->getLookupData();
 
 		foreach ($data as $item) {
 			$value = static::getDescription($item);
 			if (!$term || (false !== strpos(strtolower($value), strtolower($term)))) {
-				$return[$item->id] = $value;
+				$result = array(
+					'title' => $value
+				);
+				foreach (static::$_lookupFields as $field) {
+					$result[$field] = $item->$field;
+				}
+				$return[$item->id] = $result;
 			}
 		}
 		return $return;
