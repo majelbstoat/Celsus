@@ -26,11 +26,6 @@ class Celsus_Log_Writer_ChromePHP extends Zend_Log_Writer_Abstract {
 	/**
 	 * @var string
 	 */
-	const BACKTRACE_LEVEL = 'backtrace_level';
-
-	/**
-	 * @var string
-	 */
 	const GROUP = 'group';
 
 	/**
@@ -47,6 +42,8 @@ class Celsus_Log_Writer_ChromePHP extends Zend_Log_Writer_Abstract {
 	 * @var int
 	 */
 	protected $_timestamp;
+
+	protected $_defaultBacktraceLevel = 1;
 
 	protected $_levelMapping = array(
 		Zend_Log::NOTICE => '',
@@ -75,13 +72,6 @@ class Celsus_Log_Writer_ChromePHP extends Zend_Log_Writer_Abstract {
 	protected $_errorTriggered = false;
 
 	/**
-	 * @var array
-	 */
-	protected $_settings = array(
-		self::BACKTRACE_LEVEL => 1
-	);
-
-	/**
 	 * Prevent recursion when working with objects referring to each other
 	 *
 	 * @var array
@@ -94,16 +84,14 @@ class Celsus_Log_Writer_ChromePHP extends Zend_Log_Writer_Abstract {
 	 * @param  array|Zend_Config $config
 	 * @return Zend_Log_Writer_Syslog
 	 */
-	public static function factory($config)
-	{
+	public static function factory($config) {
 		return new static();
 	}
 
 	/**
 	 * constructor
 	 */
-	private function __construct()
-	{
+	private function __construct() {
 		$this->_timestamp = $_SERVER['REQUEST_TIME'];
 		$this->_json['request_uri'] = $_SERVER['REQUEST_URI'];
 	}
@@ -122,8 +110,7 @@ class Celsus_Log_Writer_ChromePHP extends Zend_Log_Writer_Abstract {
 	 *
 	 * @param string value
 	 */
-	public static function group()
-	{
+	public static function group() {
 		return self::_log(func_get_args() + array('type' => self::GROUP));
 	}
 
@@ -132,8 +119,7 @@ class Celsus_Log_Writer_ChromePHP extends Zend_Log_Writer_Abstract {
 	 *
 	 * @param string value
 	 */
-	public static function groupCollapsed()
-	{
+	public static function groupCollapsed() {
 		return self::_log(func_get_args() + array('type' => self::GROUP_COLLAPSED));
 	}
 
@@ -142,8 +128,7 @@ class Celsus_Log_Writer_ChromePHP extends Zend_Log_Writer_Abstract {
 	 *
 	 * @param string value
 	 */
-	public static function groupEnd()
-	{
+	public static function groupEnd() {
 		return self::_log(func_get_args() + array('type' => self::GROUP_END));
 	}
 
@@ -153,8 +138,7 @@ class Celsus_Log_Writer_ChromePHP extends Zend_Log_Writer_Abstract {
 	 * @param string $type
 	 * @return void
 	 */
-	protected function _log(array $args)
-	{
+	protected function _log(array $args) {
 		$type = $args['type'];
 		unset($args['type']);
 
@@ -171,14 +155,17 @@ class Celsus_Log_Writer_ChromePHP extends Zend_Log_Writer_Abstract {
 		$value = $this->_convert($value);
 
 		$backtrace = debug_backtrace(false);
-		$level = $this->getSetting(self::BACKTRACE_LEVEL);
 
-		$backtrace_message = 'unknown';
-		if (isset($backtrace[$level]['file']) && isset($backtrace[$level]['line'])) {
-			$backtrace_message = $backtrace[$level]['file'] . ' : ' . $backtrace[$level]['line'];
+		if ($label) {
+			$backtraceMessage = $label;
 		}
 
-		$this->_addRow($label, $value, $backtrace_message, $type);
+		if (isset($backtrace[1]['file']) && isset($backtrace[1]['line'])) {
+			$backtraceMessage = $backtrace[1]['file'] . ' : ' . $backtrace[1]['line'] . ' : ' . $label;
+		}
+
+
+		$this->_addRow($value, $backtraceMessage, $type);
 	}
 
 	/**
@@ -187,8 +174,7 @@ class Celsus_Log_Writer_ChromePHP extends Zend_Log_Writer_Abstract {
 	 * @param Object
 	 * @return array
 	 */
-	protected function _convert($object)
-	{
+	protected function _convert($object) {
 		// if this isn't an object then just return it
 		if (!is_object($object)) {
 			return $object;
@@ -244,8 +230,7 @@ class Celsus_Log_Writer_ChromePHP extends Zend_Log_Writer_Abstract {
 	 * @param ReflectionProperty
 	 * @return string
 	 */
-	protected function _getPropertyKey(ReflectionProperty $property)
-	{
+	protected function _getPropertyKey(ReflectionProperty $property) {
 		$static = $property->isStatic() ? ' static' : '';
 		if ($property->isPublic()) {
 			return 'public' . $static . ' ' . $property->getName();
@@ -266,8 +251,8 @@ class Celsus_Log_Writer_ChromePHP extends Zend_Log_Writer_Abstract {
 	 * @var mixed
 	 * @return void
 	 */
-	protected function _addRow($label, $log, $backtrace, $type)
-	{
+	protected function _addRow($log, $backtrace, $type) {
+
 		// if this is logged on the same line for example in a loop, set it to null to save space
 		if (in_array($backtrace, $this->_backtraces)) {
 			$backtrace = null;
@@ -277,14 +262,14 @@ class Celsus_Log_Writer_ChromePHP extends Zend_Log_Writer_Abstract {
 			$this->_backtraces[] = $backtrace;
 		}
 
-		$row = array($label, $log, $backtrace, $type);
+		$row = array('', $log, $backtrace, $type);
 
 		$this->_json['rows'][] = $row;
+
 		$this->_writeHeader($this->_json);
 	}
 
-	protected function _writeHeader($data)
-	{
+	protected function _writeHeader($data) {
 		header(self::HEADER_NAME . ': ' . $this->_encode($data));
 	}
 
@@ -294,34 +279,8 @@ class Celsus_Log_Writer_ChromePHP extends Zend_Log_Writer_Abstract {
 	 * @param array $data
 	 * @return string
 	 */
-	protected function _encode($data)
-	{
+	protected function _encode($data) {
 		return base64_encode(utf8_encode(json_encode($data)));
-	}
-
-	/**
-	 * adds a setting
-	 *
-	 * @param string key
-	 * @param mixed value
-	 * @return void
-	 */
-	public function addSetting($key, $value)
-	{
-		$this->_settings[$key] = $value;
-	}
-
-	/**
-	 * add ability to set multiple settings in one call
-	 *
-	 * @param array $settings
-	 * @return void
-	 */
-	public function addSettings(array $settings)
-	{
-		foreach ($settings as $key => $value) {
-			$this->addSetting($key, $value);
-		}
 	}
 
 	/**

@@ -29,7 +29,8 @@ class Celsus_Application_Bootstrap_Bootstrap extends Zend_Application_Bootstrap_
 	 */
 		protected function _bootstrap($resource = null) {
 		if (is_null($resource) && $this->_excludedResources) {
-			$resource = array_diff($this->getClassResourceNames(), $this->_excludedResources);
+			$defaultResources = array_merge($this->getClassResourceNames(), $this->getPluginResourceNames());
+			$resource = array_diff($defaultResources, $this->_excludedResources);
 		}
 		return parent::_bootstrap($resource);
 
