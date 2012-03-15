@@ -9,6 +9,7 @@
  */
 class Celsus_Encoder {
 
+	//const CODEBOOK = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-@';
 	const CODEBOOK = '-@0123456789aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ';
 
 	/**
