@@ -68,7 +68,7 @@ class Celsus_Db_Document_Facebook {
 	}
 
 	public function save() {
-		throw new Exception("Not implemented yet");
+		throw new Celsus_Exception("Not implemented yet");
 	}
 
 	/**

@@ -31,7 +31,7 @@ abstract class Celsus_Controller_Auth_Facebook extends Celsus_Controller_Auth {
 		$result = $adapter->authenticate();
 
 		if (!$result->isValid()) {
-			// This shouldn't be possible, but just in case, bail gracefully.
+			// This shouldn't be possible, but just in case, bail gracefully.  Might be possible due to timeouts for example.
 			$this->getRequest()->setParam(Celsus_Error::ERROR_FLAG, Celsus_Auth::EXCEPTION_AUTH_ERROR);
 			$this->_forward('error', 'error');
 		} else {

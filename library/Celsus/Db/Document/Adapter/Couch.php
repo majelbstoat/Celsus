@@ -238,7 +238,7 @@ class Celsus_Db_Document_Adapter_Couch {
 			case Celsus_Http::OK:
 
 				// Getting a 200 doesn't mean that we've found it
-				$response = Zend_Json::decode($this->_client->getLastResponse()->getBody());
+				$response = Zend_Json::decode($response->getBody());
 				$return = null;
 				if ($response['rows']) {
 					foreach ($response ['rows'] as $row) {

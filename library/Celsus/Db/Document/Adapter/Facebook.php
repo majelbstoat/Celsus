@@ -24,8 +24,6 @@ class Celsus_Db_Document_Adapter_Facebook {
 				$this->setFromArray($config);
 			} elseif ($config instanceof Zend_Config) {
 				$this->setFromConfig($config);
-			} elseif (is_string($config)) {
-				$this->setDb($config);
 			}
 		}
 	}
@@ -44,56 +42,116 @@ class Celsus_Db_Document_Adapter_Facebook {
 		return $this->setFromArray($config->toArray());
 	}
 
+	public function setApplicationId($applicationId) {
+		$this->_config['applicationId'] = $applicationId;
+		return $this;
+	}
+
+	public function setApplicationSecret($applicationSecret) {
+		$this->_config['applicationSecret'] = $applicationSecret;
+		return $this;
+	}
+
+	public function setApplicationNamespace($applicationNamespace) {
+		$this->_config['applicationNamespace'] = $applicationNamespace;
+		return $this;
+	}
+
 	/**
-	 * Retrieves documents from facebook based on IDs, or null if nothing is found.
+	 * Retrieves documents from facebook based on access tokens, or null if nothing is found.
 	 *
 	 * @param string|array $id
+	 * @return Celsus_Db_Document_FacebookSet
+	 */
+	public function find($accessTokens) {
+		return $this->getUserData($accessTokens, Celsus_Service_Facebook::DATA_BASIC);
+	}
+
+	/**
+	 * Retrieves documents from facebook based on access tokens, or null if nothing is found.
+	 *
+	 * @param string|array $id
+	 * @param string $dataType
 	 * @throws Celsus_Exception
 	 * @return Celsus_Db_Document_FacebookSet
 	 */
-	public function find($identifiers) {
-		if (!is_array($identifiers)) {
-			$identifiers = array($identifiers);
+	public function getUserData($accessTokens, $dataType) {
+		if (!is_array($accessTokens)) {
+			$accessTokens = array($accessTokens);
 		}
 
-		foreach ($identifiers as $identifier) {
-			$response = $this->_prepare("/$identifier/")->_execute(Zend_Http_Client::GET);
+		foreach ($accessTokens as $accessToken) {
+			$parameters = array(
+				'access_token' => $accessToken
+			);
+			$response = $this->_prepare("/me/$dataType", $parameters)->_execute(Zend_Http_Client::GET);
 
 			$status = $response->getStatus();
-			$return = array();
+			$return = null;
 			switch ($status) {
 				case Celsus_Http::OK:
-					$return[] = new Celsus_Db_Document_Facebook(array(
+					if (null === $return) {
+						$return = new Celsus_Db_Document_FacebookSet(array(
+							'adapter' => $this
+						));
+					}
+					$document = new Celsus_Db_Document_Facebook(array(
 						'adapter' => $this,
-						'data' => $response->getBody()
+						'data' => Zend_Json::decode($response->getBody())
 					));
+					$return->add($document);
 					break;
 
 				case Celsus_Http::NOT_FOUND:
 					break;
 
 				case Celsus_Http::UNAUTHORISED:
-					throw new Celsus_Exception("Database username and password were incorrect");
+					throw new Celsus_Exception("Access token was invalid");
 					break;
 
 				case Celsus_Http::BAD_REQUEST:
 					throw new Celsus_Exception("Error in call: " . $response->getBody());
 					break;
 
-				case Celsus_Http::UNSUPPORTED_MEDIA_TYPE:
-					throw new Celsus_Exception("Content type must be application/json");
-					break;
-
 				default:
 					throw new Celsus_Exception("Response code $status not handled.");
 					break;
 			}
-
 		}
-		return new Celsus_Db_Document_FacebookSet(array(
-			'adapter' => $this,
-			'data' => $return
-		));
+		return $return;
+	}
+
+	public function acquireAccessToken($authorisationCode, $callbackPath) {
+		$parameters = array(
+			'client_id' => $this->_config['applicationId'],
+			'client_secret' => $this->_config['applicationSecret'],
+			'redirect_uri' => Celsus_Application::rootUrl() . $callbackPath,
+			'grant_type' => 'authorization_code',
+			'code' => $authorisationCode
+		);
+
+		var_dump(Celsus_Application::rootUrl() . $callbackPath);
+
+		$output = "https://graph.facebook.com/oauth/access_token?" . http_build_query($parameters);
+		var_dump($output);
+		$response = $this->_prepare("/oauth/access_token", $parameters)->_execute(Zend_Http_Client::GET);
+
+		$status = $response->getStatus();
+		$return = array();
+		switch ($status) {
+			case Celsus_Http::OK:
+				parse_str($response->getBody(), $responseData);
+				return $responseData['access_token'];
+				break;
+
+			case Celsus_Http::BAD_REQUEST:
+				throw new Celsus_Exception("Error in call: " . $response->getBody());
+				break;
+
+			default:
+				throw new Celsus_Exception("Response code $status not handled.");
+				break;
+		}
 	}
 
 	/**
@@ -104,7 +162,11 @@ class Celsus_Db_Document_Adapter_Facebook {
 	 * @throws Celsus_Exception
 	 */
 	public function save(Celsus_Db_Document_Couch $document, $method = Zend_Http_Client::PUT) {
-		throw new Exception("Not supported yet.");
+		throw new Celsus_Exception("Not supported yet.");
+	}
+
+	public function getProtocol() {
+		return $this->_config['ssl'] ? "https://" : "http://";
 	}
 
 	protected function _getBaseUri() {
@@ -113,7 +175,7 @@ class Celsus_Db_Document_Adapter_Facebook {
 		}
 
 		// Save the constructed base URI and mark it clean so we don't regenerate next time.
-		$this->_baseUri = "https://" . $this->getHost();
+		$this->_baseUri = $this->getProtocol() . $this->getHost();
 		$this->_dirty = false;
 
 		return $this->_baseUri;
@@ -133,9 +195,6 @@ class Celsus_Db_Document_Adapter_Facebook {
 		$path = ltrim($path, '/');
 		$client->setUri("$base/$path");
 		if (null !== $parameters) {
-			foreach ($parameters as $key => $value) {
-				$parameters[$key] = Zend_Json::encode($value);
-			}
 			$client->setParameterGet($parameters);
 		}
 		return $this;

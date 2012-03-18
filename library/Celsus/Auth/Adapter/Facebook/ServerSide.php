@@ -25,22 +25,14 @@ class Celsus_Auth_Adapter_Facebook_ServerSide implements Celsus_Auth_Adapter_Int
 	 */
 	protected $_localAuthAdapter = null;
 
-	protected $_applicationSecret = null;
-
-	protected $_applicationId = null;
-
 	protected $_authorisationCode = null;
+
+	protected $_facebookAdapter = null;
 
 	protected $_result = null;
 
-	public function __construct($applicationId, $applicationSecret, $localAuthAdapter, $url = null) {
-		$this->setApplicationId($applicationId)
-			->setApplicationSecret($applicationSecret)
-			->setLocalAuthAdapter($localAuthAdapter);
-
-		if (null !== $url) {
-			$this->setUrl($url);
-		}
+	public function __construct(Celsus_Auth_Adapter_Interface $localAuthAdapter) {
+		$this->setLocalAuthAdapter($localAuthAdapter);
 	}
 
 	public function setLocalAuthAdapter($localAuthAdapter) {
@@ -56,16 +48,6 @@ class Celsus_Auth_Adapter_Facebook_ServerSide implements Celsus_Auth_Adapter_Int
 		return $this->_localAuthAdapter;
 	}
 
-	public function setApplicationId($applicationId) {
-		$this->_applicationId = $applicationId;
-		return $this;
-	}
-
-	public function setApplicationSecret($applicationSecret) {
-		$this->_applicationSecret = $applicationSecret;
-		return $this;
-	}
-
 	public function setAuthorisationCode($authorisationCode) {
 		$this->_authorisationCode = $authorisationCode;
 		return $this;
@@ -79,23 +61,18 @@ class Celsus_Auth_Adapter_Facebook_ServerSide implements Celsus_Auth_Adapter_Int
 		return array_key_exists('code', $_GET);
 	}
 
-	public function setUrl($url) {
-		$this->_url = $url;
-		return $this;
-	}
-
 	protected function _base64UrlDecode($input) {
 		return base64_decode(strtr($input, '-_', '+/'));
 	}
 
 	/**
-	 * Authenticates via cURL.
+	 * Authenticates using the Facebook service.
 	 *
 	 * @return Zend_Auth_Result
 	 */
 	public function authenticate() {
 
-		if (!$this->_applicationId || !$this->_applicationSecret || !$this->_authorisationCode) {
+		if (!$this->_authorisationCode) {
 			throw new Zend_Auth_Adapter_Exception("Missing information for Facebook authentication.");
 		}
 
@@ -103,24 +80,15 @@ class Celsus_Auth_Adapter_Facebook_ServerSide implements Celsus_Auth_Adapter_Int
 		// @todo This will have to be updated, as it only allows for FB connection in one context.
 		$callbackPath = Zend_Registry::get('config')->auth->facebook->callbackPath;
 
-		$parameters = array(
-			'client_id' => $this->_applicationId,
-			'client_secret' => $this->_applicationSecret,
-			'redirect_uri' => Celsus_Application::rootUrl() . $callbackPath,
-			'grant_type' => 'authorization_code',
-			'code' => $this->_authorisationCode
-		);
+		$accessToken = Celsus_Service_Facebook::acquireAccessToken($this->_authorisationCode, $callbackPath);
 
-		$accessTokenResponse = file_get_contents("https://graph.facebook.com/oauth/access_token?" . http_build_query($parameters));
-		$responseParameters = null;
-		parse_str($accessTokenResponse, $responseParameters);
+		$userData = Celsus_Service_Facebook::getUserData($accessToken, Celsus_Service_Facebook::DATA_BASIC);
 
-		$user = json_decode(file_get_contents("https://graph.facebook.com/me?access_token=" . $responseParameters['access_token']));
-
-		$user->access_token = $responseParameters['access_token'];
+		$user = $userData->current();
+		$user->access_token = $accessToken;
 		$this->_result = $user;
 
-		return new Zend_Auth_Result(Zend_Auth_Result::SUCCESS, $user->id, array('Authentication Successful'));
+		return new Celsus_Auth_Result(Celsus_Auth_Result::SUCCESS, $user->id, array('Authentication Successful'));
 	}
 
 	/**
@@ -130,4 +98,3 @@ class Celsus_Auth_Adapter_Facebook_ServerSide implements Celsus_Auth_Adapter_Int
 		return $this->_result;
 	}
 }
-?>

@@ -16,6 +16,11 @@
  */
 class Celsus_Auth_Adapter_Test implements Celsus_Auth_Adapter_Interface {
 
+	/**
+	 * Mock identities that we can authenticate against.
+	 *
+	 * @var array $_identities
+	 */
 	protected $_identities = null;
 
 	protected $_identity = null;
@@ -35,6 +40,7 @@ class Celsus_Auth_Adapter_Test implements Celsus_Auth_Adapter_Interface {
 
 	public function setCredential($credential) {
 		$this->_credential = $credential;
+		return $this;
 	}
 
 	public function authenticate() {
@@ -51,7 +57,7 @@ class Celsus_Auth_Adapter_Test implements Celsus_Auth_Adapter_Interface {
 			}
 		} else {
 			$resultInfo['code'] = Zend_Auth_Result::FAILURE_IDENTITY_NOT_FOUND;
-				$resultInfo['messages'] = array("Invalid username");
+			$resultInfo['messages'] = array("Invalid username");
 		}
 
 		$this->_result = new Zend_Auth_Result($resultInfo['code'], $resultInfo['identity'], $resultInfo['messages']);

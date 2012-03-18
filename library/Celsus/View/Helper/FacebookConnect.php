@@ -29,10 +29,10 @@ class Celsus_View_Helper_FacebookConnect extends Zend_View_Helper_Abstract {
 	 */
 	public function facebookConnect($type = array()) {
 
-		$facebookData = Zend_Registry::get('config')->auth->facebook;
+		$facebookData = Zend_Registry::get('config')->database->facebook->connection;
 		$callbackUrl = Celsus_Application::rootUrl() . $facebookData->callbackPath;
 
-		?><a href="https://www.facebook.com/dialog/oauth?client_id=<?= $facebookData->applicationId ?>&redirect_uri=<?= $callbackUrl ?>&scope=<?= $facebookData->scope->basic ?>"><img src="/i/facebook-connect.png" title="Connect With Facebook" alt="Connect With Facebook"></a>
+		?><a href="https://www.facebook.com/dialog/oauth?client_id=<?= $facebookData->applicationId ?>&redirect_uri=<?= $callbackUrl ?>&scope=<?= $facebookData->scope->basic ?>" id="facebook-connect"><img src="/i/facebook-connect.png" title="Connect With Facebook" alt="Connect With Facebook"></a>
 		<?php
 	}
 

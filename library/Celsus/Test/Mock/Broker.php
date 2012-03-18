@@ -20,14 +20,23 @@ class Celsus_Test_Mock_Broker {
 
 	protected $_mockGenerators = array();
 
+	protected $_mockData = null;
+
 	public function __construct($prefix) {
 		$this->_prefix = $prefix;
 	}
 
-	public function __call($method, $arguments) {
-		include_once(ucfirst($method) . '.php');
+	public function data() {
+		if (null === $this->_mockData) {
+			$this->_mockData = new Celsus_Test_Mock_Data_Broker($this->_prefix . 'Data_');
+		}
+		return $this->_mockData;
+	}
 
+	public function __call($method, $arguments) {
 		if (!array_key_exists($method, $this->_mockGenerators)) {
+			require_once('mocks/' . ucfirst($method) . '.php');
+
 			$mockClass = $this->_prefix . ucfirst($method);
 			$this->_mockGenerators[$method] = new $mockClass();
 		}

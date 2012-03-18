@@ -20,6 +20,12 @@
  */
 abstract class Celsus_Http {
 
+	const POST = 'POST';
+	const GET = 'GET';
+	const PUT = 'PUT';
+	const DELETE = 'DELETE';
+	const HEAD = 'HEAD';
+
 	const CONTINUE_REQUEST = 100;
 	const SWITCH_PROTOCOLS = 101;
 	const OK = 200;
