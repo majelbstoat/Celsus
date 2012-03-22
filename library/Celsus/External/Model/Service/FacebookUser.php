@@ -12,17 +12,13 @@ class Celsus_External_Model_Service_FacebookUser extends Celsus_Model_Service {
 
 	protected static $_descriptiveField = array('name');
 
+	// @todo These are wrong.
 	protected static $_defaultFields = array (
-		'name' => array(
-		),
-		'summary' => array(
-		),
-		'title' => array(
-		),
-		'description' => array(
-		),
-		'group' => array(
-		),
+		'name' => array(),
+		'summary' => array(),
+		'title' => array(),
+		'description' => array(),
+		'group' => array(),
 	);
 
 	public static function acquireAccessToken($authorisationCode, $callbackPath) {

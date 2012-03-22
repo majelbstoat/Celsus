@@ -21,11 +21,15 @@
  */
 class Celsus_Feedback {
 
-	protected static $_session = null;
-
 	const INFO = 'info';
 	const WARNING = 'warning';
 	const ERROR = 'error';
+
+	const FEEDBACK_LIST = 'configs/feedback.yaml';
+
+	protected static $_session = null;
+
+	protected static $_definitions = null;
 
 	/**
 	 * Gets the session object.
@@ -39,20 +43,38 @@ class Celsus_Feedback {
 	}
 
 	/**
+	 * Gets the definition of the specified feedback.
+	 *
+	 * return Zend_Config_Yaml
+	 */
+	protected static function _getFeedbackDefinition($code) {
+		if (null === self::$_definitions) {
+			self::$_definitions = new Zend_Config_Yaml(APPLICATION_PATH . '/' . self::FEEDBACK_LIST);
+		}
+
+		return self::$_definitions->$code;
+	}
+
+
+
+	/**
 	 * Adds a message to the feedback stack and preserves it across the current session.
 	 *
-	 * @param string $type
-	 * @param string|int $message
+	 * @param string $code The application feedback code pertaining to an entry in feedback.yaml
+	 * @param array $data The data to be replaced into the message.
 	 * @param string $callback The URL to PUT to to acknowledge the message.
 	 */
-	public static function add($type, $code, $message, $callback = null) {
+	public static function add($code, array $data = array(), $callback = null) {
 		self::_ensureSession();
 
-		switch ($type) {
+		$feedback = self::_getFeedbackDefinition($code);
+
+		switch ($feedback->type) {
 			case Celsus_Feedback::INFO:
 			case Celsus_Feedback::WARNING:
 			case Celsus_Feedback::ERROR:
-				self::$_session->{$type}[] = array(
+				$message = vsprintf($feedback->message, $data);
+				self::$_session->{$feedback->type}[] = array(
 					'code' => $code,
 					'message' => $message,
 					'callback' => $callback
@@ -60,7 +82,7 @@ class Celsus_Feedback {
 				break;
 
 			default:
-				throw new Celsus_Exception('Invalid type "' . $type . '" specified.');
+				throw new Celsus_Exception('Invalid type "' . $feedback->type . '" specified.');
 		}
 	}
 
@@ -70,10 +92,34 @@ class Celsus_Feedback {
 	}
 
 	/**
+	 * Checks that the specified feedback has been buffered.
+	 *
+	 * @param string $type
+	 * @param string $code
+	 * @return boolean
+	 */
+	public static function has($type, $code) {
+
+		// Test that the type of feedback exists.
+		if (!isset(self::$_session->$type)) {
+			return false;
+		}
+
+		foreach (self::$_session->$type as $feedback) {
+			if ($feedback['code'] == $code) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
 	 * Gets the currently buffered feedback.
 	 *
 	 * @param string|array $types
-	 * @return unknown
+	 * @param boolean $clean Whether or not to clear the feedback so it doesn't appear again.
+	 * @return array()
 	 */
 	public static function get($types = array(), $clean = true) {
 		self::_ensureSession();
@@ -93,8 +139,8 @@ class Celsus_Feedback {
 		foreach ($types as $type) {
 			switch ($type) {
 				case Celsus_Feedback::INFO:
-				case Celsus_Feedback::ERROR:
 				case Celsus_Feedback::WARNING:
+				case Celsus_Feedback::ERROR:
 					if (isset(self::$_session->$type) && self::$_session->$type) {
 						$return[$type] = self::$_session->$type;
 					}
