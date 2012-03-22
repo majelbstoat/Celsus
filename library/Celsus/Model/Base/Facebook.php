@@ -42,20 +42,20 @@ class Celsus_Model_Base_Facebook implements Celsus_Model_Base_Interface {
 	}
 
 	/**
-	 * Finds records based on identifiers.
+	 * Finds records based on access tokens.
 	 *
-	 * @param array|string $identifiers.  The identifier of the record to find or a view definition.
+	 * @param array|string $accessTokens.  The identifier of the record to find.
 	 * @return Celsus_Db_Document_CouchSet
 	 */
 	public function find() {
 		$arguments = func_get_args();
-		$identifiers = $arguments[0];
+		$accessTokens = $arguments[0];
 
-		if (!is_array($identifiers)) {
-			$identifiers = array($identifiers);
+		if (!is_array($accessTokens)) {
+			$identifiers = array($accessTokens);
 		}
 
-		return $this->getAdapter()->find($identifiers);
+		return $this->getAdapter()->find($accessTokens);
 	}
 
 	/**
@@ -67,10 +67,15 @@ class Celsus_Model_Base_Facebook implements Celsus_Model_Base_Interface {
 	public function fetchAll() {
 		$arguments = func_get_args();
 		$view = $arguments[0];
-		if (!$view instanceof Celsus_Db_Document_View) {
-			throw new Celsus_Exception("Must supply a valid view.");
-		}
-		return $this->getAdapter()->view($view);
+		throw new Celsus_Exception("Not implemented");
+	}
+
+	public function acquireAccessToken($authorisationCode, $callbackPath) {
+		return $this->getAdapter()->acquireAccessToken($authorisationCode, $callbackPath);
+	}
+
+	public function getUserData($accessToken, $dataType) {
+		return $this->getAdapter()->getUserData($accessToken, $dataType);
 	}
 
 	/**

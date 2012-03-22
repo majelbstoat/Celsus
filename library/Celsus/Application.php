@@ -83,7 +83,7 @@ abstract class Celsus_Application extends Zend_Application {
 	public function __construct($environment, array $configPaths, $useCacheForBootstrap = true) {
 		// Hydrate or create an application instance.
 
-		require_once 'Zend/Config/Ini.php';
+		require_once 'Zend/Config/Yaml.php';
 
 		$config = null;
 		$serialisedPaths = serialize($configPaths);
@@ -99,9 +99,9 @@ abstract class Celsus_Application extends Zend_Application {
 		if (!$config) {
 			$configPath = array_shift($configPaths);
 
-			$config = new Zend_Config_Ini($configPath, $environment, true);
+			$config = new Zend_Config_Yaml($configPath, $environment, true);
 			foreach ($configPaths as $configPath) {
-				$config->merge(new Zend_Config_Ini($configPath, $environment));
+				$config->merge(new Zend_Config_Yaml($configPath, $environment));
 			}
 
 			Celsus_Cache_Manager::cache($this->_bootstrapCacheName)->shared()->save($config, $configCacheKey, array('config'));
@@ -134,7 +134,7 @@ abstract class Celsus_Application extends Zend_Application {
 	/**
 	 * Gets routes for the application.
 	 *
-	 * @return Zend_Config_Ini
+	 * @return Zend_Config_Yaml
 	 */
 	public function getRoutes() {
 
@@ -143,7 +143,7 @@ abstract class Celsus_Application extends Zend_Application {
 		$routes = Celsus_Cache_Manager::cache($this->_bootstrapCacheName)->shared()->load($routesCacheKey);
 		if (!$routes) {
 			$config = Zend_Registry::get('config');
-			$routes = new Zend_Config_Ini($config->routes->path);
+			$routes = new Zend_Config_Yaml($config->routes->path);
 			Celsus_Cache_Manager::cache($this->_bootstrapCacheName)->shared()->save($routes, $routesCacheKey, array('routes'));
 		}
 		return $routes;

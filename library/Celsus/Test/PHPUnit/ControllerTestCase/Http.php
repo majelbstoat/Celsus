@@ -70,8 +70,8 @@ class Celsus_Test_PHPUnit_ControllerTestCase_Http extends Zend_Test_PHPUnit_Cont
 		require_once APPLICATION_CLASS . ".php";
 
 		$this->_application = new $application (APPLICATION_ENV, array(
-			APPLICATION_PATH . '/configs/common.ini',
-			APPLICATION_PATH . '/configs/web.ini'
+			APPLICATION_PATH . '/configs/common.yaml',
+			APPLICATION_PATH . '/configs/web.yaml'
 		), false);
 		$this->_application->bootstrap($this->_bootstrapComponents, $this->_excludedBootstrapComponents);
 	}
@@ -142,5 +142,7 @@ class Celsus_Test_PHPUnit_ControllerTestCase_Http extends Zend_Test_PHPUnit_Cont
 			$this->fail($msg);
 		}
 	}
+
+//	public function assertFeedbackContains
 
 }

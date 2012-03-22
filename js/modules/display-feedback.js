@@ -7,7 +7,6 @@ var Celsus = (function(Celsus, $) {
 			container = this;
 			count = 0;
 			$.each(feedback, function() {
-				var acknowledge;
 				var li = $("<li></li>", {
 					"class": this.type,
 				}).appendTo(container);
@@ -18,7 +17,7 @@ var Celsus = (function(Celsus, $) {
 
 				if (this.callback) {
 					// Messages that require an acknowledgement trigger a callback URL when clicked.
-					acknowledge = $("<a></a>", {
+					$("<a></a>", {
 						href: this.callback,
 						"class": "acknowledge",
 						title: "Acknowledge",

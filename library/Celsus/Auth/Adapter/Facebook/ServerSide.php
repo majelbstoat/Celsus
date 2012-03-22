@@ -78,11 +78,11 @@ class Celsus_Auth_Adapter_Facebook_ServerSide implements Celsus_Auth_Adapter_Int
 
 		// By convention, the callback path will be set in the config.
 		// @todo This will have to be updated, as it only allows for FB connection in one context.
-		$callbackPath = Zend_Registry::get('config')->auth->facebook->callbackPath;
+		$callbackPath = Zend_Registry::get('config')->database->facebook->connection->callbackPath;
 
-		$accessToken = Celsus_Service_Facebook::acquireAccessToken($this->_authorisationCode, $callbackPath);
+		$accessToken = Celsus_External_Model_Service_FacebookUser::acquireAccessToken($this->_authorisationCode, $callbackPath);
 
-		$userData = Celsus_Service_Facebook::getUserData($accessToken, Celsus_Service_Facebook::DATA_BASIC);
+		$userData = Celsus_External_Model_Service_FacebookUser::getProfileInformation($accessToken);
 
 		$user = $userData->current();
 		$user->access_token = $accessToken;

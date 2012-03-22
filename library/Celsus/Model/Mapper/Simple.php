@@ -57,7 +57,8 @@ class Celsus_Model_Mapper_Simple extends Celsus_Model_Mapper {
 		}
 
 		if (!$base instanceof Celsus_Model_Base_Interface) {
-			throw new Celsus_Exception("Model base must implement Celsus_Model_Base_Interface");
+			$class = get_class($base);
+			throw new Celsus_Exception("Model base '$class' must implement Celsus_Model_Base_Interface");
 		}
 
 		$this->_base = $base;

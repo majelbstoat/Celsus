@@ -130,10 +130,6 @@ class Celsus_Db_Document_Adapter_Facebook {
 			'code' => $authorisationCode
 		);
 
-		var_dump(Celsus_Application::rootUrl() . $callbackPath);
-
-		$output = "https://graph.facebook.com/oauth/access_token?" . http_build_query($parameters);
-		var_dump($output);
 		$response = $this->_prepare("/oauth/access_token", $parameters)->_execute(Zend_Http_Client::GET);
 
 		$status = $response->getStatus();

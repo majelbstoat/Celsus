@@ -14,7 +14,7 @@
  */
 
 /**
- * Represents a business entity.  Acts as a data transfer object with build in security and validation.
+ * Represents a business entity.  Acts as a data transfer object with built in security and validation.
  *
  * @ingroup Celsus_Model
  */

@@ -45,7 +45,7 @@ class Celsus_Feedback {
 	 * @param string|int $message
 	 * @param string $callback The URL to PUT to to acknowledge the message.
 	 */
-	public static function add($type, $message, $callback = null) {
+	public static function add($type, $code, $message, $callback = null) {
 		self::_ensureSession();
 
 		switch ($type) {
@@ -53,6 +53,7 @@ class Celsus_Feedback {
 			case Celsus_Feedback::WARNING:
 			case Celsus_Feedback::ERROR:
 				self::$_session->{$type}[] = array(
+					'code' => $code,
 					'message' => $message,
 					'callback' => $callback
 				);

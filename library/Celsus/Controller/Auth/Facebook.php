@@ -24,7 +24,7 @@ abstract class Celsus_Controller_Auth_Facebook extends Celsus_Controller_Auth {
 		$adapter = Celsus_Auth::getAuthAdapter();
 		if (!$adapter->canAuthenticate()) {
 			// The request did not supply enough information to authenticate, so we bail.
-			$this->_forward('/');
+			return $this->_redirect('/');
 		}
 
 		$adapter->populateAuthorisationPayload();
