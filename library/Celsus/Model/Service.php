@@ -26,6 +26,7 @@ abstract class Celsus_Model_Service implements Celsus_Model_Service_Interface {
 	const FIELD_TYPE_REFERENCE = 'reference';
 	const FIELD_TYPE_PARENT_REFERENCE = 'parentReference';
 	const FIELD_TYPE_ARRAY = 'array';
+	const FIELD_TYPE_GENERATED = 'generated';
 
 	/**
 	 * Used for caching results.

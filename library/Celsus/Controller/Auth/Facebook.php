@@ -24,6 +24,7 @@ abstract class Celsus_Controller_Auth_Facebook extends Celsus_Controller_Auth {
 		$adapter = Celsus_Auth::getAuthAdapter();
 		if (!$adapter->canAuthenticate()) {
 			// The request did not supply enough information to authenticate, so we bail.
+			$this->_missingAuthentication();
 			return $this->_redirect('/');
 		}
 
@@ -45,7 +46,7 @@ abstract class Celsus_Controller_Auth_Facebook extends Celsus_Controller_Auth {
 			// Already has a session, so we really shouldn't have authenticated, but now that we have, just go to the home.
 			// @todo Log this, because if it ever happens, it means the identity checking plugin isn't working.
 
-			$this->_redirect('/');
+			return $this->_redirect('/');
 		} else {
 			// Check the Facebook data received against the local adapter.
 			$localAdapter = $adapter->getLocalAuthAdapter();
@@ -61,7 +62,7 @@ abstract class Celsus_Controller_Auth_Facebook extends Celsus_Controller_Auth {
 				$auth->getStorage()->write($identity);
 				$redirectSession = new Zend_Session_Namespace('Redirect');
 				$location = $redirectSession->location ? $redirectSession->location : '/';
-				$this->_redirect($location);
+				return $this->_redirect($location);
 			} else {
 				$code = $result->getCode();
 				if (Zend_Auth_Result::FAILURE_IDENTITY_AMBIGUOUS == $code) {
@@ -82,16 +83,28 @@ abstract class Celsus_Controller_Auth_Facebook extends Celsus_Controller_Auth {
 	}
 
 	/**
-	 * Application-specific function that registers a Facebook user locally.
-	 */
-	abstract protected function _register();
-
-	/**
 	 * Updates user information from Facebook to keep their data fresh.
+	 *
+	 * @param Celsus_Model $local;
+	 * @return Celsus_Model
 	 */
 	protected function _merge($local) {
 		return $local;
 	}
 
+	/**
+	 * Application-specific function that handles missing authentication data.
+	 */
+	abstract protected function _missingAuthentication();
+
+	/**
+	 * Application-specific function that registers a Facebook user locally.
+	 */
+	abstract protected function _register();
+
+	/**
+	 * Application-specific function that logs a Facebook user in locally.
+	 */
 	abstract public function loginAction();
+
 }

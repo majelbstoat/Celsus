@@ -156,16 +156,21 @@ class Celsus_Log_Writer_ChromePHP extends Zend_Log_Writer_Abstract {
 
 		$backtrace = debug_backtrace(false);
 
-		if ($label) {
-			$backtraceMessage = $label;
-		}
+		$messageComponents = array();
+
 
 		if (isset($backtrace[1]['file']) && isset($backtrace[1]['line'])) {
-			$backtraceMessage = $backtrace[1]['file'] . ' : ' . $backtrace[1]['line'] . ' : ' . $label;
+			 $messageComponents[] = $backtrace[1]['file'];
+			 $messageComponents[] = "Line " . $backtrace[1]['line'];
 		}
 
+		if ($label) {
+			$messageComponents[] = $label;
+		}
 
-		$this->_addRow($value, $backtraceMessage, $type);
+		$message = implode (' : ', $messageComponents);
+
+		$this->_addRow($value, $message, $type);
 	}
 
 	/**

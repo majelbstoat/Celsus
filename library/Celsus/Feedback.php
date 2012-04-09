@@ -55,8 +55,6 @@ class Celsus_Feedback {
 		return self::$_definitions->$code;
 	}
 
-
-
 	/**
 	 * Adds a message to the feedback stack and preserves it across the current session.
 	 *
@@ -94,11 +92,12 @@ class Celsus_Feedback {
 	/**
 	 * Checks that the specified feedback has been buffered.
 	 *
-	 * @param string $type
 	 * @param string $code
 	 * @return boolean
 	 */
-	public static function has($type, $code) {
+	public static function has($code) {
+		$feedback = self::_getFeedbackDefinition($code);
+		$type = $feedback->type;
 
 		// Test that the type of feedback exists.
 		if (!isset(self::$_session->$type)) {

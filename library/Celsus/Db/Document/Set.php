@@ -1,6 +1,8 @@
 <?php
 
-class Celsus_Db_Document_CouchSet implements Iterator, Countable, ArrayAccess {
+class Celsus_Db_Document_Set implements Celsus_Db_Document_Set_Interface, Iterator, Countable, ArrayAccess {
+
+	protected $_objectType = null;
 
 	/**
 	 * The documents in this set
@@ -37,20 +39,8 @@ class Celsus_Db_Document_CouchSet implements Iterator, Countable, ArrayAccess {
 	}
 
 	protected function _loadFromArray($data) {
-		if (array_key_exists('rows', $data)) {
-			$data = $data['rows'];
-		}
-
-		// When we call with include_docs, we just want the documents back.
-		if (array_key_exists('docs', $data)) {
-			$data = $data['docs'];
-		}
 
 		foreach ($data as $document) {
-//			if (array_key_exists('doc', $document)) {
-				// Further stripping to handle include_docs.
-//				$document = $document['doc'];
-//			}
 			$this->add($document);
 		}
 		return $this;
@@ -60,24 +50,18 @@ class Celsus_Db_Document_CouchSet implements Iterator, Countable, ArrayAccess {
 		return $this->_adapter;
 	}
 
-	public function augment($fields) {
-		foreach ($this->_documents as $document) {
-			$document->augment($fields);
-		}
-	}
-
 	/**
 	 * Adds a document to the document set.
 	 *
-	 * @param array|Celsus_Db_Document_Couch $document
+	 * @param array|Celsus_Db_Document_Simple $document
 	 */
 	public function add($document) {
 		if (is_array($document)) {
-			$document = new Celsus_Db_Document_Couch(array(
+			$document = new $this->_objectType(array(
 				'adapter' => $this->getAdapter(),
 				'data' => $document
 			));
-		} elseif (!$document instanceof Celsus_Db_Document_Couch) {
+		} elseif (!$document instanceof Celsus_Db_Document_Simple) {
 			throw new Celsus_Exception("Invalid document specified.");
 		}
 
@@ -95,6 +79,12 @@ class Celsus_Db_Document_CouchSet implements Iterator, Countable, ArrayAccess {
 			$return[] = $document->toArray();
 		}
 		return $return;
+	}
+
+	public function augment($fields) {
+		foreach ($this->_documents as $document) {
+			$document->augment($fields);
+		}
 	}
 
 	public function count() {

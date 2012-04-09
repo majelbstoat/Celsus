@@ -86,6 +86,24 @@ class Celsus_Model_Mapper_Simple extends Celsus_Model_Mapper {
 		return ($data) ? true : false;
 	}
 
+	/**
+	 * Given a model that has been constructed from a data source, augments the model
+	 * with generated fields that are not persisted.
+	 *
+	 * @param array $data
+	 * @return array
+	 */
+	protected function _attachGeneratedFields(Celsus_Model $model) {
+		$service = $this->_service;
+		$fieldData = $service::getFields();
+		foreach ($fieldData as $field => $definition) {
+			if (Celsus_Model_Service::FIELD_TYPE_GENERATED == $definition['type']) {
+				$method = 'attach' . ucfirst($field);
+				call_user_func(array($this, $method), $model);
+			}
+		}
+	}
+
 	protected function _wrap($data) {
 
 		// First, ensure that every field for this underlying representation is present.
@@ -96,9 +114,18 @@ class Celsus_Model_Mapper_Simple extends Celsus_Model_Mapper {
 			'mapper' => $this
 		);
 
-		$replacement = $this->_single ? 'Model' : 'Model_Set';
-		$modelClass = str_replace('Model_Service', $replacement, $this->_service);
+		if ($this->_single) {
+			$modelClass = str_replace('Model_Service', 'Model', $this->_service);
+			$return = new $modelClass($config);
+			$this->_attachGeneratedFields($return);
+		} else {
+			$modelClass = str_replace('Model_Service', 'Model_Set', $this->_service);
+			$return = new $modelClass($config);
+			foreach ($return as $model) {
+				$this->_attachGeneratedFields($model);
+			}
+		}
 
-		return new $modelClass($config);
+		return $return;
 	}
 }

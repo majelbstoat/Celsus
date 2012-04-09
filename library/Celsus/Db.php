@@ -83,7 +83,7 @@ class Celsus_Db {
 			$connection = $config->connection->toArray();
 
 			$type = $config->type ? $config->type : 'relational';
-			$factory = 'Celsus_Db_' . ucfirst($type);
+			$factory = 'Celsus_Db_Engine_' . ucfirst($type);
 			if (!class_exists($factory, true)) {
 				throw new Celsus_Exception($type . " is not a valid database type");
 			}

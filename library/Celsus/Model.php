@@ -212,19 +212,22 @@ abstract class Celsus_Model extends Celsus_Data_Object {
 
 				// Allow setting of model specific data before committing to the backend.
 				if ($this->id) {
-					$this->_update();
+					$updating = true;
+					$this->_preUpdate();
 				} else {
-					$this->_insert();
+					$updating = false;
+					$this->_preInsert();
 				}
 
 				$modelFieldMap = $this->_mapper->getFieldMap();
 				$fieldMap = array_flip($modelFieldMap);
 				foreach ($this->_sourceFieldMap as $sourceKey => $fields) {
 					// Build an array of data to save to this underlying, making use of the model field map to
-					// convert between business model fields and underlying fields.
+					// convert between business model fields and underlying fields.  Generated fields will not exist in the model
+					// field map.
 					$data = array();
 					foreach ($this->_dirty as $key) {
-						if (!in_array($key, $fields) && !in_array($modelFieldMap[$key], $fields)) {
+						if (!in_array($key, $fields) && (!isset($modelFieldMap[$key]) || !in_array($modelFieldMap[$key], $fields))) {
 							// This field isn't from this underlying.
 							continue;
 						}
@@ -256,16 +259,21 @@ abstract class Celsus_Model extends Celsus_Data_Object {
 								$this->_data[$key] = $value;
 							}
 						}
+
+						// Allow setting of additional data and updating of secondary keys after a successful insert.
+						$this->_mapper->updateIndices($this->id, $this->_data, $this->_originalData);
 					}
 
 					// Reset the dirtiness of those fields.
 					$this->_dirty = array_diff($this->_dirty, array_keys($data));
 				}
 
+
 			} else {
 				throw new Celsus_Model_Exception_InvalidData("One or more fields were invalid.  Please check your data and try again.");
 			}
 		}
+
 
 		return $this->id;
 	}
@@ -273,11 +281,11 @@ abstract class Celsus_Model extends Celsus_Data_Object {
 	/**
 	 * Allows models to set specific generated data just before an insert.
 	 */
-	protected function _insert() {}
+	protected function _preInsert() {}
 
 	/**
 	 * Allows models to set specific generated data just before an update.
 	 */
-	protected function _update() {}
+	protected function _preUpdate() {}
 
 }

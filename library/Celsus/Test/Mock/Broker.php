@@ -22,10 +22,21 @@ class Celsus_Test_Mock_Broker {
 
 	protected $_mockData = null;
 
+	protected $_enabled = true;
+
 	public function __construct($prefix) {
 		$this->_prefix = $prefix;
 	}
 
+	public function setEnabled($enabled) {
+		$this->_enabled = $enabled;
+	}
+
+	/**
+	 * Provides an interface to retrieving mock data objects.
+	 *
+	 * @return Celsus_Test_Mock_Data_Broker
+	 */
 	public function data() {
 		if (null === $this->_mockData) {
 			$this->_mockData = new Celsus_Test_Mock_Data_Broker($this->_prefix . 'Data_');
@@ -33,17 +44,31 @@ class Celsus_Test_Mock_Broker {
 		return $this->_mockData;
 	}
 
+	/**
+	 * Proxies a call through to the actual mocking function.
+	 *
+	 * If mocking is not enabled, because we are integration testing for example, returns
+	 * a reference to itself, so that chained method calls do not break, but does not
+	 * actually mock anything.
+	 *
+	 * @param string $method
+	 * @param array $arguments
+	 */
 	public function __call($method, $arguments) {
+
+		// If mocking is not enabled, we don't want to mock any objects.
+		if (!$this->_enabled) {
+			return $this;
+		}
+
 		if (!array_key_exists($method, $this->_mockGenerators)) {
 			require_once('mocks/' . ucfirst($method) . '.php');
 
 			$mockClass = $this->_prefix . ucfirst($method);
-			$this->_mockGenerators[$method] = new $mockClass();
+			$this->_mockGenerators[$method] = new $mockClass($this);
 		}
-		$generator = $this->_mockGenerators[$method];
-		call_user_func_array(array($generator, 'mock'), $arguments);
 
-		return $this;
+		return $this->_mockGenerators[$method];
 	}
 
 }

@@ -102,6 +102,10 @@ abstract class Celsus_Model_Mapper {
 			$service = $this->_service;
 			$fieldData = $service::getFields();
 			foreach ($fieldData as $field => $definition) {
+				if (Celsus_Model_Service::FIELD_TYPE_GENERATED == $definition['type']) {
+					continue;
+				}
+
 				$this->_fieldMap[$field] = (in_array($definition['type'], array(
 					Celsus_Model_Service::FIELD_TYPE_REFERENCE,
 					Celsus_Model_Service::FIELD_TYPE_PARENT_REFERENCE
@@ -117,6 +121,19 @@ abstract class Celsus_Model_Mapper {
 	 */
 	public function getService() {
 		return $this->_service;
+	}
+
+	/**
+	 * Updates the indices for this model.
+	 *
+	 * Defining this function explicitly saves a call to __call
+	 *
+	 * @param string|int $id
+	 * @param array $data
+	 * @param array $originalData
+	 */
+	public function updateIndices($id, array $data, array $originalData) {
+		return $this->getBase()->updateIndices($id, $data, $originalData);
 	}
 
 	/**

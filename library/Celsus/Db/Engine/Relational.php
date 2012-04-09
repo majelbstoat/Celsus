@@ -1,6 +1,6 @@
 <?php
 
-class Celsus_Db_Relational implements Celsus_Db_Interface {
+class Celsus_Db_Engine_Relational implements Celsus_Db_Engine_Interface {
 
 	public static function factory($adapter, $config = array()) {
 		$adapter = Zend_Db::factory($adapter, $config);
@@ -14,4 +14,3 @@ class Celsus_Db_Relational implements Celsus_Db_Interface {
 
 	}
 }
-?>

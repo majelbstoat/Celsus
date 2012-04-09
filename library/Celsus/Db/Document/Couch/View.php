@@ -1,6 +1,6 @@
 <?php
 
-class Celsus_Db_Document_View {
+class Celsus_Db_Document_Couch_View {
 
 	protected $_designDocument = null;
 

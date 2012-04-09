@@ -1,6 +1,6 @@
 <?php
 
-class Celsus_Model_Base_Facebook implements Celsus_Model_Base_Interface {
+class Celsus_Model_Base_Facebook extends Celsus_Model_Base {
 
 	// This class will behave in a similar fashion to Celsus_Model_Base_DbTable
 	// and reference a document, like the latter references a Zend_Db_Table_Row
@@ -18,6 +18,8 @@ class Celsus_Model_Base_Facebook implements Celsus_Model_Base_Interface {
 	 * @var unknown_type
 	 */
 	protected static $_defaultAdapter = null;
+
+	protected static $_dataClass = 'Celsus_Db_Document_Facebook';
 
 	/**
 	 * The fields that are present in the underlying representation of this model.
@@ -41,35 +43,6 @@ class Celsus_Model_Base_Facebook implements Celsus_Model_Base_Interface {
 		return self::$_defaultAdapter;
 	}
 
-	/**
-	 * Finds records based on access tokens.
-	 *
-	 * @param array|string $accessTokens.  The identifier of the record to find.
-	 * @return Celsus_Db_Document_CouchSet
-	 */
-	public function find() {
-		$arguments = func_get_args();
-		$accessTokens = $arguments[0];
-
-		if (!is_array($accessTokens)) {
-			$identifiers = array($accessTokens);
-		}
-
-		return $this->getAdapter()->find($accessTokens);
-	}
-
-	/**
-	 * Returns a set of records from a view based on the supplied parameters.
-	 *
-	 * @throws Celsus_Exception
-	 * @return Celsus_Db_Document_FacebookSet
-	 */
-	public function fetchAll() {
-		$arguments = func_get_args();
-		$view = $arguments[0];
-		throw new Celsus_Exception("Not implemented");
-	}
-
 	public function acquireAccessToken($authorisationCode, $callbackPath) {
 		return $this->getAdapter()->acquireAccessToken($authorisationCode, $callbackPath);
 	}
@@ -86,17 +59,6 @@ class Celsus_Model_Base_Facebook implements Celsus_Model_Base_Interface {
 		throw new Celsus_Exception("Not implemented");
 	}
 
-	public function createRecord(array $data = array()) {
-		$fields = $this->getFields();
-		$defaults = array_combine($fields, array_fill(0, count($fields), null));
-
-		$record = new Celsus_Db_Document_Facebook(array(
-			'adapter' => $this->getAdapter(),
-			'data' => array_merge($defaults, $data)
-		));
-		return $record;
-	}
-
 	/**
 	 * Returns the fields that represent this model on Facebook.
 	 *
@@ -104,6 +66,11 @@ class Celsus_Model_Base_Facebook implements Celsus_Model_Base_Interface {
 	 */
 	public function getFields() {
 		return $this->_fields;
+	}
+
+	protected function _getDefaults() {
+		$fields = $this->getFields();
+		return array_combine($fields, array_fill(0, count($fields), null));
 	}
 
 	/**

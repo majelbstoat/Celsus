@@ -79,7 +79,7 @@ class Celsus_Model_Base_Couch implements Celsus_Model_Base_Interface {
 	 * @param array|string $where
 	 */
 	public function delete($where) {
-		throw new Celsus_Exception("Not $where implemented");
+		throw new Celsus_Exception("Not implemented: $where");
 	}
 
 	/**

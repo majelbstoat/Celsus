@@ -96,7 +96,7 @@ class Celsus_Test_PHPUnit_ControllerTestCase_Http extends Zend_Test_PHPUnit_Cont
 		$json = Zend_Controller_Action_HelperBroker::getStaticHelper('json');
 		$json->suppressExit = true;
 
-		$request    = $this->getRequest();
+		$request = $this->getRequest();
 		if (null !== $url) {
 			$request->setRequestUri($url);
 		}
@@ -116,10 +116,18 @@ class Celsus_Test_PHPUnit_ControllerTestCase_Http extends Zend_Test_PHPUnit_Cont
 		}
 	}
 
-	protected function _mock() {
+	/**
+	 * Provides a mechanism by which parts of the SUT can be mocked and stubbed out.
+	 *
+	 * @param boolean $force Certain components should always be mocked, even during integration testing.
+	 */
+	protected function _mock($force = false) {
 		if (null === $this->_mockBroker) {
 			$this->_mockBroker = new Celsus_Test_Mock_Broker(APPLICATION_CLASS . '_Mock_');
 		}
+
+		// We enable mocking if we are not integration testing, or if explicitly forced.
+		$this->_mockBroker->setEnabled($force || !INTEGRATION_TESTING);
 		return $this->_mockBroker;
 	}
 
@@ -138,11 +146,16 @@ class Celsus_Test_PHPUnit_ControllerTestCase_Http extends Zend_Test_PHPUnit_Cont
 		$this->_incrementAssertionCount();
 		$actualContext = Zend_Controller_Action_HelperBroker::getStaticHelper('ContextSwitch')->getCurrentContext();
 		if ($context != $actualContext) {
-			$msg = sprintf('Failed asserting context <"%s"> was "%s"', $actualContext, $context);
-			$this->fail($msg);
+			$message = sprintf('Failed asserting context <"%s"> was "%s"', $actualContext, $context);
+			$this->fail($message);
 		}
 	}
 
-//	public function assertFeedbackContains
-
+	public function assertFeedback($code) {
+		$this->_incrementAssertionCount();
+		if (!Celsus_Feedback::has($code)) {
+			$message = sprintf('Failed asserting feedback of <"%s">', $code);
+			$this->fail($message);
+		}
+	}
 }
