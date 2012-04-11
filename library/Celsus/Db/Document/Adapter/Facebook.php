@@ -61,7 +61,7 @@ class Celsus_Db_Document_Adapter_Facebook {
 	 * Retrieves documents from facebook based on access tokens, or null if nothing is found.
 	 *
 	 * @param string|array $id
-	 * @return Celsus_Db_Document_FacebookSet
+	 * @return Celsus_Db_Document_Set_Facebook
 	 */
 	public function find($accessTokens) {
 		return $this->getUserData($accessTokens, Celsus_Service_Facebook::DATA_BASIC);
@@ -73,7 +73,7 @@ class Celsus_Db_Document_Adapter_Facebook {
 	 * @param string|array $id
 	 * @param string $dataType
 	 * @throws Celsus_Exception
-	 * @return Celsus_Db_Document_FacebookSet
+	 * @return Celsus_Db_Document_Set_Facebook
 	 */
 	public function getUserData($accessTokens, $dataType) {
 		if (!is_array($accessTokens)) {
@@ -91,7 +91,7 @@ class Celsus_Db_Document_Adapter_Facebook {
 			switch ($status) {
 				case Celsus_Http::OK:
 					if (null === $return) {
-						$return = new Celsus_Db_Document_FacebookSet(array(
+						$return = new Celsus_Db_Document_Set_Facebook(array(
 							'adapter' => $this
 						));
 					}

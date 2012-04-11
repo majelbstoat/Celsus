@@ -138,8 +138,32 @@ class Celsus_Db_Document_Adapter_Redis {
 			$identifiers = array($identifiers);
 		}
 
-		$results = $this->getClient()->mGet($identifiers);
-		var_dump($results);
+		$client = $this->getClient()->multi();
+		foreach ($identifiers as $identifier) {
+			$client->hGetAll($identifier);
+		}
+
+		$data = $client->exec();
+		if ($data) {
+			return new Celsus_Db_Document_Set_Redis(array(
+				'adapter' => $this,
+				'data' => $data
+			));
+		}
+
+		return null;
+	}
+
+	/**
+	 * Finds an identifier using a secondary index.
+	 *
+	 * @param unknown_type $key
+	 * @param unknown_type $value
+	 */
+	public function query($key, $value) {
+		$identifier = $this->getClient()->hGet($key, $value);
+
+		return $identifier ? $this->find($identifier) : null;
 	}
 
 	/**
@@ -172,6 +196,32 @@ class Celsus_Db_Document_Adapter_Redis {
 	public function flushDatabase()
 	{
 		$this->getClient()->flushDB();
+	}
+
+	/**
+	 * Sets a simple reverse index using a single hash that maps a field to the document id.
+	 *
+	 * @param string $key
+	 * @param string $field
+	 * @param string $id
+	 */
+	public function setIndexSimpleHash($id, $group, $name, $data, $originalData, Redis $pipeline = null) {
+		if (null === $pipeline) {
+			$pipeline = $this->getClient();
+		}
+
+		$field = $data[$name];
+		$key = $group . ':by' . implode('', array_map('ucfirst', explode('_', $name)));
+
+		$pipeline->hMset($key, array($field => $id));
+	}
+
+	public function startPipeline() {
+		return $this->getClient()->multi();
+	}
+
+	public function send(Redis $pipeline) {
+		return $pipeline->exec();
 	}
 
 	/**

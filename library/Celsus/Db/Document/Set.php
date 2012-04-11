@@ -61,7 +61,7 @@ class Celsus_Db_Document_Set implements Celsus_Db_Document_Set_Interface, Iterat
 				'adapter' => $this->getAdapter(),
 				'data' => $document
 			));
-		} elseif (!$document instanceof Celsus_Db_Document_Simple) {
+		} elseif (!$document instanceof Celsus_Db_Document) {
 			throw new Celsus_Exception("Invalid document specified.");
 		}
 

@@ -133,7 +133,23 @@ abstract class Celsus_Model_Mapper {
 	 * @param array $originalData
 	 */
 	public function updateIndices($id, array $data, array $originalData) {
-		return $this->getBase()->updateIndices($id, $data, $originalData);
+		$base = $this->getBase();
+
+		$fieldMap = $this->getFieldMap();
+
+		$mappedData = $mappedOriginalData = array();
+
+		foreach ($data as $field => $value) {
+			$key = isset($fieldMap[$field]) ? $fieldMap[$field] : $field;
+			$mappedData[$key] = $value;
+		}
+
+		foreach ($originalData as $field => $value) {
+			$key = isset($fieldMap[$field]) ? $fieldMap[$field] : $field;
+			$mappedOriginalData[$key] = $value;
+		}
+
+		$base->updateIndices($id, $mappedData, $mappedOriginalData);
 	}
 
 	/**

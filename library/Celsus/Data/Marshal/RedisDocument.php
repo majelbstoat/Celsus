@@ -13,10 +13,10 @@ class Celsus_Data_Marshal_RedisDocument implements Celsus_Data_Marshal_Interface
 			throw new Celsus_Exception("Must implement Celsus_Db_Document_Redis");
 		}
 		$data = $object->toArray();
-		$id = $data['id'];
-		unset($data['id']);
+		unset($data['_created']);
+		unset($data['_type']);
 
-		return array($id, $data);
+		return array($data['id'], $data);
 	}
 
 	public static function save(array $data, $object) {

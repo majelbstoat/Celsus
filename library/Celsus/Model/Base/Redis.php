@@ -2,8 +2,7 @@
 
 class Celsus_Model_Base_Redis extends Celsus_Model_Base {
 
-	// This class will behave in a similar fashion to Celsus_Model_Base_DbTable
-	// and reference a document, like the latter references a Zend_Db_Table_Row
+	const INDEX_TYPE_SIMPLE_HASH = 'simpleHash';
 
 	/**
 	 * The adapter to use for this connection.
@@ -50,6 +49,12 @@ class Celsus_Model_Base_Redis extends Celsus_Model_Base {
 		return array_merge(array('id'), static::$_fields, array('_type'));
 	}
 
+	public function fetchAll() {
+		$key = func_get_arg(0);
+		$value = func_get_arg(1);
+		return $this->getAdapter()->query($key, $value);
+	}
+
 	/**
 	 * Gets the adapter for this base.
 	 *
@@ -58,4 +63,18 @@ class Celsus_Model_Base_Redis extends Celsus_Model_Base {
 	public function getAdapter() {
 		return $this->_adapter;
 	}
+
+	public function updateIndices($id, $data, $originalData) {
+		$indices = $this->getIndices();
+		if ($indices) {
+			$adapter = $this->getAdapter();
+			$pipeline = $adapter->startPipeline();
+			foreach ($indices as $field => $type) {
+				$method = 'setIndex' . ucfirst($type);
+				call_user_func_array(array($adapter, $method), array($id, $this->_name, $field, $data, $originalData, $pipeline));
+			}
+			$adapter->send($pipeline);
+		}
+	}
+
 }

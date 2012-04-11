@@ -2,6 +2,8 @@
 
 abstract class Celsus_Model_Base implements Celsus_Model_Base_Interface {
 
+	protected $_secondaryIndices = array();
+
 	public static function setDefaultAdapter($adapter) {
 		static::$_defaultAdapter = $adapter;
 	}
@@ -57,4 +59,11 @@ abstract class Celsus_Model_Base implements Celsus_Model_Base_Interface {
 
 		return $record;
 	}
+
+	public function getIndices() {
+		return $this->_secondaryIndices;
+	}
+
+	public function updateIndices($id, $data, $originalData) {}
+
 }
