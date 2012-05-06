@@ -219,8 +219,8 @@ class Celsus_Data_Object extends Celsus_Data_Abstract {
 	public function __set($field, $value) {
 
 		if (!array_key_exists($field, $this->_data)) {
+			Celsus_Log::error("Unknown field $field in $this->_name Celsus Data Object");
 			return false;
-			//throw new Celsus_Exception("Unknown field $field in $this->_name Celsus Data Object.");
 		}
 
 		// If we can't write to this field, do nothing.

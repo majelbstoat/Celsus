@@ -288,4 +288,24 @@ abstract class Celsus_Model extends Celsus_Data_Object {
 	 */
 	protected function _preUpdate() {}
 
+	// Data Handling
+
+	/**
+	 * Marks the current data as the original data, resets dirtiness.
+	 */
+	public function fixData() {
+		$this->_originalData = null;
+		$this->_dirty = array();
+	}
+
+	/**
+	 * Resets the model's data to that which it was initially fixed as.
+	 */
+	public function resetData() {
+		if ($this->_dirty) {
+			$this->data = $this->_originalData;
+			$this->fixData();
+		}
+	}
+
 }

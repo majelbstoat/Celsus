@@ -102,6 +102,9 @@ class Celsus_Model_Mapper_Simple extends Celsus_Model_Mapper {
 				call_user_func(array($this, $method), $model);
 			}
 		}
+
+		// Now fix the data, as dirtiness will have been set by the attaching of fields.
+		$model->fixData();
 	}
 
 	protected function _wrap($data) {

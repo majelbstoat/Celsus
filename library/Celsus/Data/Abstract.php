@@ -29,7 +29,7 @@ abstract class Celsus_Data_Abstract implements Celsus_Data_Interface {
 	/**
 	 * Records whether data has been changed.
 	 *
-	 * @var boolean
+	 * @var array
 	 */
 	protected $_dirty = array();
 
