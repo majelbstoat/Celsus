@@ -142,10 +142,26 @@ abstract class Celsus_Application extends Zend_Application {
 		$routesCacheKey = "__routes__";
 		$routes = Celsus_Cache_Manager::cache($this->_bootstrapCacheName)->shared()->load($routesCacheKey);
 		if (!$routes) {
-			$config = Zend_Registry::get('config');
-			$routes = new Zend_Config_Yaml($config->routes->path);
+
+			// Create a new route config object
+			$routes = new Zend_Config(array(), true);
+
+			// Load
+			$routesPath = CONFIG_PATH . '/routes';
+			$files = scandir($routesPath);
+
+			// Iterate all the YAML files in the directory and merge the configs.
+			foreach ($files as $file) {
+				if ('yaml' === substr($file, -4)) {
+					$routes->merge(new Zend_Config_Yaml($routesPath . "/$file"));
+				}
+			}
+
+			$routes->setReadOnly();
+
 			Celsus_Cache_Manager::cache($this->_bootstrapCacheName)->shared()->save($routes, $routesCacheKey, array('routes'));
 		}
+
 		return $routes;
 	}
 

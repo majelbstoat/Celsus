@@ -13,7 +13,7 @@
  * @defgroup Celsus_Auth Celsus Authentication
  */
 
-    
+
 /**
  * Defines authentication, and allows adapters to be switched for mocking.
  *
@@ -30,7 +30,8 @@ class Celsus_Auth extends Zend_Auth {
 	}
 
 	/**
-	 * Enter description here ...
+	 * Gets the application's auth adapter.
+	 *
 	 * @throws Celsus_Exception
 	 * @return Celsus_Auth_Adapter_Interface
 	 */

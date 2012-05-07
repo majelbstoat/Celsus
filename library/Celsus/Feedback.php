@@ -25,11 +25,14 @@ class Celsus_Feedback {
 	const WARNING = 'warning';
 	const ERROR = 'error';
 
-	const FEEDBACK_LIST = 'configs/feedback.yaml';
+	const FEEDBACK_CONFIG = 'feedback.yaml';
+	const MESSAGES_CONFIG = 'i18n/%s/messages.yaml';
 
 	protected static $_session = null;
 
 	protected static $_definitions = null;
+
+	protected static $_messages = null;
 
 	/**
 	 * Gets the session object.
@@ -45,14 +48,23 @@ class Celsus_Feedback {
 	/**
 	 * Gets the definition of the specified feedback.
 	 *
+	 * @todo Cache this
 	 * return Zend_Config_Yaml
 	 */
 	protected static function _getFeedbackDefinition($code) {
 		if (null === self::$_definitions) {
-			self::$_definitions = new Zend_Config_Yaml(APPLICATION_PATH . '/' . self::FEEDBACK_LIST);
+			self::$_definitions = new Zend_Config_Yaml(CONFIG_PATH . '/' . self::FEEDBACK_CONFIG);
 		}
 
 		return self::$_definitions->$code;
+	}
+
+	protected static function _getFeedbackMessage($code) {
+		if (null === self::$_messages) {
+			self::$_messages = new Zend_Config_Yaml(CONFIG_PATH . '/' . sprintf(self::MESSAGES_CONFIG, Celsus_I18n::getLocale()));
+		}
+
+		return self::$_messages->$code;
 	}
 
 	/**
@@ -71,7 +83,7 @@ class Celsus_Feedback {
 			case Celsus_Feedback::INFO:
 			case Celsus_Feedback::WARNING:
 			case Celsus_Feedback::ERROR:
-				$message = vsprintf($feedback->message, $data);
+				$message = vsprintf(self::_getFeedbackMessage($code), $data);
 				self::$_session->{$feedback->type}[] = array(
 					'code' => $code,
 					'message' => $message,

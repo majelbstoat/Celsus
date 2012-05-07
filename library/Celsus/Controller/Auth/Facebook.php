@@ -16,8 +16,10 @@
  */
 abstract class Celsus_Controller_Auth_Facebook extends Celsus_Controller_Auth {
 
+	const REGISTRY_KEY_FACEBOOK_DATA = 'facebookData';
+
 	/**
-	 * Handles an inbound RPX-based auth request.
+	 * Handles an inbound Facebook-based auth request.
 	 */
 	public function facebookAction() {
 
@@ -25,7 +27,7 @@ abstract class Celsus_Controller_Auth_Facebook extends Celsus_Controller_Auth {
 		if (!$adapter->canAuthenticate()) {
 			// The request did not supply enough information to authenticate, so we bail.
 			$this->_missingAuthentication();
-			return $this->_redirect('/');
+			return $this->_redirect(Celsus_Routing::linkTo('home'));
 		}
 
 		$adapter->populateAuthorisationPayload();
@@ -37,7 +39,7 @@ abstract class Celsus_Controller_Auth_Facebook extends Celsus_Controller_Auth {
 			$this->_forward('error', 'error');
 		} else {
 			$facebookData = $adapter->getResult();
-			Zend_Registry::set('facebookData', $facebookData);
+			Zend_Registry::set(self::REGISTRY_KEY_FACEBOOK_DATA, $facebookData);
 		}
 
 		$auth = Celsus_Auth::getInstance();
@@ -45,8 +47,7 @@ abstract class Celsus_Controller_Auth_Facebook extends Celsus_Controller_Auth {
 		if ($auth->hasIdentity()) {
 			// Already has a session, so we really shouldn't have authenticated, but now that we have, just go to the home.
 			// @todo Log this, because if it ever happens, it means the identity checking plugin isn't working.
-
-			return $this->_redirect('/');
+			return $this->_redirect(Celsus_Routing::linkTo('home'));
 		} else {
 			// Check the Facebook data received against the local adapter.
 			$localAdapter = $adapter->getLocalAuthAdapter();
@@ -61,7 +62,7 @@ abstract class Celsus_Controller_Auth_Facebook extends Celsus_Controller_Auth {
 				$identity = $this->_merge($localAdapter->getResult());
 				$auth->getStorage()->write($identity);
 				$redirectSession = new Zend_Session_Namespace('Redirect');
-				$location = $redirectSession->location ? $redirectSession->location : '/';
+				$location = $redirectSession->location ? $redirectSession->location : Celsus_Routing::linkTo('home');
 				return $this->_redirect($location);
 			} else {
 				$code = $result->getCode();
