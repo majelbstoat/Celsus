@@ -18,7 +18,7 @@
  * @class Celsus_Controller_Common
  * @ingroup Celsus_Controller
  */
-abstract class Celsus_Controller_Common extends Zend_Rest_Controller implements Zend_Acl_Resource_Interface {
+abstract class Celsus_Controller_Common extends Zend_Controller_Action implements Zend_Acl_Resource_Interface {
 
 	/**
 	 * Specifies which contexts are available for which controller actions.
@@ -92,15 +92,10 @@ abstract class Celsus_Controller_Common extends Zend_Rest_Controller implements 
 		return parent::init();
 	}
 
-	public function indexAction() {
-	}
-
-	public function deleteAction() {}
-
 	/**
 	 * Performs the action that retrieves a single record.
 	 */
-	public function getAction() {
+	public function readAction() {
 		$record = $this->_getRecord($this->getRequest()->getParam($this->_identifier));
 		return $this->_helper->processor()->record($record);
 	}
@@ -131,14 +126,14 @@ abstract class Celsus_Controller_Common extends Zend_Rest_Controller implements 
 	/**
 	 * Handles the saving of new records.
 	 */
-	public function putAction() {
+	public function updateAction() {
 		$this->_save();
 	}
 
 	/**
 	 * Handles updating of records.
 	 */
-	public function postAction() {
+	public function createAction() {
 		$this->_save();
 	}
 
@@ -235,7 +230,7 @@ abstract class Celsus_Controller_Common extends Zend_Rest_Controller implements 
 			// We tried to perform an action that wasn't available, so redirect to the index instead.
 			$controller = $this->getRequest()->getControllerName();
 			$id = $this->getRequest()->getParam($this->_identifier);
-			Celsus_Feedback::add(Celsus_Feedback::ERROR, "The URL you tried was not valid.");
+			Celsus_Feedback::add(Celsus_Feedback::FEEDBACK_INVALID_ACTION);
 			if ($id) {
 				return $this->_redirect("/$controller/$id/");
 			} else {

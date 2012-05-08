@@ -25,8 +25,10 @@ class Celsus_Feedback {
 	const WARNING = 'warning';
 	const ERROR = 'error';
 
-	const FEEDBACK_CONFIG = 'feedback.yaml';
-	const MESSAGES_CONFIG = 'i18n/%s/messages.yaml';
+	const FEEDBACK_INVALID_ACTION = 'invalidControllerAction';
+
+	const CONFIG_FEEDBACK = 'feedback.yaml';
+	const CONFIG_MESSAGES = 'i18n/%s/messages.yaml';
 
 	protected static $_session = null;
 
@@ -53,7 +55,7 @@ class Celsus_Feedback {
 	 */
 	protected static function _getFeedbackDefinition($code) {
 		if (null === self::$_definitions) {
-			self::$_definitions = new Zend_Config_Yaml(CONFIG_PATH . '/' . self::FEEDBACK_CONFIG);
+			self::$_definitions = new Zend_Config_Yaml(CONFIG_PATH . '/' . self::CONFIG_FEEDBACK);
 		}
 
 		return self::$_definitions->$code;
@@ -61,7 +63,7 @@ class Celsus_Feedback {
 
 	protected static function _getFeedbackMessage($code) {
 		if (null === self::$_messages) {
-			self::$_messages = new Zend_Config_Yaml(CONFIG_PATH . '/' . sprintf(self::MESSAGES_CONFIG, Celsus_I18n::getLocale()));
+			self::$_messages = new Zend_Config_Yaml(CONFIG_PATH . '/' . sprintf(self::CONFIG_MESSAGES, Celsus_I18n::getLocale()));
 		}
 
 		return self::$_messages->$code;

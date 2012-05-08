@@ -33,17 +33,26 @@ class Celsus_Log_Writer_ChromePHP extends Zend_Log_Writer_Abstract {
 	 */
 	const GROUP_END = 'groupEnd';
 
+	const MAX_LOG_LENGTH = 2048;
+
 	/**
 	 * @var string
 	 */
 	const GROUP_COLLAPSED = 'groupCollapsed';
 
 	/**
+	 * A counter to be added to a log row to confirm ordering of messages.
+	 *
+	 * @var int $_logCount
+	 */
+	protected $_logCount = 1;
+
+	protected $_logLimitReached = false;
+
+	/**
 	 * @var int
 	 */
 	protected $_timestamp;
-
-	protected $_defaultBacktraceLevel = 1;
 
 	protected $_levelMapping = array(
 		Zend_Log::NOTICE => '',
@@ -156,19 +165,21 @@ class Celsus_Log_Writer_ChromePHP extends Zend_Log_Writer_Abstract {
 
 		$backtrace = debug_backtrace(false);
 
-		$messageComponents = array();
+		$messageComponents = array(
+			$this->_logCount++,
+			microtime(true)
+		);
 
-
-		if (isset($backtrace[1]['file']) && isset($backtrace[1]['line'])) {
-			 $messageComponents[] = $backtrace[1]['file'];
-			 $messageComponents[] = "Line " . $backtrace[1]['line'];
+		if (isset($backtrace[5]['file']) && isset($backtrace[5]['line'])) {
+			 $messageComponents[] = $backtrace[5]['file'];
+			 $messageComponents[] = "Line " . $backtrace[5]['line'];
 		}
 
 		if ($label) {
 			$messageComponents[] = $label;
 		}
 
-		$message = implode (' : ', $messageComponents);
+		$message = implode(' : ', $messageComponents);
 
 		$this->_addRow($value, $message, $type);
 	}
@@ -180,13 +191,25 @@ class Celsus_Log_Writer_ChromePHP extends Zend_Log_Writer_Abstract {
 	 * @return array
 	 */
 	protected function _convert($object) {
-		// if this isn't an object then just return it
+
+		// If this is an array, we need to iterate in case any of the values need encoding.
+		if (is_array($object)) {
+			$objectAsArray = array();
+			foreach ($object as $key => $value) {
+				$objectAsArray[$key] = $this->_convert($value);
+			}
+			return $objectAsArray;
+		} elseif (is_resource($object)) {
+			return 'resource - [' . get_resource_type($object) . '] #' . (int) $object;
+		}
+
+		// If this isn't an object then just return it
 		if (!is_object($object)) {
 			return $object;
 		}
 
-		//Mark this object as processed so we don't convert it twice and it
-		//Also avoid recursion when objects refer to each other
+		// Mark this object as processed so we don't convert it twice and it
+		// Also avoid recursion when objects refer to each other
 		$this->_processed[] = $object;
 
 		$objectAsArray = array();
@@ -226,6 +249,7 @@ class Celsus_Log_Writer_ChromePHP extends Zend_Log_Writer_Abstract {
 
 			$objectAsArray[$type] = $this->_convert($value);
 		}
+
 		return $objectAsArray;
 	}
 
@@ -275,7 +299,23 @@ class Celsus_Log_Writer_ChromePHP extends Zend_Log_Writer_Abstract {
 	}
 
 	protected function _writeHeader($data) {
-		header(self::HEADER_NAME . ': ' . $this->_encode($data));
+
+		if ($this->_logLimitReached) {
+			return;
+		}
+
+		$encoded = $this->_encode($data);
+
+		while (strlen($encoded) > self::MAX_LOG_LENGTH) {
+			$this->_logLimitReached = true;
+			$truncatedRow = array_pop($data['rows']);
+			$modifiedData = $data;
+			$row = array('', "Log Limit Reached", $truncatedRow[2], 'error');
+			array_push($modifiedData['rows'], $row);
+			$encoded = $this->_encode($modifiedData);
+		}
+
+		header(self::HEADER_NAME . ': ' . $encoded);
 	}
 
 	/**
