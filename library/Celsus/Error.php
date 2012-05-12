@@ -27,10 +27,9 @@ class Celsus_Error {
 	const EXCEPTION_NOT_FOUND = 'EXCEPTION_NOT_FOUND';
 
 	/**
-	 * Handles notices, warnings and errors and turns them into exceptions
-	 * which can be handled by the exception handling mechanism.
+	 * Handles notices, warnings and errors in the application and dipatches the
+	 * error controller to render them appropriately.
 	 *
-	 * @todo Do some logging here?
 	 * @param int $type
 	 * @param string $message
 	 * @param string $file
@@ -39,11 +38,44 @@ class Celsus_Error {
 	public static function handle($type, $message, $file, $line) {
 
 		$request = Zend_Controller_Front::getInstance()->getRequest();
-		if ($request) {
-			// Sets the parameter on the request.
-			$request->setParam(Celsus_Error::ERROR_FLAG, self::EXCEPTION_APPLICATION_ERROR);
+
+		// Sets the parameter on the request.
+		$error = new stdClass();
+		$error->type = Celsus_Error::EXCEPTION_APPLICATION_ERROR;
+
+		// Set the error on the request.
+		$request->setParam(Celsus_Error::ERROR_FLAG, $error);
+
+		$exception = new Celsus_Exception($message, $type);
+		$exception->setFile($file)->setLine($line);
+
+		$response = Zend_Controller_Front::getInstance()->getResponse();
+		$response->setException($exception);
+
+		// Ensure the error controller is going to be routed.
+		$request->setDispatched(false)
+			->setRequestUri('error/error')
+			->setPathInfo();
+
+		// Clear whatever has been rendered so far.
+		ob_get_clean();
+
+		Celsus_Log::error((string) $exception);
+
+		// Dispatch the error request.
+		Zend_Controller_Front::getInstance()->dispatch($request, $response);
+		die;
+	}
+
+	/**
+	 * Handles fatal, compile and parse errors, passing through to the error handler.
+	 */
+	public static function shutdown() {
+		$error = error_get_last();
+		if (null !== $error) {
+			// The exception handler and request loop will have been destroyed, so we need to handle appropriately.
+			self::handle($error['type'], $error['message'], $error['file'], $error['line']);
 		}
-		throw new Celsus_Exception("$message\n in $file on line $line", $type);
 	}
 
 }

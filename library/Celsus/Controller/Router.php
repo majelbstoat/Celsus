@@ -15,7 +15,6 @@ class Celsus_Controller_Router extends Zend_Controller_Router_Abstract {
 
 		$pathComponents = explode(self::URI_DELIMITER, $path);
 
-//		Celsus_Log::info("Routing");
 		foreach (Celsus_Routing::getRoutes() as $name => $routeDefinition) {
 
 			// Test to see if the endpoint matches.
@@ -29,6 +28,7 @@ class Celsus_Controller_Router extends Zend_Controller_Router_Abstract {
 
 					// @todo Test that this is valid for the context.
 					// @todo Test that this operation is permitted.
+					// @todo Set the parameters on the request from _GET and _POST
 
 					// Method is valid for this endpoint, and we have a match.
 					$actionDefinition = $routeDefinition->methods->$method;
@@ -100,7 +100,7 @@ class Celsus_Controller_Router extends Zend_Controller_Router_Abstract {
 	}
 
 	public function getSelectedRoute() {
-		return Celsus_Routing::getRoute($this->getSelectedRouteName());
+		return Celsus_Routing::getRouteByName($this->getSelectedRouteName());
 	}
 
 }

@@ -47,6 +47,10 @@ abstract class Celsus_Controller_Error extends Celsus_Controller_Common {
 			$errorType = $errorHandler->exception->getCode();
 		}
 
+		if (!$errorType) {
+			$errorType = Celsus_Error::EXCEPTION_APPLICATION_ERROR;
+		}
+
 		switch ($errorType) {
 			case Zend_Controller_Plugin_ErrorHandler::EXCEPTION_NO_CONTROLLER:
 			case Zend_Controller_Plugin_ErrorHandler::EXCEPTION_NO_ACTION:

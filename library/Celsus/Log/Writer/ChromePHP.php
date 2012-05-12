@@ -33,6 +33,15 @@ class Celsus_Log_Writer_ChromePHP extends Zend_Log_Writer_Abstract {
 	 */
 	const GROUP_END = 'groupEnd';
 
+	/**
+	 * Maximum length in bytes of the log, per request.
+	 *
+	 * Because we are sending these using HTTP headers, which must include cookies and other data,
+	 * we should be conservative and set this to a reasonably small size.  Most servers allow 4k-8k
+	 * for *all* headers in a request.
+	 *
+	 * @var int MAX_LOG_LENGTH
+	 */
 	const MAX_LOG_LENGTH = 2048;
 
 	/**
@@ -306,6 +315,7 @@ class Celsus_Log_Writer_ChromePHP extends Zend_Log_Writer_Abstract {
 
 		$encoded = $this->_encode($data);
 
+		// If we're over the limit, do some surgery to remove the last entry and replace it with an explanatory message.
 		while (strlen($encoded) > self::MAX_LOG_LENGTH) {
 			$this->_logLimitReached = true;
 			$truncatedRow = array_pop($data['rows']);

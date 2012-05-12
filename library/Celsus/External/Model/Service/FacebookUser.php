@@ -21,8 +21,8 @@ class Celsus_External_Model_Service_FacebookUser extends Celsus_Model_Service {
 		'group' => array(),
 	);
 
-	public static function acquireAccessToken($authorisationCode, $callbackPath) {
-		return static::_underlying()->acquireAccessToken($authorisationCode, $callbackPath);
+	public static function acquireAccessToken($authorisationCode, $callbackUrl) {
+		return static::_underlying()->acquireAccessToken($authorisationCode, $callbackUrl);
 	}
 
 	public static function getPermissions($accessToken) {

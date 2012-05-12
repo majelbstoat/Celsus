@@ -25,11 +25,20 @@ abstract class Celsus_Controller_Auth_Facebook extends Celsus_Controller_Auth {
 
 		$adapter = Celsus_Auth::getAuthAdapter();
 		if (!$adapter->canAuthenticate()) {
+			if ($adapter->accessDenied()) {
+				$this->_userDeclined();
+			} else {
+				$this->_missingAuthentication();
+			}
+
 			// The request did not supply enough information to authenticate, so we bail.
-			$this->_missingAuthentication();
+			// @todo We probably don't always want to go to home.
 			return $this->_redirect(Celsus_Routing::linkTo('home'));
 		}
 
+		$context = $this->getRequest()->getParam('context');
+		$callbackUrl = Celsus_Routing::absoluteLinkTo('auth_facebook_callback', array('context' => $context));
+		$adapter->setCallbackUrl($callbackUrl);
 		$adapter->populateAuthorisationPayload();
 		$result = $adapter->authenticate();
 
@@ -97,6 +106,11 @@ abstract class Celsus_Controller_Auth_Facebook extends Celsus_Controller_Auth {
 	 * Application-specific function that handles missing authentication data.
 	 */
 	abstract protected function _missingAuthentication();
+
+	/**
+	 * Application-specific function that handles the user rejecting facebook permissions.
+	 */
+	abstract protected function _userDeclined();
 
 	/**
 	 * Application-specific function that registers a Facebook user locally.

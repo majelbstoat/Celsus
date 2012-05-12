@@ -43,7 +43,7 @@ class Celsus_Resource {
 	 */
 	public static function version($resource) {
 		if (Celsus_Application::isDevelopment()) {
-			$version = filemtime($resource);
+			$version = filemtime(PUBLIC_PATH . DIRECTORY_SEPARATOR . $resource);
 		} else {
 			self::setupResources();
 			list($path, $extension) = explode('.', $resource, 2);

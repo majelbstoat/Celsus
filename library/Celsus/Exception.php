@@ -21,11 +21,18 @@
  */
 class Celsus_Exception extends Exception {
 
-	public static function production_handler($exception) {
-		$logger = Zend_Registry::get('logger');
-		$logger->log("Unhandled exception: " . $exception->getMessage(). "\n" . $exception->getTraceAsString(), Zend_Log::ALERT);
+	public function setLine($line) {
+		$this->line = $line;
+		return $this;
+	}
+
+	public function setFile($file) {
+		$this->file = $file;
+		return $this;
+	}
+
+	public function __toString() {
+		return $this->message . ' in ' . $this->file . ' on line ' . $this->line;
 	}
 
 }
-
-?>

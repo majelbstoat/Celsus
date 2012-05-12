@@ -43,8 +43,8 @@ class Celsus_Model_Base_Facebook extends Celsus_Model_Base {
 		return self::$_defaultAdapter;
 	}
 
-	public function acquireAccessToken($authorisationCode, $callbackPath) {
-		return $this->getAdapter()->acquireAccessToken($authorisationCode, $callbackPath);
+	public function acquireAccessToken($authorisationCode, $callbackUrl) {
+		return $this->getAdapter()->acquireAccessToken($authorisationCode, $callbackUrl);
 	}
 
 	public function getUserData($accessToken, $dataType) {

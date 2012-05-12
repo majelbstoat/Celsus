@@ -121,11 +121,11 @@ class Celsus_Db_Document_Adapter_Facebook {
 		return $return;
 	}
 
-	public function acquireAccessToken($authorisationCode, $callbackPath) {
+	public function acquireAccessToken($authorisationCode, $callbackUrl) {
 		$parameters = array(
 			'client_id' => $this->_config['applicationId'],
 			'client_secret' => $this->_config['applicationSecret'],
-			'redirect_uri' => Celsus_Application::rootUrl() . $callbackPath,
+			'redirect_uri' => $callbackUrl,
 			'grant_type' => 'authorization_code',
 			'code' => $authorisationCode
 		);

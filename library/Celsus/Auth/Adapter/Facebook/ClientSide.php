@@ -76,10 +76,12 @@ class Celsus_Auth_Adapter_Facebook_ClientSide implements Celsus_Auth_Adapter_Int
 	}
 
 	public function populateAuthorisationPayload() {
+		// @todo Do not read from $_POST directly, pass in parameters.
 		$this->setSignedRequest($_POST['signed_request']);
 	}
 
 	public function canAuthenticate() {
+		// @todo Do not read from $_POST directly, pass in parameters.
 		return array_key_exists('signed_request', $_POST);
 	}
 
