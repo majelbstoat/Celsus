@@ -1,0 +1,11 @@
+Celsus_Data_Object
+Can construct with an array.
+Cannot construct with a non arrayable object.
+Can construct with an arrayable object.
+Default filter should return all data.
+Dees filter should return date of birth.
+Can output to Json.
+Invalid formatter should cause error.
+Can output to Csv.
+Can get field through direct access.
+Reading field should be denied through direct access if not allowed.
