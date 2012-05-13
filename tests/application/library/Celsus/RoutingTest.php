@@ -88,4 +88,20 @@ class Celsus_RoutingTest extends PHPUnit_Framework_TestCase {
         );
         $this->assertEquals($expected, $parameters, "Identifier not extracted");
 	}
+
+	/**
+	 * @expectedException Celsus_Exception
+	 */
+	public function testRouteRequestsThatSpoofSystemActionSyntaxShouldThrow404() {
+    	$path = "auth/token/__action";
+        $routeName = Celsus_Routing::getRouteNameByPath($path);
+	}
+
+	/**
+	 * @expectedException Celsus_Exception
+	 */
+	public function testRouteRequestsThatSpoofSystemWildcardSyntaxShouldThrow404() {
+    	$path = "auth/token/*";
+        $routeName = Celsus_Routing::getRouteNameByPath($path);
+	}
 }

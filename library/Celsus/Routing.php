@@ -5,6 +5,7 @@ class Celsus_Routing {
 	const SYNTAX_DELIMITER = '/';
 	const SYNTAX_NAME_PREFIX = ':';
 	const SYNTAX_WILDCARD = '*';
+	const SYNTAX_ACTION_KEY = '__action';
 
 	protected static $_routes = array();
 
@@ -75,11 +76,24 @@ class Celsus_Routing {
 		return self::$_routeMap;
 	}
 
+	public static function sanitisePath($path) {
+		$path = trim($path, self::SYNTAX_DELIMITER);
+
+		if (false !== strpos($path, self::SYNTAX_ACTION_KEY)) {
+			throw new Celsus_Exception("Unsafe attempt to route __action", Celsus_Http::NOT_FOUND);
+		} elseif (false !== strpos($path, self::SYNTAX_WILDCARD)) {
+			throw new Celsus_Exception("Unsafe attempt to route *", Celsus_Http::NOT_FOUND);
+		}
+
+		return $path;
+	}
+
 	public static function getRoutes() {
 		return self::$_routes;
 	}
 
 	public static function getRouteNameByPath($path) {
+		$path = self::sanitisePath($path);
 		$routePointer = self::getRouteMap();
 
 		$pathComponents = explode(self::SYNTAX_DELIMITER, $path);
@@ -97,7 +111,7 @@ class Celsus_Routing {
 
 		// If we got here, we matched all the way to the end of the path.
 		// But, we still need to check the route ends there as well.
-		return isset($routePointer['__action']) ? $routePointer['__action'] : null;
+		return isset($routePointer[self::SYNTAX_ACTION_KEY]) ? $routePointer[self::SYNTAX_ACTION_KEY] : null;
 	}
 
 	public static function getRouteByPath($path) {

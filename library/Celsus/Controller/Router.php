@@ -11,7 +11,7 @@ class Celsus_Controller_Router extends Zend_Controller_Router_Abstract {
 
 	public function route(Zend_Controller_Request_Abstract $request) {
 
-		$path = trim($request->getPathInfo(), self::URI_DELIMITER);
+		$path = $request->getPathInfo();
 
 		$routeName = Celsus_Routing::getRouteNameByPath($path);
 		if (!$routeName) {

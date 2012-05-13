@@ -3,3 +3,5 @@ Empty path should match empty route.
 Incomplete path should not match.
 Partial routes should be handled.
 Parameters should be extracted from the route.
+Route requests that spoof system action syntax should throw 404.
+Route requests that spoof system wildcard syntax should throw 404.
