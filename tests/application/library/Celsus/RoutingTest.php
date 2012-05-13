@@ -80,13 +80,19 @@ class Celsus_RoutingTest extends PHPUnit_Framework_TestCase {
 	}
 
 	public function testParametersShouldBeExtractedFromTheRoute() {
-    	$path = "auth/token/42";
-        $routeDefinition = Celsus_Routing::getRouteByPath($path);
-        $parameters = Celsus_Routing::extractRouteParametersFromPath($routeDefinition, $path);
-        $expected = array(
-        	'identifier' => 42
+        $paths = array(
+            "auth/token/42",
+            "/auth/token/42"
         );
-        $this->assertEquals($expected, $parameters, "Identifier not extracted");
+
+        foreach ($paths as $path) {
+            $routeDefinition = Celsus_Routing::getRouteByPath($path);
+            $parameters = Celsus_Routing::extractRouteParametersFromPath($routeDefinition, $path);
+            $expected = array(
+                'identifier' => 42
+            );
+            $this->assertEquals($expected, $parameters, "Identifier not extracted from $path");
+        }
 	}
 
 	/**

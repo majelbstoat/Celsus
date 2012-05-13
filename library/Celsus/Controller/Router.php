@@ -26,18 +26,19 @@ class Celsus_Controller_Router extends Zend_Controller_Router_Abstract {
 		}
 
 		// @todo Test that this is valid for the context.
-		// @todo Test that this operation is permitted.
+		// @todo Test that this operation is authorised.
 		// @todo Set the parameters on the request from _GET and _POST
 
 		$actionDefinition = $routeDefinition->methods->$method;
 		$parameters = Celsus_Routing::extractRouteParametersFromPath($routeDefinition, $path);
 
-		$request->setControllerName($routeDefinition->controller)
-			->setActionName($actionDefinition->action)
-			->setParams($parameters);
-
 		$this->_selectedRouteName = $routeName;
 		$this->_selectedRoute = $routeDefinition;
+
+		$request->setControllerName($routeDefinition->controller)
+			->setActionName($actionDefinition->action)
+			->setRoute($routeDefinition)
+			->setParams($parameters);
 	}
 
 	/**

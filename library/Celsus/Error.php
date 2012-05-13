@@ -47,7 +47,9 @@ class Celsus_Error {
 		$error->type = Celsus_Error::EXCEPTION_APPLICATION_ERROR;
 
 		// Set the error on the request.
-		$request->setParam(Celsus_Error::ERROR_FLAG, $error);
+		$request->setParams(array(
+			Celsus_Error::ERROR_FLAG => $error
+		));
 
 		$exception = new Celsus_Exception($message, $type);
 		$exception->setFile($file)->setLine($line);
@@ -63,7 +65,7 @@ class Celsus_Error {
 		// Clear whatever has been rendered so far.
 		ob_get_clean();
 
-		Celsus_Log::error((string) $exception);
+//		Celsus_Log::error((string) $exception);
 
 		// Dispatch the error request.
 		Zend_Controller_Front::getInstance()->dispatch($request, $response);

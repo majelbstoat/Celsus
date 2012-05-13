@@ -77,7 +77,7 @@ class Celsus_Routing {
 	}
 
 	public static function sanitisePath($path) {
-		$path = trim($path, self::SYNTAX_DELIMITER);
+		$path = trim($path, self::SYNTAX_DELIMITER . " ");
 
 		if (false !== strpos($path, self::SYNTAX_ACTION_KEY)) {
 			throw new Celsus_Exception("Unsafe attempt to route __action", Celsus_Http::NOT_FOUND);
@@ -124,6 +124,8 @@ class Celsus_Routing {
 
 	public static function extractRouteParametersFromPath($routeDefinition, $path) {
 		$params = array();
+
+		$path = self::sanitisePath($path);
 
 		$routeComponents = explode(self::SYNTAX_DELIMITER, trim($routeDefinition->route));
 		$pathComponents = explode(self::SYNTAX_DELIMITER, $path);

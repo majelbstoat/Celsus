@@ -4,8 +4,7 @@
  *
  * @category Celsus
  * @package Celsus_Controller
- * @copyright Copyright (c) 2008-2010 Jamie Talbot (http://jamietalbot.com)
- * @version $Id: DeleteHandler.php 49 2010-07-18 23:23:29Z jamie $
+ * @copyright Copyright (c) 2008-2012 Jamie Talbot (http://jamietalbot.com)
  */
 
 /**
@@ -18,10 +17,12 @@ class Celsus_Controller_Plugin_HttpMethodHandler extends Zend_Controller_Plugin_
 {
     public function preDispatch(Zend_Controller_Request_Abstract $request)
     {
-        if ($this->_request->isDelete() || $this->_request->isPut()) {
+        if ($request->isDelete() || $request->isPut() || $request->isPost()) {
             $params = array();
-            parse_str($this->_request->getRawBody(), $params);
+            parse_str($request->getRawBody(), $params);
             $request->setParams($params);
+        } elseif ($request->isGet()) {
+        	$request->setParams($request->getQuery());
         }
     }
 }
