@@ -36,7 +36,22 @@ class Celsus_RoutingTest extends PHPUnit_Framework_TestCase {
                         )
                     )
                 )
-            )
+            ),
+        	'auth_tokens' => array(
+        		"route" => "auth/token",
+        		"controller" => "auth",
+        		"methods" => array(
+        			"post" => array(
+        				"action" => "create",
+        				"parameters" => array(
+        					"identifier"
+        				),
+        				"contexts" => array(
+        					"api" => array()
+        				)
+        			)
+        		)
+        	)
         ));
 
         Celsus_Routing::setRoutes($this->_sampleData);
@@ -49,12 +64,28 @@ class Celsus_RoutingTest extends PHPUnit_Framework_TestCase {
     public function testEmptyPathShouldMatchEmptyRoute() {
         $path = "";
         $routeName = Celsus_Routing::getRouteNameByPath($path);
-        $this->assertEquals("home", $routeName);
+        $this->assertEquals("home", $routeName, "Empty route not matched");
     }
 
     public function testIncompletePathShouldNotMatch() {
-        $path = "auth/token";
+    	$path = "auth";
         $routeName = Celsus_Routing::getRouteNameByPath($path);
-        $this->assertNull($routeName);
+        $this->assertNull($routeName, "/auth route should not have matched");
     }
+
+	public function testPartialRoutesShouldBeHandled() {
+    	$path = "auth/token";
+        $routeName = Celsus_Routing::getRouteNameByPath($path);
+        $this->assertEquals("auth_tokens", $routeName, "/auth/token route not found");
+	}
+
+	public function testParametersShouldBeExtractedFromTheRoute() {
+    	$path = "auth/token/42";
+        $routeDefinition = Celsus_Routing::getRouteByPath($path);
+        $parameters = Celsus_Routing::extractRouteParametersFromPath($routeDefinition, $path);
+        $expected = array(
+        	'identifier' => 42
+        );
+        $this->assertEquals($expected, $parameters, "Identifier not extracted");
+	}
 }

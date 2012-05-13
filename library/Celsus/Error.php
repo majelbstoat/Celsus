@@ -30,6 +30,9 @@ class Celsus_Error {
 	 * Handles notices, warnings and errors in the application and dipatches the
 	 * error controller to render them appropriately.
 	 *
+	 * When paired with the registered shutdown function, this even correctly handles
+	 * fatal errors and even parse errors, so users aren't left with blank screen.
+	 *
 	 * @param int $type
 	 * @param string $message
 	 * @param string $file
@@ -64,6 +67,9 @@ class Celsus_Error {
 
 		// Dispatch the error request.
 		Zend_Controller_Front::getInstance()->dispatch($request, $response);
+
+		// Dying is technically not the smartest thing to do, but it prevents multiple repeat dispatches
+		// in strange cases where two errors appear on the same line like:  $nonExistant::BAD_CONSTANT
 		die;
 	}
 

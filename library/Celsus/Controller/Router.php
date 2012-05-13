@@ -13,65 +13,31 @@ class Celsus_Controller_Router extends Zend_Controller_Router_Abstract {
 
 		$path = trim($request->getPathInfo(), self::URI_DELIMITER);
 
-		$pathComponents = explode(self::URI_DELIMITER, $path);
-
-		foreach (Celsus_Routing::getRoutes() as $name => $routeDefinition) {
-
-			// Test to see if the endpoint matches.
-			$params = $this->_match($routeDefinition->route, $pathComponents);
-
-			if (false !== $params) {
-
-				// Endpoint matched.  Now test to see if the method is valid.
-				$method = strtolower($request->getMethod());
-				if ($routeDefinition->methods->$method) {
-
-					// @todo Test that this is valid for the context.
-					// @todo Test that this operation is permitted.
-					// @todo Set the parameters on the request from _GET and _POST
-
-					// Method is valid for this endpoint, and we have a match.
-					$actionDefinition = $routeDefinition->methods->$method;
-
-					// Set the appropriate request data.
-					$request->setControllerName($routeDefinition->controller)
-						->setActionName($actionDefinition->action)
-						->setParams($params);
-
-					$this->_selectedRouteName = $name;
-
-					return $request;
-				}
-			}
+		$routeName = Celsus_Routing::getRouteNameByPath($path);
+		if (!$routeName) {
+			throw new Celsus_Exception('No route matched the request', Celsus_Http::NOT_FOUND);
 		}
 
-		// No matching route was found.
-		throw new Zend_Controller_Router_Exception('No route matched the request', Celsus_Http::NOT_FOUND);
-	}
+		$routeDefinition = Celsus_Routing::getRouteByName($routeName);
+		$method = strtolower($request->getMethod());
 
-	/**
-	 *
-	 * @param string $route
-	 * @param array $pathComponents
-	 * @return boolean|array
-	 */
-	protected function _match($route, $pathComponents) {
-		$params = array();
-		$routeComponents = explode(self::URI_DELIMITER, trim($route));
-
-		foreach ($routeComponents as $component) {
-			$pathComponent = array_shift($pathComponents);
-
-			if (self::NAMED_PARAMETER_PREFIX == substr($component, 0, 1)) {
-				// Save a named parameter.
-				$params[substr($component, 1)] = $pathComponent;
-			} elseif ($component != $pathComponent) {
-				// This wasn't a named parameter and the text didn't match, so this route fails.
-				return false;
-			}
+		if (!$routeDefinition->methods->$method) {
+			throw new Celsus_Exception("Route does not allow $method", Celsus_Http::METHOD_NOT_ALLOWED);
 		}
 
-		return $params;
+		// @todo Test that this is valid for the context.
+		// @todo Test that this operation is permitted.
+		// @todo Set the parameters on the request from _GET and _POST
+
+		$actionDefinition = $routeDefinition->methods->$method;
+		$parameters = Celsus_Routing::extractRouteParametersFromPath($routeDefinition, $path);
+
+		$request->setControllerName($routeDefinition->controller)
+			->setActionName($actionDefinition->action)
+			->setParams($parameters);
+
+		$this->_selectedRouteName = $routeName;
+		$this->_selectedRoute = $routeDefinition;
 	}
 
 	/**
@@ -100,7 +66,10 @@ class Celsus_Controller_Router extends Zend_Controller_Router_Abstract {
 	}
 
 	public function getSelectedRoute() {
-		return Celsus_Routing::getRouteByName($this->getSelectedRouteName());
+		if (null === $this->_selectedRoute) {
+			$this->_selectedRoute = Celsus_Routing::getRouteByName($this->getSelectedRouteName());
+		}
+		return $this->_selectedRoute;
 	}
 
 }

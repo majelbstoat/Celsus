@@ -55,15 +55,15 @@ class Celsus_Routing {
 					}
 
 					// If there are no more route components, this is the leaf, and we can store our route name for ease of use.
-					$child = $routeComponents ? array() : $routeName;
+					$child = $routeComponents ? array() : array('__action' => $routeName);
 					if (!isset($routePointer[$routeComponent])) {
 						$routePointer[$routeComponent] = $child;
+					} else {
+						$routePointer[$routeComponent] += $child;
 					}
 
 					// If the child is empty, it must not be the route name, so move the pointer further down the tree.
-					if (!$child) {
-						$routePointer = & $routePointer[$routeComponent];
-					}
+					$routePointer = & $routePointer[$routeComponent];
 				}
 			}
 			self::$_routeMap = $routeMap;
@@ -71,7 +71,6 @@ class Celsus_Routing {
 			// This does not remove the entry from the route map, just the reference, which could be troublesome.
 			unset($routePointer);
 		}
-
 
 		return self::$_routeMap;
 	}
@@ -98,7 +97,7 @@ class Celsus_Routing {
 
 		// If we got here, we matched all the way to the end of the path.
 		// But, we still need to check the route ends there as well.
-		return is_array($routePointer) ? null : $routePointer;
+		return isset($routePointer['__action']) ? $routePointer['__action'] : null;
 	}
 
 	public static function getRouteByPath($path) {
@@ -109,7 +108,20 @@ class Celsus_Routing {
 		return self::$_routes->$routeName;
 	}
 
-	public static function extractRouteParametersFromPath($routeName, $path) {
+	public static function extractRouteParametersFromPath($routeDefinition, $path) {
+		$params = array();
+
+		$routeComponents = explode(self::SYNTAX_DELIMITER, trim($routeDefinition->route));
+		$pathComponents = explode(self::SYNTAX_DELIMITER, $path);
+
+		$count = count($routeComponents);
+
+		for ($i = 0; $i < $count; $i++) {
+			if (self::SYNTAX_NAME_PREFIX == substr($routeComponents[$i], 0, 1)) {
+				$params[substr($routeComponents[$i], 1)] = $pathComponents[$i];
+			}
+		}
+		return $params;
 	}
 
 	public static function linkTo($routeName, $params = array()) {

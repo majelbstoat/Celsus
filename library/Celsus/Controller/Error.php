@@ -51,26 +51,38 @@ abstract class Celsus_Controller_Error extends Celsus_Controller_Common {
 			$errorType = Celsus_Error::EXCEPTION_APPLICATION_ERROR;
 		}
 
+		$errorDetails = new stdClass();
 		switch ($errorType) {
 			case Zend_Controller_Plugin_ErrorHandler::EXCEPTION_NO_CONTROLLER:
 			case Zend_Controller_Plugin_ErrorHandler::EXCEPTION_NO_ACTION:
 			case Celsus_Http::NOT_FOUND:
 
 				// 404 error -- controller or action not found
-				$this->getResponse()->setHttpResponseCode(Celsus_Http::NOT_FOUND);
-				$this->_helper->viewRenderer->setScriptAction(Celsus_Http::NOT_FOUND);
-				$error->type = Celsus_Http::NOT_FOUND;
-				$error->detail = 'Page Not Found';
+				$errorCode = Celsus_Http::NOT_FOUND;
+				$errorDetails->title = 'Page Not Found';
+				break;
+
+			case Celsus_Http::METHOD_NOT_ALLOWED:
+
+				// 405 error -- Invalid HTTP method specified for the endpoint.
+				$errorCode = Celsus_Http::METHOD_NOT_ALLOWED;
+				$errorDetails->title = 'Method Not Allowed';
+				$errorDetails->method = $this->getRequest()->getMethod();
 				break;
 
 			case Celsus_Error::EXCEPTION_APPLICATION_ERROR:
 			default:
-				$this->getResponse()->setHttpResponseCode(Celsus_Http::INTERNAL_SERVER_ERROR);
-				$this->_helper->viewRenderer->setScriptAction(Celsus_Http::INTERNAL_SERVER_ERROR);
-				$error->type = Celsus_Http::INTERNAL_SERVER_ERROR;
-				$error->detail = 'Application Error';
+
+				// An unspecified error
+				$errorCode = Celsus_Http::INTERNAL_SERVER_ERROR;
+				$errorDetails->title = 'Application Error';
 				break;
 		}
+
+		$this->getResponse()->setHttpResponseCode($errorCode);
+		$this->_helper->viewRenderer->setScriptAction($errorCode);
+		$error->type = $errorCode;
+		$error->details = $errorDetails;
 
 		$this->view->error = $error;
 	}
