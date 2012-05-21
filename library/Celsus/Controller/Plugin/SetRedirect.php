@@ -24,6 +24,8 @@ class Celsus_Controller_Plugin_SetRedirect extends Zend_Controller_Plugin_Abstra
 
 		if ('auth' != Zend_Controller_Front::getInstance()->getRequest()->getControllerName()) {
 			$redirectSession = new Zend_Session_Namespace('Redirect');
+
+			// @todo Don't use $_SERVER directly.
 			$redirectSession->location = $_SERVER['REQUEST_URI'];
 		}
 	}

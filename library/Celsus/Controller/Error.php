@@ -17,44 +17,22 @@
 abstract class Celsus_Controller_Error extends Celsus_Controller_Common {
 
 	public function init() {
-		if (null === $this->_getParam(Celsus_Error::ERROR_FLAG)) {
+		if (null === $this->getRequest()->getError()) {
 			// No error parameters means that the controller has been accessed directly, which is disallowed.
-			return $this->_redirect("/");
+			return $this->_redirect(Celsus_Routing::absoluteLinkTo('home'));
 		}
 
-		$this->_helper->layout->setLayout('error');
+//		$this->_helper->layout->setLayout('error');
 
 		parent::init();
 	}
 
 	public function errorAction() {
-		$errorHandler = $this->_getParam(Celsus_Error::ERROR_FLAG);
-		if (null === $errorHandler) {
-			return;
-		}
 
-		$exceptions = array();
-		foreach ($this->getResponse()->getException() as $exception) {
-			$exceptions[] = $exception->getMessage() . " " . $exception->getFile() . " " . $exception->getLine();
-		}
-		$error = new stdClass();
-		$error->exceptions = $exceptions;
-
-		$errorType = ($errorHandler->type) ? $errorHandler->type : $errorHandler;
-
-		if (Zend_Controller_Plugin_ErrorHandler::EXCEPTION_OTHER == $errorType) {
-			// This was an error triggered during the application.
-			$errorType = $errorHandler->exception->getCode();
-		}
-
-		if (!$errorType) {
-			$errorType = Celsus_Error::EXCEPTION_APPLICATION_ERROR;
-		}
+		$error = $this->getRequest()->getError();
 
 		$errorDetails = new stdClass();
 		switch ($errorType) {
-			case Zend_Controller_Plugin_ErrorHandler::EXCEPTION_NO_CONTROLLER:
-			case Zend_Controller_Plugin_ErrorHandler::EXCEPTION_NO_ACTION:
 			case Celsus_Http::NOT_FOUND:
 
 				// 404 error -- controller or action not found
@@ -70,7 +48,6 @@ abstract class Celsus_Controller_Error extends Celsus_Controller_Common {
 				$errorDetails->method = $this->getRequest()->getMethod();
 				break;
 
-			case Celsus_Error::EXCEPTION_APPLICATION_ERROR:
 			default:
 
 				// An unspecified error
@@ -80,11 +57,11 @@ abstract class Celsus_Controller_Error extends Celsus_Controller_Common {
 		}
 
 		$this->getResponse()->setHttpResponseCode($errorCode);
-		$this->_helper->viewRenderer->setScriptAction($errorCode);
+//		$this->_helper->viewRenderer->setScriptAction($errorCode);
 		$error->type = $errorCode;
 		$error->details = $errorDetails;
 
-		$this->view->error = $error;
+//		$this->view->error = $error;
 	}
 
 }

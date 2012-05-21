@@ -18,6 +18,8 @@ abstract class Celsus_Controller_Auth_Facebook extends Celsus_Controller_Auth {
 
 	const REGISTRY_KEY_FACEBOOK_DATA = 'facebookData';
 
+	const ENDPOINT_OAUTH = "https://www.facebook.com/dialog/oauth";
+
 	/**
 	 * Handles an inbound Facebook-based auth request.
 	 */

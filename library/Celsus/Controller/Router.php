@@ -13,31 +13,29 @@ class Celsus_Controller_Router extends Zend_Controller_Router_Abstract {
 
 		$path = $request->getPathInfo();
 
-		$routeName = Celsus_Routing::getRouteNameByPath($path);
-		if (!$routeName) {
+		$route = Celsus_Routing::getRouteByPath($path);
+		if (!$route) {
 			throw new Celsus_Exception('No route matched the request', Celsus_Http::NOT_FOUND);
 		}
 
-		$routeDefinition = Celsus_Routing::getRouteByName($routeName);
 		$method = strtolower($request->getMethod());
 
-		if (!$routeDefinition->methods->$method) {
+		if (!$route->hasMethod($method)) {
 			throw new Celsus_Exception("Route does not allow $method", Celsus_Http::METHOD_NOT_ALLOWED);
 		}
 
-		// @todo Test that this is valid for the context.
+		$route->setSelectedMethod($method);
+
 		// @todo Test that this operation is authorised.
-		// @todo Set the parameters on the request from _GET and _POST
 
-		$actionDefinition = $routeDefinition->methods->$method;
-		$parameters = Celsus_Routing::extractRouteParametersFromPath($routeDefinition, $path);
+		$parameters = $route->extractParametersFromPath($path);
 
-		$this->_selectedRouteName = $routeName;
-		$this->_selectedRoute = $routeDefinition;
+		$this->_selectedRouteName = $route->getName();
+		$this->_selectedRoute = $route;
 
-		$request->setControllerName($routeDefinition->controller)
-			->setActionName($actionDefinition->action)
-			->setRoute($routeDefinition)
+		$request->setControllerName($route->getController())
+			->setActionName($route->getAction())
+			->setRoute($route)
 			->setParams($parameters);
 	}
 
@@ -72,5 +70,6 @@ class Celsus_Controller_Router extends Zend_Controller_Router_Abstract {
 		}
 		return $this->_selectedRoute;
 	}
+
 
 }

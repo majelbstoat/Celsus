@@ -14,7 +14,7 @@
  * @category Celsus
  * @package Celsus_Controller
  */
-abstract class Celsus_Controller_Auth extends Zend_Controller_Action {
+abstract class Celsus_Controller_Auth extends Celsus_Controller_Common {
 
 	/**
 	 * Logs a user out of the application.

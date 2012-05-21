@@ -18,22 +18,7 @@
  * @class Celsus_Controller_Common
  * @ingroup Celsus_Controller
  */
-abstract class Celsus_Controller_Common extends Zend_Controller_Action implements Zend_Acl_Resource_Interface {
-
-	/**
-	 * Specifies which contexts are available for which controller actions.
-	 *
-	 * @var array $_contexts
-	 */
-	protected $_contexts = array(
-		'new' => 'json',
-		'put' => 'json',
-		'post' => 'json',
-		'delete' => 'json',
-		'get' => 'json',
-		'lookup' => 'json',
-		'error' => 'json'
-	);
+abstract class Celsus_Controller_Common extends Zend_Controller_Action {
 
 	/**
 	 * The identifier that represents the primary service for this model.
@@ -43,27 +28,11 @@ abstract class Celsus_Controller_Common extends Zend_Controller_Action implement
 	protected $_identifier = 'identifier';
 
 	/**
-	 * The resource Id of this controller.
-	 *
-	 * @var string $_resourceId
-	 */
-	protected $_resourceId = null;
-
-	/**
 	 * The primary service used by this controller.
 	 *
 	 * @var Celsus_Model_Service $_service
 	 */
 	protected $_service = null;
-
-	/**
-	 * Gets the resource id of this controller.
-	 *
-	 * @return string
-	 */
-	public function getResourceId() {
-		return $this->_resourceId;
-	}
 
 	/**
 	 * Gets the primary service for this controller.
@@ -72,24 +41,6 @@ abstract class Celsus_Controller_Common extends Zend_Controller_Action implement
 	 */
 	public function getService() {
 		return $this->_service;
-	}
-
-	/**
-	 * Performs controller initialisation.
-	 *
-	 * Adds the title of the service to the page title and sets up context switching.
-	 */
-	public function init() {
-		if ($this->_service) {
-			$service = $this->_service;
-			$title = $service::getTitle();
-			$this->view->headTitle()->append($title);
-		}
-
-		// Enable context switching.
-		$this->_helper->contextSwitch()->addActionContexts($this->_contexts)->initContext();
-
-		return parent::init();
 	}
 
 	/**
@@ -205,6 +156,41 @@ abstract class Celsus_Controller_Common extends Zend_Controller_Action implement
 			$this->getResponse()->setHttpResponseCode(Celsus_Http::PRECONDITION_FAILED);
 			$this->_helper->processor()->invalid($record);
 		}
+	}
+
+	/**
+	 * Dispatch the requested action
+	 *
+	 * @param string $action Method name of action
+	 * @return void
+	 */
+	public function dispatch($action)
+	{
+		// Notify helpers of action preDispatch state
+		$this->_helper->notifyPreDispatch();
+
+		$this->preDispatch();
+		if ($this->getRequest()->isDispatched()) {
+			if (null === $this->_classMethods) {
+				$this->_classMethods = get_class_methods($this);
+			}
+
+			// If pre-dispatch hooks introduced a redirect then stop dispatch
+			// @see ZF-7496
+			if (!($this->getResponse()->isRedirect())) {
+				// preDispatch() didn't change the action, so we can continue
+				if ($this->getInvokeArg('useCaseSensitiveActions') || in_array($action, $this->_classMethods)) {
+					if ($this->getInvokeArg('useCaseSensitiveActions')) {
+						trigger_error('Using case sensitive actions without word separators is deprecated; please do not rely on this "feature"');
+					}
+					$return = $this->$action();
+				} else {
+					$return = $this->__call($action, array());
+				}
+			}
+			$this->postDispatch();
+		}
+		return $return;
 	}
 
 	/**

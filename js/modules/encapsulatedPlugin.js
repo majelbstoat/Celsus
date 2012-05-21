@@ -4,13 +4,13 @@
  * 
  * @author Jamie Talbot
  */
-(function ($) {
+(function($) {
 
-	$.fn.encapsulatedPlugin = function (plugin, Definition, objects, options) {
+	$.fn.encapsulatedPlugin = function(plugin, Definition, objects, options) {
 
 		// Creates a function that calls the function of the same name on each member of the supplied set.
 		function makeIteratorFunction(f, set) {
-			return function () {
+			return function() {
 				var result = [];
 				for ( var i = 0; i < set.length; i++) {
 					result.push(set[i][f].apply(set[i][f], arguments));
@@ -20,7 +20,7 @@
 		}
 
 		var result = [];
-		objects.each(function () {
+		objects.each(function() {
 			if (!$.data(this, plugin)) {
 				// Initialise
 				var instance = new Definition(this, options);
@@ -58,5 +58,4 @@
 
 		return result;
 	};
-})(jQuery);
-
+}(jQuery));

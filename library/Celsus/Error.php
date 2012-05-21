@@ -20,15 +20,9 @@
  */
 class Celsus_Error {
 
-	const ERROR_FLAG = 'error_handler';
-
-	const EXCEPTION_APPLICATION_ERROR = 'EXCEPTION_APPLICATION_ERROR';
-
-	const EXCEPTION_NOT_FOUND = 'EXCEPTION_NOT_FOUND';
-
 	/**
-	 * Handles notices, warnings and errors in the application and dipatches the
-	 * error controller to render them appropriately.
+	 * Handles notices, warnings and errors in the application and converts them to
+	 * exceptions which will be handling by the main dispatch loop.
 	 *
 	 * When paired with the registered shutdown function, this even correctly handles
 	 * fatal errors and even parse errors, so users aren't left with blank screen.
@@ -40,39 +34,31 @@ class Celsus_Error {
 	 */
 	public static function handle($type, $message, $file, $line) {
 
-		$request = Zend_Controller_Front::getInstance()->getRequest();
+		$frontController = Zend_Controller_Front::getInstance();
+		$request = $frontController->getRequest();
 
 		// Sets the parameter on the request.
-		$error = new stdClass();
-		$error->type = Celsus_Error::EXCEPTION_APPLICATION_ERROR;
-
-		// Set the error on the request.
-		$request->setParams(array(
-			Celsus_Error::ERROR_FLAG => $error
-		));
-
-		$exception = new Celsus_Exception($message, $type);
+		$exception = new Celsus_Exception($message, Celsus_Http::INTERNAL_SERVER_ERROR);
 		$exception->setFile($file)->setLine($line);
 
-		$response = Zend_Controller_Front::getInstance()->getResponse();
+		// Instruct the dispatcher to dispatch the error route.
+		$response = $frontController->getResponse();
 		$response->setException($exception);
 
-		// Ensure the error controller is going to be routed.
-		$request->setDispatched(false)
-			->setRequestUri('error/error')
-			->setPathInfo();
+// 		$request->setError($error)
+// 			->setActionName('error')
+// 			->setControllerName('error')
+// 			->setDispatched(false);
 
 		// Clear whatever has been rendered so far.
-		ob_get_clean();
+// 		ob_get_clean();
 
-//		Celsus_Log::error((string) $exception);
+// 		// Dispatch the error request.
+// 		$frontController->dispatch($request, $response);
 
-		// Dispatch the error request.
-		Zend_Controller_Front::getInstance()->dispatch($request, $response);
-
-		// Dying is technically not the smartest thing to do, but it prevents multiple repeat dispatches
-		// in strange cases where two errors appear on the same line like:  $nonExistant::BAD_CONSTANT
-		die;
+// 		// Dying is technically not the smartest thing to do, but it prevents multiple repeat dispatches
+// 		// in strange cases where two errors appear on the same line like:  $nonExistant::BAD_CONSTANT
+// 		die;
 	}
 
 	/**

@@ -20,6 +20,10 @@ class Celsus_Controller_Request_Http extends Zend_Controller_Request_Http {
 
 	protected $_allowedParams = null;
 
+	protected $_context = null;
+
+	protected $_error = null;
+
 	/**
 	 * Set parameters
 	 *
@@ -42,19 +46,22 @@ class Celsus_Controller_Request_Http extends Zend_Controller_Request_Http {
 		return $this;
 	}
 
-	protected function getAllowedParams() {
-		if (null === $this->_allowedParams) {
-			$route = $this->getRoute();
-			$method = strtolower($this->getMethod());
-			$actionDefinition = $route->methods->$method;
+	public function getContext() {
+		return $this->_context;
+	}
 
-			$params = $actionDefinition->parameters ? $actionDefinition->parameters->toArray() : array();
-			$params[] = Celsus_Error::ERROR_FLAG;
+	public function setContext($context) {
+		$this->_context = $context;
+		return $this;
+	}
 
-			$this->_allowedParams = $params;
-		}
+	public function setError($error) {
+		$this->_error = $error;
+		return $this;
+	}
 
-		return $this->_allowedParams;
+	public function getError() {
+		return $this->_error;
 	}
 
 	/**
@@ -82,18 +89,36 @@ class Celsus_Controller_Request_Http extends Zend_Controller_Request_Http {
 		return isset($this->_params[$key]) ? $this->_params[$key] : $default;
 	}
 
+	/**
+	 * Returns the route associated with this request.
+	 *
+	 * @return Celsus_Route
+	 */
 	public function getRoute() {
 		if (null === $this->_route) {
 			// By default, get the route that was selected by the router.
-			$route = Zend_Controller_Front::getInstance()->getRouter()->getSelectedRoute();
+			$this->setRoute(Zend_Controller_Front::getInstance()->getRouter()->getSelectedRoute());
 		}
 		return $this->_route;
 	}
 
-	public function setRoute(Zend_Config $route) {
+	public function setRoute(Celsus_Route $route) {
 		$this->_route = $route;
 		return $this;
 	}
 
+	/**
+	 * Returns the parameters that are allowed for the current route.
+	 *
+	 * @return array
+	 */
+	protected function getAllowedParams() {
+		if (null === $this->_allowedParams) {
+			$route = $this->getRoute();
 
+			$this->_allowedParams = $route->getParameters();
+		}
+
+		return $this->_allowedParams;
+	}
 }

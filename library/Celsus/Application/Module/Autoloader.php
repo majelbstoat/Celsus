@@ -21,6 +21,10 @@ class Celsus_Application_Module_Autoloader extends Zend_Application_Module_Autol
 				'namespace' => 'Model_Set',
 				'path' => 'models/sets',
 			),
+			'responsestrategy' => array(
+				'namespace' => 'Response_Strategy',
+				'path' => 'responses/strategies',
+			),
 			'record' => array(
 				'namespace' => 'Record',
 				'path' => 'records',

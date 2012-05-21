@@ -36,5 +36,23 @@ class Celsus_Application_Bootstrap_Bootstrap extends Zend_Application_Bootstrap_
 
 	}
 
+	/**
+	 * Get the plugin loader for resources
+	 *
+	 * @return Zend_Loader_PluginLoader_Interface
+	 */
+	public function getPluginLoader()
+	{
+		if ($this->_pluginLoader === null) {
+			$options = array(
+				'Zend_Application_Resource'  => 'Zend/Application/Resource',
+				'ZendX_Application_Resource' => 'ZendX/Application/Resource',
+				//'Celsus_Application_Resource' => 'Celsus/Application/Resource'
+			);
 
+			$this->_pluginLoader = new Zend_Loader_PluginLoader($options);
+		}
+
+		return $this->_pluginLoader;
+	}
 }
