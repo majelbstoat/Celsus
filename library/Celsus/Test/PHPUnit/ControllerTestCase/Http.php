@@ -8,6 +8,8 @@
  * @version $Id: Http.php 69 2010-09-08 12:32:03Z jamie $
  */
 
+require_once 'Zend/Test/PHPUnit/ControllerTestCase.php';
+
 /**
  * Controller test harness that boots an application with the specified components.
  *
