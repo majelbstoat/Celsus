@@ -7,7 +7,7 @@
  * @copyright Copyright (c) 2008-2010 Jamie Talbot (http://jamietalbot.com)
  * @version $Id: Http.php 69 2010-09-08 12:32:03Z jamie $
  */
-require_once 'Zend/Test/PHPUnit/ControllerTestCase.php';
+
 /**
  * Controller test harness that boots an application with the specified components.
  *
@@ -133,6 +133,19 @@ class Celsus_Test_PHPUnit_ControllerTestCase_Http extends Zend_Test_PHPUnit_Cont
 
 	public function getMockObject() {
 		return call_user_func_array(array($this, 'getMock'), func_get_args());
+	}
+
+	/**
+	 * Retrieve test case request object
+	 *
+	 * @return Celsus_Controller_Request_HttpTestCase
+	 */
+	public function getRequest()
+	{
+		if (null === $this->_request) {
+			$this->_request = new Celsus_Controller_Request_HttpTestCase;
+		}
+		return $this->_request;
 	}
 
 	// Additional Assertions
