@@ -32,6 +32,13 @@ abstract class Celsus_Application extends Zend_Application {
 	protected $_bootstrapCacheName = 'bootstrap';
 
 	/**
+	 * The application state.
+	 *
+	 * @var Celsus_State $_state
+	 */
+	protected $_state = null;
+
+	/**
 	 * The options used to populate the cache.
 	 *
 	 * @var array
@@ -107,8 +114,12 @@ abstract class Celsus_Application extends Zend_Application {
 			Celsus_Cache_Manager::cache($this->_bootstrapCacheName)->shared()->save($config, $configCacheKey, array('config'));
 		}
 
-		require_once 'Zend/Registry.php';
-		Zend_Registry::set('config', $config);
+		// Create a new state object and store the config on it.
+		require_once 'Celsus/State.php';
+		$this->_state = new Celsus_State();
+		$this->_state->setConfig($config);
+
+		$this->_state->muppet = "Hello";
 
 		self::$_scheme = $config->url->scheme;
 		self::$_host = $config->url->host;
@@ -129,6 +140,10 @@ abstract class Celsus_Application extends Zend_Application {
 	 */
 	public static function tenantUrl() {
 		return self::$_tenantName ? self::$_scheme . self::$_tenantName . '.' . self::$_host : self::$_scheme . self::$_host;
+	}
+
+	public function getState() {
+		return $this->_state;
 	}
 
 	/**
@@ -166,12 +181,29 @@ abstract class Celsus_Application extends Zend_Application {
 	}
 
 	/**
-	 * Bootstraps the application, and allows for excluding of resources.
+	 * Set bootstrap path/class
 	 *
-	 * @param null|string|array $resource
-	 * @param array $excludedResources
+	 * @param  string $path
+	 * @param  string $class
+	 * @return Zend_Application
 	 */
-	public function bootstrap($resource = null, array $excludedResources = array()) {
-		return $this->getBootstrap()->setExcludedResources($excludedResources)->bootstrap($resource);
+	public function setBootstrap($path, $class = null)
+	{
+		if (!class_exists($class, false)) {
+			require_once $path;
+		}
+		$this->_bootstrap = new $class($this);
+
+		return $this;
+	}
+
+	/**
+	 * Bootstraps the application, and allows for precise selection of bootstrapped services.
+	 *
+	 * @param null|string|array $services
+	 * @param array $excludedServices
+	 */
+	public function bootstrap($services = null, array $excludedServices = array()) {
+		return $this->getBootstrap()->setExcludedServices($excludedServices)->bootstrap($services);
 	}
 }

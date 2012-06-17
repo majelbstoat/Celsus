@@ -5,6 +5,10 @@ class Celsus_Application_Module_Autoloader extends Zend_Application_Module_Autol
 	public function __construct($options) {
 		parent::__construct($options);
 		$this->addResourceTypes(array(
+			'controller' => array(
+				'namespace' => 'Controller',
+				'path' => 'controllers',
+			),
 			'modelservice' => array(
 				'namespace' => 'Model_Service',
 				'path' => 'models/services',

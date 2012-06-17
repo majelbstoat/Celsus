@@ -26,6 +26,7 @@ class Celsus_Feedback {
 	const ERROR = 'error';
 
 	const FEEDBACK_INVALID_ACTION = 'invalidControllerAction';
+	const FEEDBACK_AUTHORISATION_REQUIRED = 'authorisationRequired';
 
 	const CONFIG_FEEDBACK = 'feedback.yaml';
 	const CONFIG_MESSAGES = 'i18n/%s/messages.yaml';

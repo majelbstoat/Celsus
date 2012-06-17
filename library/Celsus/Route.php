@@ -2,13 +2,13 @@
 
 class Celsus_Route {
 
-	protected $_context = null;
-
 	protected $_definition = null;
 
 	protected $_name = null;
 
 	protected $_selectedMethod = null;
+
+	protected $_selectedContext = null;
 
 	public function __construct($name, Zend_Config $definition) {
 		$this->_definition = $definition;
@@ -27,9 +27,12 @@ class Celsus_Route {
 	}
 
 	public function setSelectedMethod($selectedMethod) {
-		if ($this->hasMethod($selectedMethod)) {
-			$this->_selectedMethod = $this->_definition->methods->$selectedMethod;
-		}
+		$this->_selectedMethod = $this->_definition->methods->$selectedMethod;
+		return $this;
+	}
+
+	public function setSelectedContext($selectedContext) {
+		$this->_selectedContext = $this->_selectedMethod->contexts->$selectedContext;
 		return $this;
 	}
 
@@ -47,7 +50,6 @@ class Celsus_Route {
 
 	public function getParameters() {
 		return $this->_selectedMethod->parameters ? $this->_selectedMethod->parameters->toArray() : array();
-
 	}
 
 	public function extractParametersFromPath($path) {
@@ -65,9 +67,20 @@ class Celsus_Route {
 				$params[substr($routeComponents[$i], 1)] = $pathComponents[$i];
 			}
 		}
+
 		return $params;
 	}
 
+	/**
+	 * Determines whether this route requires that the client be authenticated.
+	 *
+	 * @return boolean
+	 */
+	public function requiresAuthentication() {
+		if (null === $this->_selectedContext) {
+			throw new Celsus_Exception("Can't determine login requirement without a selected context", Celsus_Http::INTERNAL_SERVER_ERROR);
+		}
 
-
+		return !!$this->_selectedContext->requiresAuthentication;
+	}
 }

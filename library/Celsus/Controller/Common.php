@@ -18,7 +18,7 @@
  * @class Celsus_Controller_Common
  * @ingroup Celsus_Controller
  */
-abstract class Celsus_Controller_Common extends Zend_Controller_Action {
+abstract class Celsus_Controller_Common {
 
 	/**
 	 * The identifier that represents the primary service for this model.

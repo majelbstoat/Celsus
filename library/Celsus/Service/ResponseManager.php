@@ -12,40 +12,50 @@
  * Adds support for context detection via a custom header.
  *
  * @category Celsus
- * @package Celsus_Controller
+ * @package Celsus_Service
  */
-class Celsus_Controller_Plugin_ResponseStrategy extends Zend_Controller_Plugin_Abstract {
+class Celsus_Service_ResponseManager {
 
 	protected $_contexts = array();
 
 	protected $_aliases = array();
 
-	public function routeShutdown(Zend_Controller_Request_Abstract $request) {
+	public function determineResponseStrategy(Celsus_State $state) {
 
-		$route = $request->getRoute();
+		$request = $state->getRequest();
+
 		foreach ($this->_contexts as $context => $resolver) {
+
 			if ($resolver::resolve($request)) {
-
-				// The resolver matched this context, so check that it is valid for the given endpoint.
-				if (!$route->hasContext($context)) {
-					if (isset($this->_aliases[$context])) {
-						$alias = $this->_aliases[$context];
-						if (!$route->hasContext($alias)) {
-							// The requested context is not available for this endpoint.
-							throw new Celsus_Exception("Requested route is not valid", Celsus_Http::NOT_FOUND);
-						}
-					}
-				}
-
-				$request->setContext($context);
+				$state->setContext($context);
 				return;
 			}
 		}
 
-		throw new Celsus_Exception("Context could not be determined!", Celsus_Http::BAD_REQUEST);
+		// @todo Figure out a way to process bad applications that don't specify a context.
+		//throw new Celsus_Exception("Context could not be determined!", Celsus_Http::BAD_REQUEST);
 	}
 
-	public function postDispatch(Zend_Controller_Request_Abstract $request) {
+	public function verifyContext(Celsus_State $state) {
+
+		$route = $state->getRoute();
+		$context = $state->getContext();
+
+		if (!$route->hasContext($context))  {
+			// The resolver matched this context, so check that it is valid for the given endpoint.
+			if (!isset($this->_aliases[$context]) || !$route->hasContext($this->_aliases[$context])) {
+				// The requested context is not available for this endpoint.
+				throw new Celsus_Exception("Requested route is not valid", Celsus_Http::NOT_FOUND);
+			}
+
+			// We're using an alias for this context.
+			$context = $this->_aliases[$context];
+		}
+
+		$route->setSelectedContext($context);
+	}
+
+	public function postDispatch(Celsus_State $state) {
 		$controllerName = $request->getControllerName();
 		$actionName = $request->getActionName();
 		$context = $request->getContext();

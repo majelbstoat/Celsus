@@ -34,31 +34,14 @@ class Celsus_Error {
 	 */
 	public static function handle($type, $message, $file, $line) {
 
-		$frontController = Zend_Controller_Front::getInstance();
-		$request = $frontController->getRequest();
+		$serviceManager = Celsus_Service_Manager::getInstance();
+		$state = $serviceManager->getState();
 
-		// Sets the parameter on the request.
+		// Set the exception.
 		$exception = new Celsus_Exception($message, Celsus_Http::INTERNAL_SERVER_ERROR);
 		$exception->setFile($file)->setLine($line);
 
-		// Instruct the dispatcher to dispatch the error route.
-		$response = $frontController->getResponse();
-		$response->setException($exception);
-
-// 		$request->setError($error)
-// 			->setActionName('error')
-// 			->setControllerName('error')
-// 			->setDispatched(false);
-
-		// Clear whatever has been rendered so far.
-// 		ob_get_clean();
-
-// 		// Dispatch the error request.
-// 		$frontController->dispatch($request, $response);
-
-// 		// Dying is technically not the smartest thing to do, but it prevents multiple repeat dispatches
-// 		// in strange cases where two errors appear on the same line like:  $nonExistant::BAD_CONSTANT
-// 		die;
+		$state->setException($exception);
 	}
 
 	/**
