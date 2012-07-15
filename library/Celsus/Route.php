@@ -23,10 +23,11 @@ class Celsus_Route {
 		if (null === $this->_selectedMethod) {
 			throw new Celsus_Exception("Can't determine context without a selected method", Celsus_Http::INTERNAL_SERVER_ERROR);
 		}
-		return $this->_selectedMethod->contexts && $this->_selectedMethod->contexts->$context;
+		return $this->_selectedMethod->contexts && isset($this->_selectedMethod->contexts->$context);
 	}
 
 	public function setSelectedMethod($selectedMethod) {
+		$selectedMethod = strtolower($selectedMethod);
 		$this->_selectedMethod = $this->_definition->methods->$selectedMethod;
 		return $this;
 	}
@@ -77,10 +78,13 @@ class Celsus_Route {
 	 * @return boolean
 	 */
 	public function requiresAuthentication() {
+		return !!$this->getContextConfiguration('requiresAuthentication');
+	}
+
+	public function getContextConfiguration($field) {
 		if (null === $this->_selectedContext) {
 			throw new Celsus_Exception("Can't determine login requirement without a selected context", Celsus_Http::INTERNAL_SERVER_ERROR);
 		}
-
-		return !!$this->_selectedContext->requiresAuthentication;
+		return isset($this->_selectedContext->$field) ? $this->_selectedContext->$field : null;
 	}
 }

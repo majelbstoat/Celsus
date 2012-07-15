@@ -3,139 +3,62 @@
 abstract class Celsus_Response_Strategy {
 
 	/**
-	 * The renderer.
+	 * The view model used for the response
 	 *
-	 * @var Celsus_Controller_Request_Http $_request
+	 * @var Celsus_View_Model
 	 */
-	protected $_renderer = null;
+	protected $_viewModel = null;
 
 	/**
-	 * The response object, containing headers and return data.
+	 * The state of the application
 	 *
-	 * View models can contextually inject headers.
-	 *
-	 * @var Zend_Controller_Response_Abstract $_response
+	 * @var Celsus_State
 	 */
-	protected $_response = null;
+	protected $_state = null;
 
-	/**
-	 * The request object, containing request information.
-	 *
-	 * View models may base their strategy on a request.
-	 *
-	 * @var Celsus_Controller_Request_Http $_request
-	 */
-	protected $_request = null;
+	public function __construct(Celsus_State $state) {
 
-	/**
-	 * The service associated with this view model.
-	 *
-	 * @var Celsus_Model_Service $_service
-	 */
-	protected $_service = null;
+		// Construct a new parent view model, which defines the layout.
+		$this->_state = $state;
+		$this->_viewModel = new Celsus_View_Model();
 
-	// Helper functions
-
-	public function __set($key, $value) {
-		$this->_data[$key] = $value;
-	}
-
-	public function __get($key) {
-		if (!isset($this->_data[$key])) {
-			return null;
-		}
-		return $this->_data[$key];
-	}
-
-	public function getData() {
-		return $this->_data;
-	}
-
-	public function setChild($name, Celsus_View_Model $child) {
-		$this->_children[$name] = $child;
-		return $this;
-	}
-
-	public function getChildren() {
-		return $this->_children;
-	}
-
-	public function hasChildren() {
-		return !!$this->_children;
+		// Offer chance to do strategy-specific initialisation.
+		$this->_init();
 	}
 
 	/**
-	 * @return Celsus_View_Model
+	 * @return Celsus_State
 	 */
-	public function setChildren(array $children) {
-		foreach ($children as $name => $child) {
-			$this->setChild($name, $child);
-		}
-		return $this;
-	}
-
-	public function getRequest() {
-		return $this->_request;
+	public function getState() {
+		return $this->_state;
 	}
 
 	/**
-	 * @return Celsus_View_Model
+	 * @param Celsus_State
+	 * @return Celsus_Response_Strategy
 	 */
-	public function setRequest($request) {
-		$this->_request = $request;
-		return $this;
-	}
-
-	public function getResponse() {
-		return $this->_response;
-	}
-
-	/**
-	 * @return Celsus_View_Model
-	 */
-	public function setResponse($response) {
-		$this->_response = $response;
-		return $this;
-	}
-
-	public function getService() {
-		return $this->_service;
-	}
-
-	public function setRenderer($renderer) {
-		$this->_renderer = $renderer;
+	public function setState(Celsus_State $state) {
+		$this->_state = $state;
 		return $this;
 	}
 
 	/**
 	 * @return Celsus_View_Model
 	 */
-	public function setService($service) {
-		$this->_service = $service;
-		return $this;
-	}
-
-	public function getTemplate() {
-		return $this->_template;
+	public function getViewModel() {
+		return $this->_viewModel;
 	}
 
 	/**
-	 * @return Celsus_View_Model
+	 * @param Celsus_View_Model
+	 * @return Celsus_Response_Strategy
 	 */
-	public function setTemplate($template) {
-		$this->_template = $template;
+	public function setViewModel(Celsus_View_Model $viewModel) {
+		$this->_viewModel = $viewModel;
 		return $this;
 	}
 
-	public function getView() {
-		return $this->_view;
+	protected function _init() {
 	}
 
-	/**
-	 * @return Celsus_View_Model
-	 */
-	public function setView($view) {
-		$this->_view = $view;
-		return $this;
-	}
 }

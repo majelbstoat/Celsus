@@ -24,6 +24,13 @@ class Celsus_Application_Bootstrap {
 	protected $_application = null;
 
 	/**
+	 * The state of the application.
+	 *
+	 * @var Celsus_State $_state
+	 */
+	protected $_state;
+
+	/**
 	 * The service manager which will control the handling process.
 	 *
 	 * @var Celsus_Service_Manager $_serviceManager
@@ -37,8 +44,7 @@ class Celsus_Application_Bootstrap {
 		$this->_state = $application->getState();
 
 		// Create a service manager to manage the execution pipeline.
-		$serviceManager = Celsus_Service_Manager::getInstance()->setState($this->_state);
-		$this->_serviceManager = $serviceManager;
+		$this->_serviceManager = Celsus_Service_Manager::getInstance()->setState($this->_state);
 	}
 
 	/**

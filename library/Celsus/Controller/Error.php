@@ -16,52 +16,51 @@
  */
 abstract class Celsus_Controller_Error extends Celsus_Controller_Common {
 
-	public function init() {
-		if (null === $this->getRequest()->getError()) {
-			// No error parameters means that the controller has been accessed directly, which is disallowed.
-			return $this->_redirect(Celsus_Routing::absoluteLinkTo('home'));
-		}
-
-//		$this->_helper->layout->setLayout('error');
-
-		parent::init();
-	}
-
 	public function errorAction() {
 
-		$error = $this->getRequest()->getError();
+		$exception = $this->_state->getException();
+		$responseModel = $this->getResponseModel();
 
-		$errorDetails = new stdClass();
+		if (null === $exception) {
+			// No exception means that the controller has been accessed directly, which is disallowed.
+			return $responseModel->setResponseType('noError');
+		}
+
+		$errorType = $exception->getCode();
+
+		// @todo Only add exception data to the response model if the user is an admin.
+		$errorData = array(
+			'code' => $errorType,
+			'exception' => $exception
+		);
+
 		switch ($errorType) {
 			case Celsus_Http::NOT_FOUND:
-
 				// 404 error -- controller or action not found
-				$errorCode = Celsus_Http::NOT_FOUND;
-				$errorDetails->title = 'Page Not Found';
+				$responseModel->setResponseType('notFound');
+				$errorData['headline'] = 'Page Not Found';
 				break;
 
 			case Celsus_Http::METHOD_NOT_ALLOWED:
-
 				// 405 error -- Invalid HTTP method specified for the endpoint.
-				$errorCode = Celsus_Http::METHOD_NOT_ALLOWED;
-				$errorDetails->title = 'Method Not Allowed';
-				$errorDetails->method = $this->getRequest()->getMethod();
+				$responseModel->setResponseType('methodNotAllowed');
+				$errorData['headline'] = 'Method Not Allowed';
+				$errorData['method'] = $this->getRequest()->getMethod();
 				break;
 
 			default:
-
 				// An unspecified error
-				$errorCode = Celsus_Http::INTERNAL_SERVER_ERROR;
-				$errorDetails->title = 'Application Error';
+				$responseModel->setResponseType('error');
+				$errorData['headline'] = 'Application Error';
+				$errorData['code'] = Celsus_Http::INTERNAL_SERVER_ERROR;
 				break;
 		}
 
-		$this->getResponse()->setHttpResponseCode($errorCode);
-//		$this->_helper->viewRenderer->setScriptAction($errorCode);
-		$error->type = $errorCode;
-		$error->details = $errorDetails;
+		// Set the error data on the response model.
+		$responseModel->setData($errorData);
 
-//		$this->view->error = $error;
+		// We want to set the response code, regardless of the context.
+		$this->_state->getResponse()->setHttpResponseCode($errorData['code']);
 	}
 
 }

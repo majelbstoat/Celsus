@@ -29,7 +29,7 @@ class Celsus_Feedback {
 	const FEEDBACK_AUTHORISATION_REQUIRED = 'authorisationRequired';
 
 	const CONFIG_FEEDBACK = 'feedback.yaml';
-	const CONFIG_MESSAGES = 'i18n/%s/messages.yaml';
+	const CONFIG_MESSAGE_TYPE = 'feedback';
 
 	protected static $_session = null;
 
@@ -63,11 +63,8 @@ class Celsus_Feedback {
 	}
 
 	protected static function _getFeedbackMessage($code) {
-		if (null === self::$_messages) {
-			self::$_messages = new Zend_Config_Yaml(CONFIG_PATH . '/' . sprintf(self::CONFIG_MESSAGES, Celsus_I18n::getLocale()));
-		}
-
-		return self::$_messages->$code;
+		$messages = Celsus_I18n::getMessages(self::CONFIG_MESSAGE_TYPE);
+		return $messages->$code;
 	}
 
 	/**

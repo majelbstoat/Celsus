@@ -20,7 +20,14 @@ class Celsus_Service_ResponseManager {
 
 	protected $_aliases = array();
 
-	public function determineResponseStrategy(Celsus_State $state) {
+	/**
+	 * Determines whether the response should be returned or echoed.
+	 *
+	 * @var boolean
+	 */
+	protected $_returnResponse = null;
+
+	public function determineContext(Celsus_State $state) {
 
 		$request = $state->getRequest();
 
@@ -55,23 +62,39 @@ class Celsus_Service_ResponseManager {
 		$route->setSelectedContext($context);
 	}
 
-	public function postDispatch(Celsus_State $state) {
-		$controllerName = $request->getControllerName();
-		$actionName = $request->getActionName();
-		$context = $request->getContext();
-		$response = Zend_Controller_Front::getInstance()->getResponse();
+	public function respond(Celsus_State $state) {
 
-		$class = ucfirst(APPLICATION_NAME) . '_Response_Strategy_' . ucfirst($controllerName) . '_' . ucfirst($context);
+		// Render the view model
+		$response = $state->getResponse();
 
-		$config = array(
-			'request' => $request,
-			'response' => $response,
-		);
+		if (!$response->isRedirect()) {
+			$response->appendBody($state->getViewModel()->render());
+		}
 
-		$strategy = new $class($config);
-		$responseMethod = $actionName . 'Response';
+		if ($this->returnResponse()) {
+			return $state;
+		} else {
+			// Send the headers.
+        	$response->sendHeaders();
 
-		$strategy->$responseMethod($response->getViewModel());
+        	// Echo the response.
+			$response->outputBody();
+		}
+	}
+
+	/**
+	  * Determines whether the response should be returned or echoed.
+	  *
+	  * @param boolean
+	  * @return boolean|Celsus_Service_ResponseManager
+	  */
+	public function returnResponse($returnResponse = null) {
+		if (null === $returnResponse) {
+			return $this->_returnResponse;
+		} else {
+			$this->_returnResponse = $returnResponse;
+			return $this;
+		}
 	}
 
 	public function addContext($context, $resolver) {

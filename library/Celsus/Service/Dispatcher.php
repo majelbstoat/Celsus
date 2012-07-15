@@ -15,14 +15,22 @@ class Celsus_Service_Dispatcher {
 			// Get the route.
 			$route = $state->getRoute();
 
-			$controllerName = 'Shinnen_Controller_' . ucfirst($route->getController());
+			$controllerName = ucfirst(APPLICATION_NAME) . '_Controller_' . ucfirst($route->getController());
 			$action = $route->getAction() . 'Action';
 
-			$controller = new $controllerName();
+			$controller = new $controllerName($state);
 
 			$request->setDispatched(true);
 			try {
-				$controller->$action($state);
+
+				// Execute the controller action.
+				$controller->$action();
+
+				// Set the response model.
+				$state->setResponseModel($controller->getResponseModel());
+
+				// Respond to the request.
+				$this->marshalResponse($state);
 			} catch (Celsus_Exception $exception) {
 				if ($state->hasException()) {
 					var_dump("Error in the error handler?");
@@ -33,31 +41,28 @@ class Celsus_Service_Dispatcher {
 				}
 			}
 		}
-
 	}
 
-	protected function _handleException(Celsus_State $state) {
+	/**
+	 * Determines the correct response strategy and executes it, using the result to
+	 * populate a view model on the state object.
+	 *
+	 * @param Celsus_State $state
+	 */
+	public function marshalResponse(Celsus_State $state) {
 
-		$exception = $state->getException();
-		$code = $exception->getCode();
+		$route = $state->getRoute();
+		$responseModel = $state->getResponseModel();
 
-		switch ($code) {
-			case Celsus_Http::UNAUTHORISED:
-				$routeName = 'auth_login';
-				break;
+		// Determine the responding strategy class and method.
+		$class = ucfirst(APPLICATION_NAME) . '_Response_Strategy_' . ucfirst($route->getController()) . '_' . ucfirst($route->getAction()) . '_' . ucfirst($state->getContext());
+		$responseMethod = $responseModel->getResponseType() . 'Response';
 
-			default:
-				$routeName = 'error';
-				break;
-		}
+		// Run the strategy to populate the view model or a redirection.
+		$strategy = new $class($state);
+		$strategy->$responseMethod();
 
-		// Change the route to the correct handler.
-		// @todo Keep the old route around so we can see what went wrong.
-		$route = Celsus_Routing::getRouteByName($routeName);
-		$route->setSelectedMethod('get')
-			->setSelectedContext($state->getContext());
-
-		$state->setRoute($route);
+		$state->setViewModel($strategy->getViewModel());
 	}
 
 	/**
@@ -67,10 +72,11 @@ class Celsus_Service_Dispatcher {
 	public function populateParameters(Celsus_State $state)
 	{
 		$route = $state->getRoute();
-		var_dump($route);
+		$request = $state->getRequest();
 
 		$routeParameters = $route->getParameters();
 
+		$path = $request->getPathInfo();
 		$pathParameters = $route->extractParametersFromPath($path);
 
 		// @todo Merge with default parameters from the route config.
@@ -103,8 +109,30 @@ class Celsus_Service_Dispatcher {
 
 		}
 
-
 		$state->setParameters(array_merge($pathParameters, $additionalParameters));
 	}
 
+	protected function _handleException(Celsus_State $state) {
+
+		$exception = $state->getException();
+		$code = $exception->getCode();
+
+		switch ($code) {
+			case Celsus_Http::UNAUTHORISED:
+				$routeName = 'auth_login';
+				break;
+
+			default:
+				$routeName = 'error';
+				break;
+		}
+
+		// @todo Keep the old route around so we can see what went wrong.
+
+		// Change the route to the error or authentication handler.
+		$route = Celsus_Routing::getRouteByName($routeName);
+		$route->setSelectedMethod(Celsus_Http::GET)->setSelectedContext($state->getContext());
+
+		$state->setRoute($route);
+	}
 }

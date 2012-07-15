@@ -122,6 +122,6 @@ abstract class Celsus_Controller_Auth_Facebook extends Celsus_Controller_Auth {
 	/**
 	 * Application-specific function that logs a Facebook user in locally.
 	 */
-	abstract public function loginAction(Celsus_State $state);
+	abstract public function loginAction();
 
 }

@@ -20,13 +20,8 @@ abstract class Celsus_Controller_Auth extends Celsus_Controller_Common {
 	 * Logs a user out of the application.
 	 */
 	public function logoutAction() {
-		$auth = Zend_Auth::getInstance();
-		if ($auth->hasIdentity()) {
-			$auth->clearIdentity();
+		if ($this->_state->hasIdentity()) {
+			$this->_state->clearIdentity();
 		}
-		$redirectSession = new Zend_Session_Namespace('Redirect');
-		$location = $redirectSession->location ? $redirectSession->location : '/';
-		$this->_redirect($location);
 	}
 }
-?>

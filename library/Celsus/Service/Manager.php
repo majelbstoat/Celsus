@@ -50,7 +50,7 @@ class Celsus_Service_Manager {
 
 		try {
 			// Determine how to respond.
-			$responseManager->determineResponseStrategy($this->_state);
+			$responseManager->determineContext($this->_state);
 
 			// Determine the correct route to load.
 			$this->getRouter()->route($this->_state);
@@ -71,8 +71,7 @@ class Celsus_Service_Manager {
 		// Dispatch the request.
 		$dispatcher->dispatch($this->_state);
 
-		// Respond to the request.
-		return $responseManager->respond($this->_state);
+		$responseManager->respond($this->_state);
 	}
 
 	/**

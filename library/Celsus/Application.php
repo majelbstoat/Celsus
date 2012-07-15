@@ -119,8 +119,6 @@ abstract class Celsus_Application extends Zend_Application {
 		$this->_state = new Celsus_State();
 		$this->_state->setConfig($config);
 
-		$this->_state->muppet = "Hello";
-
 		self::$_scheme = $config->url->scheme;
 		self::$_host = $config->url->host;
 

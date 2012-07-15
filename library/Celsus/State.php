@@ -3,32 +3,18 @@
 class Celsus_State {
 
 	/**
-	  * The request object
+	  * The config object
 	  *
-	  * @var Zend_Controller_Request_Abstract
+	  * @var Zend_Config
 	  */
-	protected $_request = null;
+	protected $_config = null;
 
 	/**
-	  * The response object
+	  * The context for this request
 	  *
-	  * @var Zend_Controller_Response_Abstract
+	  * @var string
 	  */
-	protected $_response = null;
-
-	/**
-	  * The view model
-	  *
-	  * @var Celsus_View_Model
-	  */
-	protected $_viewModel = null;
-
-	/**
-	  * The route object
-	  *
-	  * @var Celsus_Route
-	  */
-	protected $_route = null;
+	protected $_context = null;
 
 	/**
 	  * The exception object
@@ -45,18 +31,55 @@ class Celsus_State {
 	protected $_parameters = null;
 
 	/**
-	  * The config object
+	  * The request object
 	  *
-	  * @var Zend_Config
+	  * @var Zend_Controller_Request_Abstract
 	  */
-	protected $_config = null;
+	protected $_request = null;
 
 	/**
-	  * The context for this request
+	  * The response object
 	  *
-	  * @var string
+	  * @var Zend_Controller_Response_Abstract
 	  */
-	protected $_context = null;
+	protected $_response = null;
+
+	/**
+	  * The response model object
+	  *
+	  * @var Celsus_Response_Model
+	  */
+	protected $_responseModel = null;
+
+	/**
+	  * The route object
+	  *
+	  * @var Celsus_Route
+	  */
+	protected $_route = null;
+
+	/**
+	  * The view model
+	  *
+	  * @var Celsus_View_Model
+	  */
+	protected $_viewModel = null;
+
+	/**
+	  * @return Celsus_Response_Model
+	  */
+	public function getResponseModel() {
+		return $this->_responseModel;
+	}
+
+	/**
+	  * @param Celsus_Response_Model
+	  * @return Celsus_State
+	  */
+	public function setResponseModel(Celsus_Response_Model $responseModel) {
+		$this->_responseModel = $responseModel;
+		return $this;
+	}
 
 	/**
 	  * @return string
@@ -167,6 +190,9 @@ class Celsus_State {
 	  * @return Zend_Controller_Response_Abstract
 	  */
 	public function getResponse() {
+		if (null === $this->_response) {
+			$this->_response = new Celsus_Controller_Response_Http();
+		}
 		return $this->_response;
 	}
 
@@ -183,6 +209,9 @@ class Celsus_State {
 	  * @return Zend_Controller_Request_Abstract
 	  */
 	public function getRequest() {
+		if (null === $this->_request) {
+			$this->_request = new Celsus_Controller_Request_Http();
+		}
 		return $this->_request;
 	}
 
@@ -195,9 +224,24 @@ class Celsus_State {
 		return $this;
 	}
 
+	/**
+	 * @todo This shouldn't live here.
+	 */
 	public function hasIdentity() {
 		$auth = Celsus_Auth::getInstance();
 		return $auth->hasIdentity();
+	}
+
+	/**
+	 * @todo This shouldn't live here.
+	 */
+	public function clearIdentity() {
+		$auth = Celsus_Auth::getInstance();
+		return $auth->clearIdentity();
+	}
+
+	public function isAdmin() {
+		// @todo Test to see if the current user is an admin, or else if some kind of side-door variable is set.
 	}
 
 
