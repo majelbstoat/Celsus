@@ -2,7 +2,7 @@
 
 class Celsus_Db_Document_Adapter_Redis {
 
-	// Redis defines 16 numerically named databases.  By design,
+	// Redis defines 16 numerically named databases.  By convention,
 	// we reserve 0 for testing as it is the default, and 1 for development.
 	const DATABASE_TESTING = 0;
 	const DATABASE_DEVELOPMENT = 1;
@@ -155,13 +155,43 @@ class Celsus_Db_Document_Adapter_Redis {
 	}
 
 	/**
-	 * Finds an identifier using a secondary index.
+	 * Queries the database using secondary index.
 	 *
-	 * @param unknown_type $key
-	 * @param unknown_type $value
+	 * @param Celsus_Db_Document_Redis_Query $query
 	 */
-	public function query($key, $value) {
-		$identifier = $this->getClient()->hGet($key, $value);
+	public function query(Celsus_Db_Document_Redis_Query $query) {
+		$parameters = $query->getParameters();
+		$indexType = $query->getIndexType();
+
+		switch ($indexType) {
+			case $query::QUERY_TYPE_HASH_ELEMENT:
+				$identifier = $this->getClient()->hGet($parameters['key'], $parameters['value']);
+				break;
+
+			case $query::QUERY_TYPE_SORTED_SET_RANGE:
+				$start = isset($parameters['start']) ? $parameters['start'] : 0;
+				$end = isset($parameters['end']) ? $parameters['end'] : -1;
+
+				$identifier = $this->getClient()->zRange($parameters['key'], $start, $end);
+				break;
+
+			case $query::QUERY_TYPE_SORTED_SET_SCORE:
+				$start = $parameters['start'];
+				$end = $parameters['end'];
+
+				// @todo Potentially add offset support instead of hard-coding to 0.
+				$options = array();
+				if ($parameters['limit']) {
+					$options['limit'] = array(0, $parameters['limit']);
+				}
+
+				if (isset($parameters['reversed'])) {
+					$identifier = $this->getClient()->zRevRangeByScore($parameters['key'], $end, $start, $options);
+				} else {
+					$identifier = $this->getClient()->zRangeByScore($parameters['key'], $start, $end, $options);
+				}
+				break;
+		}
 
 		return $identifier ? $this->find($identifier) : null;
 	}
@@ -182,6 +212,7 @@ class Celsus_Db_Document_Adapter_Redis {
 		$type = $data['_type'];
 		$data['_created'] = microtime(true);
 
+		// Add the item to a sorted set, and set the modified fields.
 		$result = $this->getClient()
 			->multi()
 			->zAdd($type, $data['_created'], $id)
@@ -200,10 +231,6 @@ class Celsus_Db_Document_Adapter_Redis {
 
 	/**
 	 * Sets a simple reverse index using a single hash that maps a field to the document id.
-	 *
-	 * @param string $key
-	 * @param string $field
-	 * @param string $id
 	 */
 	public function setIndexSimpleHash($id, $group, $name, $data, $originalData, Redis $pipeline = null) {
 		if (null === $pipeline) {
@@ -214,6 +241,18 @@ class Celsus_Db_Document_Adapter_Redis {
 		$key = $group . ':by' . implode('', array_map('ucfirst', explode('_', $name)));
 
 		$pipeline->hMset($key, array($field => $id));
+	}
+
+	public function setIndexSetMembers($id, $group, $name, $data, $originalData, Redis $pipeline = null) {
+		if (null === $pipeline) {
+			$pipeline = $this->getClient();
+		}
+
+		$index = $data[$name];
+		$key = $group . ':membersBy' . implode('', array_map('ucfirst', explode('_', $name))) . ':' . $index;
+
+		$timestamp = $data['timestamp'];
+		$pipeline->zAdd($key, $timestamp, $id);
 	}
 
 	public function startPipeline() {

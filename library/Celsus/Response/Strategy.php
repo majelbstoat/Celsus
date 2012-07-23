@@ -27,6 +27,15 @@ abstract class Celsus_Response_Strategy {
 	}
 
 	/**
+	 * The default response is just to render the output from the specified data.
+	 *
+	 * @param Celsus_State $state
+	 */
+	public function defaultResponse(Celsus_Response_Model $responseModel) {
+		$this->_show();
+	}
+
+	/**
 	 * @return Celsus_State
 	 */
 	public function getState() {

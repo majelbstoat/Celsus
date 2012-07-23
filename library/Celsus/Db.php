@@ -41,6 +41,17 @@ class Celsus_Db {
 	 */
 	protected static $_profiler = null;
 
+	/**
+	 * Database configuration.
+	 *
+	 * @var Zend_Config $_config
+	 */
+	protected static $_config = null;
+
+	public static function setConfig(Zend_Config $config) {
+		self::$_config = $config;
+	}
+
 	public static function setDefaultAdapterName($adapter) {
 		if (!is_string($adapter)) {
 			throw new Celsus_Exception("$adapter is not a valid string to use as an adapter name.");
@@ -76,7 +87,7 @@ class Celsus_Db {
 
 		if (!isset($databaseRegistry) || !isset($databaseRegistry->$name)) {
 			$instance = Zend_Registry::getInstance();
-			$config = Zend_Registry::get('config')->database->$name;
+			$config = self::$_config->database->$name;
 			if (null == $config) {
 				throw new Celsus_Exception("$name is not a valid database to connect to.");
 			}

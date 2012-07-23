@@ -23,22 +23,22 @@ abstract class Celsus_Controller_Auth_Facebook extends Celsus_Controller_Auth {
 	/**
 	 * Handles an inbound Facebook-based auth request.
 	 */
-	public function facebookAction() {
+	public function facebookAction(Celsus_Data_Object $parameters) {
 
 		$adapter = Celsus_Auth::getAuthAdapter();
 		if (!$adapter->canAuthenticate()) {
 			if ($adapter->accessDenied()) {
-				$this->_userDeclined();
+				$this->getResponseModel()->setResponseType('userDeclined');
 			} else {
-				$this->_missingAuthentication();
+				$this->getResponseModel()->setResponseType('missingAuthentication');
 			}
 
 			// The request did not supply enough information to authenticate, so we bail.
-			// @todo We probably don't always want to go to home.
-			return $this->_redirect(Celsus_Routing::linkTo('home'));
+			return;
 		}
 
-		$context = $this->getRequest()->getParam('context');
+		$context = $parameters->context;
+
 		$callbackUrl = Celsus_Routing::absoluteLinkTo('auth_facebook_callback', array('context' => $context));
 		$adapter->setCallbackUrl($callbackUrl);
 		$adapter->populateAuthorisationPayload();
@@ -58,7 +58,8 @@ abstract class Celsus_Controller_Auth_Facebook extends Celsus_Controller_Auth {
 		if ($auth->hasIdentity()) {
 			// Already has a session, so we really shouldn't have authenticated, but now that we have, just go to the home.
 			// @todo Log this, because if it ever happens, it means the identity checking plugin isn't working.
-			return $this->_redirect(Celsus_Routing::linkTo('home'));
+			$this->getResponseModel()->setResponseType('loggedIn');
+			return;
 		} else {
 			// Check the Facebook data received against the local adapter.
 			$localAdapter = $adapter->getLocalAuthAdapter();
@@ -72,9 +73,7 @@ abstract class Celsus_Controller_Auth_Facebook extends Celsus_Controller_Auth {
 
 				$identity = $this->_merge($localAdapter->getResult());
 				$auth->getStorage()->write($identity);
-				$redirectSession = new Zend_Session_Namespace('Redirect');
-				$location = $redirectSession->location ? $redirectSession->location : Celsus_Routing::linkTo('home');
-				return $this->_redirect($location);
+				$this->getResponseModel()->setResponseType('success');
 			} else {
 				$code = $result->getCode();
 				if (Zend_Auth_Result::FAILURE_IDENTITY_AMBIGUOUS == $code) {
@@ -83,7 +82,7 @@ abstract class Celsus_Controller_Auth_Facebook extends Celsus_Controller_Auth {
 					$this->_handleDuplicate();
 
 				} elseif (Zend_Auth_Result::FAILURE_IDENTITY_NOT_FOUND == $code) {
-					// User not found, so save their details locally.
+					// User not found, so register them locally.
 					$this->_register();
 				} else {
 					// Another unspecified error.
@@ -105,16 +104,6 @@ abstract class Celsus_Controller_Auth_Facebook extends Celsus_Controller_Auth {
 	}
 
 	/**
-	 * Application-specific function that handles missing authentication data.
-	 */
-	abstract protected function _missingAuthentication();
-
-	/**
-	 * Application-specific function that handles the user rejecting facebook permissions.
-	 */
-	abstract protected function _userDeclined();
-
-	/**
 	 * Application-specific function that registers a Facebook user locally.
 	 */
 	abstract protected function _register();
@@ -122,6 +111,6 @@ abstract class Celsus_Controller_Auth_Facebook extends Celsus_Controller_Auth {
 	/**
 	 * Application-specific function that logs a Facebook user in locally.
 	 */
-	abstract public function loginAction();
+	abstract public function loginAction(Celsus_Data_Object $parameters);
 
 }

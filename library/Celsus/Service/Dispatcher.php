@@ -2,14 +2,22 @@
 
 class Celsus_Service_Dispatcher {
 
+	const ROUTE_UNAUTHORISED = 'auth_login';
+	const ROUTE_ERROR = 'error';
+
 	public function dispatch(Celsus_State $state) {
+
+		// If we aren't authorised to dispatch this route, show the unauthorised route instead.
+		if (!$state->authorised()) {
+			$this->_alterRoute($state, self::ROUTE_UNAUTHORISED);
+		}
 
 		$request = $state->getRequest();
 
 		while (!$request->isDispatched()) {
 
 			if ($state->hasException()) {
-				$this->_handleException($state);
+				$this->_alterRoute($state, self::ROUTE_ERROR);
 			}
 
 			// Get the route.
@@ -24,16 +32,24 @@ class Celsus_Service_Dispatcher {
 			try {
 
 				// Execute the controller action.
-				$controller->$action();
+				$data = $controller->$action($state->getParameters());
+
+				$responseModel = $controller->getResponseModel();
+
+				if ($data) {
+					$responseModel->setData($data);
+				}
 
 				// Set the response model.
-				$state->setResponseModel($controller->getResponseModel());
+				$state->setResponseModel($responseModel);
 
 				// Respond to the request.
 				$this->marshalResponse($state);
+
 			} catch (Celsus_Exception $exception) {
-				if ($state->hasException()) {
+				if (self::ROUTE_ERROR === $route->getName()) {
 					var_dump("Error in the error handler?");
+					var_dump($exception);
 					die;
 				} else {
 					$state->setException($exception);
@@ -60,7 +76,7 @@ class Celsus_Service_Dispatcher {
 
 		// Run the strategy to populate the view model or a redirection.
 		$strategy = new $class($state);
-		$strategy->$responseMethod();
+		$strategy->$responseMethod($responseModel);
 
 		$state->setViewModel($strategy->getViewModel());
 	}
@@ -96,7 +112,7 @@ class Celsus_Service_Dispatcher {
 			if (isset($pathParameters[$parameter])) {
 				// Use the parameter that was set from the URL path.
 				$parameters[$parameter] = $pathParameters[$parameter];
-			} elseif (isset($additionalParameters[$parameters])) {
+			} elseif (isset($additionalParameters[$parameter])) {
 				// Use the parameter that was set from the request.
 				$parameters[$parameter] = $additionalParameters[$parameter];
 			} elseif (isset($characteristics['default'])) {
@@ -104,32 +120,22 @@ class Celsus_Service_Dispatcher {
 			}
 
 			if (!isset($parameters[$parameter]) && !isset($characteristics['optional'])) {
-				throw new Celsus_Exception("Missing required parameter $parameter", Celsus_Http::PRECONDITION_FAILED);
+				throw new Celsus_Exception("Missing required parameter $parameter", Celsus_Http::BAD_REQUEST);
 			}
 
 		}
 
-		$state->setParameters(array_merge($pathParameters, $additionalParameters));
+		$state->setParameters(new Celsus_Data_Object($parameters));
 	}
 
-	protected function _handleException(Celsus_State $state) {
-
-		$exception = $state->getException();
-		$code = $exception->getCode();
-
-		switch ($code) {
-			case Celsus_Http::UNAUTHORISED:
-				$routeName = 'auth_login';
-				break;
-
-			default:
-				$routeName = 'error';
-				break;
-		}
-
-		// @todo Keep the old route around so we can see what went wrong.
-
-		// Change the route to the error or authentication handler.
+	/**
+	 * Alters the requested route to the specified one, which can happen
+	 * when the user is unauthorised, or there is an error.
+	 *
+	 * @param Celsus_State $state
+	 * @param string $routeName
+	 */
+	protected function _alterRoute(Celsus_State $state, $routeName) {
 		$route = Celsus_Routing::getRouteByName($routeName);
 		$route->setSelectedMethod(Celsus_Http::GET)->setSelectedContext($state->getContext());
 

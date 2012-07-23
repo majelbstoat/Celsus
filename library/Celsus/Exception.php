@@ -31,7 +31,7 @@ class Celsus_Exception extends Exception {
 		return $this;
 	}
 
-	public function __toString() {
+	public function _toString() {
 		return $this->message . ' in ' . $this->file . ' on line ' . $this->line;
 	}
 

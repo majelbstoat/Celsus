@@ -77,8 +77,8 @@ class Celsus_Route {
 	 *
 	 * @return boolean
 	 */
-	public function requiresAuthentication() {
-		return !!$this->getContextConfiguration('requiresAuthentication');
+	public function requiresAuthorisation() {
+		return !!$this->getContextConfiguration('requiresAuthorisation');
 	}
 
 	public function getContextConfiguration($field) {

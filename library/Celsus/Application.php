@@ -159,15 +159,13 @@ abstract class Celsus_Application extends Zend_Application {
 			// Create a new route config object
 			$routes = new Zend_Config(array(), true);
 
-			// Load
+			// Load routes
 			$routesPath = CONFIG_PATH . '/routes';
 			$files = scandir($routesPath);
 
 			// Iterate all the YAML files in the directory and merge the configs.
 			foreach ($files as $file) {
-				if ('yaml' === substr($file, -4)) {
-					$routes->merge(new Zend_Config_Yaml($routesPath . "/$file"));
-				}
+				$routes->merge(new Zend_Config_Yaml($routesPath . "/$file"));
 			}
 
 			$routes->setReadOnly();

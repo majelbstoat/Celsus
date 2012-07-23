@@ -429,6 +429,7 @@ abstract class Celsus_Model_Service implements Celsus_Model_Service_Interface {
 	public static function getLookupValues($term = null) {
 		$data = self::_underlying()->cache(array(static::$_name, 'lookup'))->multiple()->getLookupData();
 
+		$return = array();
 		foreach ($data as $item) {
 			$value = static::getDescription($item);
 			if (!$term || (false !== strpos(strtolower($value), strtolower($term)))) {
@@ -442,10 +443,6 @@ abstract class Celsus_Model_Service implements Celsus_Model_Service_Interface {
 			}
 		}
 		return $return;
-	}
-
-	protected static function _getLookupData() {
-		throw new Celsus_Exception(__FUNCTION__ . ' must be overridden in ' . get_called_class());
 	}
 
 	// Caching

@@ -66,6 +66,49 @@ abstract class Celsus_Http {
 	const GATEWAY_TIMEOUT = 504;
 	const HTTP_VERSION_NOT_SUPPORTED = 505;
 
+	protected static $_names = array(
+		self::CONTINUE_REQUEST => 'Continue Request',
+		self::SWITCH_PROTOCOLS => 'Switch Protocols',
+		self::OK => 'OK',
+		self::CREATED => 'Created',
+		self::ACCEPTED => 'Accepted',
+		self::NON_AUTHORITATIVE_INFORMATION => 'Non-Authoritative Information',
+		self::NO_CONTENT => 'No Content',
+		self::RESET_CONTENT => 'Reset Content',
+		self::PARTIAL_CONTENT => 'Partial Content',
+		self::MOVED_PERMANENTLY => 'Moved Permanently',
+		self::FOUND => 'Found',
+		self::SEE_OTHER => 'See Other',
+		self::NOT_MODIFIED => 'Not Modified',
+		self::USE_PROXY => 'Use Proxy',
+		self::TEMPORARY_REDIRECT => 'Temporary Redirect',
+		self::BAD_REQUEST => 'Bad Request',
+		self::UNAUTHORISED => 'Unauthorised',
+		self::PAYMENT_REQUIRED => 'Payment Required',
+		self::FORBIDDEN => 'Forbidden',
+		self::NOT_FOUND => 'Not Found',
+		self::METHOD_NOT_ALLOWED => 'Method Not Allowed',
+		self::NOT_ACCEPTABLE => 'Not Acceptable',
+		self::PROXY_AUTHENTICATION_REQUIRED => 'Proxy Authentication Required',
+		self::REQUEST_TIMEOUT => 'Request Timeout',
+		self::CONFLICT => 'Conflict',
+		self::GONE => 'Gone',
+		self::LENGTH_REQUIRED => 'Length Required',
+		self::PRECONDITION_FAILED => 'Precondition Failed',
+		self::REQUEST_ENTITY_TOO_LARGE => 'Request Entity Too Large',
+		self::REQUEST_URI_TOO_LONG => 'Request-URI Too Long',
+		self::UNSUPPORTED_MEDIA_TYPE => 'Unsupported Media Type',
+		self::REQUESTED_RANGE_NOT_SATISFIABLE => 'Request Range Not Satisfiable',
+		self::EXPECTATION_FAILED => 'Expectation Failed',
+		self::INTERNAL_SERVER_ERROR => 'Internal Server Error',
+		self::NOT_IMPLEMENTED => 'Not Implemented',
+		self::BAD_GATEWAY => 'Bad Gateway',
+		self::SERVICE_UNAVAILABLE => 'Service Unavailable',
+		self::GATEWAY_TIMEOUT => 'Gateway Timeout',
+		self::HTTP_VERSION_NOT_SUPPORTED => 'HTTP Version Not Supported',
+	);
 
-
+	public static function getName($code) {
+		return self::$_names[$code];
+	}
 }

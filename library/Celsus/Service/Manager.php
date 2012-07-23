@@ -59,7 +59,7 @@ class Celsus_Service_Manager {
 			$responseManager->verifyContext($this->_state);
 
 			// Test the identity of the user, if the route requires it.
-			$this->getAuthenticationManager()->authenticate($this->_state);
+			$this->getAuthenticationManager()->testAuthorisation($this->_state);
 
 			// Populate route parameters.
 			$dispatcher->populateParameters($this->_state);
@@ -68,10 +68,36 @@ class Celsus_Service_Manager {
 			$this->_state->setException($exception);
 		}
 
+		$this->process($dispatcher, $responseManager);
+	}
+
+	/**
+	 * Dispatches and responds to a request.
+	 *
+	 * Broken out into its own method to facilitate the redispatching
+	 * of fatal errors.
+	 *
+	 * @param Celsus_Service_Dispatcher $dispatcher
+	 * @param Celsus_Service_ResponseManager $responseManager
+	 */
+	public function process($dispatcher = null, $responseManager = null) {
+		if (null === $dispatcher) {
+			$dispatcher = $this->getDispatcher();
+		}
+
+		if (null === $responseManager) {
+			$responseManager = $this->getResponseManager();
+		}
+
 		// Dispatch the request.
 		$dispatcher->dispatch($this->_state);
 
+		// Respond to the request.
 		$responseManager->respond($this->_state);
+	}
+
+	public function reprocess($dispatcher = null, $responseManager = null) {
+
 	}
 
 	/**

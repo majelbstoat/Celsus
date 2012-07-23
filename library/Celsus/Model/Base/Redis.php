@@ -3,6 +3,7 @@
 class Celsus_Model_Base_Redis extends Celsus_Model_Base {
 
 	const INDEX_TYPE_SIMPLE_HASH = 'simpleHash';
+	const INDEX_TYPE_SET_MEMBERS = 'setMembers';
 
 	/**
 	 * The adapter to use for this connection.
@@ -50,9 +51,8 @@ class Celsus_Model_Base_Redis extends Celsus_Model_Base {
 	}
 
 	public function fetchAll() {
-		$key = func_get_arg(0);
-		$value = func_get_arg(1);
-		return $this->getAdapter()->query($key, $value);
+		$query = func_get_arg(0);
+		return $this->getAdapter()->query($query);
 	}
 
 	/**
@@ -69,9 +69,14 @@ class Celsus_Model_Base_Redis extends Celsus_Model_Base {
 		if ($indices) {
 			$adapter = $this->getAdapter();
 			$pipeline = $adapter->startPipeline();
-			foreach ($indices as $field => $type) {
-				$method = 'setIndex' . ucfirst($type);
-				call_user_func_array(array($adapter, $method), array($id, $this->_name, $field, $data, $originalData, $pipeline));
+			foreach ($indices as $field => $types) {
+				if (!is_array($types)) {
+					$types = array($types);
+				}
+				foreach ($types as $type) {
+					$method = 'setIndex' . ucfirst($type);
+					call_user_func_array(array($adapter, $method), array($id, $this->_name, $field, $data, $originalData, $pipeline));
+				}
 			}
 			$adapter->send($pipeline);
 		}

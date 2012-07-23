@@ -48,6 +48,12 @@ abstract class Celsus_Controller_Error extends Celsus_Controller_Common {
 				$errorData['method'] = $this->getRequest()->getMethod();
 				break;
 
+			case Celsus_Http::BAD_REQUEST:
+				// 400 error -- The data supplied was not valid.
+				$responseModel->setResponseType('invalidData');
+				$errorData['headline'] = 'Bad Request';
+				break;
+
 			default:
 				// An unspecified error
 				$responseModel->setResponseType('error');
@@ -64,4 +70,3 @@ abstract class Celsus_Controller_Error extends Celsus_Controller_Common {
 	}
 
 }
-?>

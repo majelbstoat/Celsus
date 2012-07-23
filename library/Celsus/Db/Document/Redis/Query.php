@@ -2,32 +2,24 @@
 
 class Celsus_Db_Document_Redis_Query {
 
-	protected $_name = null;
+	const QUERY_TYPE_HASH_ELEMENT = 'hashElement';
+	const QUERY_TYPE_SORTED_SET_RANGE = 'sortedSetRange';
+	const QUERY_TYPE_SORTED_SET_SCORE = 'sortedSetScore';
 
-	protected $_parameters = array();
+	protected $_indexType = null;
+
+	protected $_parameters = null;
 
 	public function __construct($options = array()) {
-		foreach ($options as $key => $value) {
-			$method = 'set' . ucfirst($key);
-			if (method_exists($this, $method)) {
-				$this->$method($value);
-			}
-		}
+		$this->_indexType = $options['indexType'];
+		$this->_parameters = $options['parameters'];
 	}
 
-	public function setParameters($parameters) {
-		foreach ($this->_parameters as $key => $value) {
-			if (!isset(self::$_validParameters[$key])) {
-				throw new Celsus_Exception("$key is not a valid parameter for a redis query.");
-			}
-		}
-		$this->_parameters = $parameters;
-		return $this;
+	public function getIndexType() {
+		 return $this->_indexType;
 	}
 
 	public function getParameters() {
 		return $this->_parameters;
 	}
 }
-
-?>

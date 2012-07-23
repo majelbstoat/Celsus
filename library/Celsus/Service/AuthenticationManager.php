@@ -2,13 +2,13 @@
 
 class Celsus_Service_AuthenticationManager {
 
-	protected $_shouldAuthenticate = false;
+	protected $_shouldTestAuthorisation = false;
 
 	/**
 	 * Uses a number of strategies to try and authenticate a client.
 	 * @param Celsus_State $state
 	 */
-	public function determineIdentity(Celsus_State $state) {
+	public function authenticate(Celsus_State $state) {
 
 		// Try: cookies, Facebook, oauthtoken etc
 
@@ -18,33 +18,37 @@ class Celsus_Service_AuthenticationManager {
 		// Set the identity on the State.
 	}
 
-	public function authenticate(Celsus_State $state) {
+	public function testAuthorisation(Celsus_State $state) {
+
+		// First of all, determine the user's identity.
+		$this->authenticate($state);
 
 		$route = $state->getRoute();
-		if (!$this->shouldAuthenticate() || !$route->requiresAuthentication() || $state->hasException()) {
+		if (!$this->shouldTestAuthorisation() || !$route->requiresAuthorisation() || $state->hasException()) {
 			return;
 		}
 
-		// @todo Test the
+		// @todo Also test API authentication.
+
 		if (!$state->hasIdentity()) {
-			// We don't have an identity and one is needed, so send the user to the login route.
-			throw new Celsus_Exception("This route requires authorisation", Celsus_Http::UNAUTHORISED);
+			// We don't have an identity and one is needed.
+			$state->authorised(false);
 		}
 	}
 
 	/**
-	 * Determines whether authentication is required.
+	 * Determines whether we should test authorisation.
 	 *
 	 * If a parameter is supplied, sets the flag.  If not, reads it.
 	 *
-	 * @param boolean $shouldAuthenticate
+	 * @param boolean $shouldTestAuthorisation
 	 * @return boolean|Celsus_Service_AuthenticationManager
 	 */
-	public function shouldAuthenticate($shouldAuthenticate = null) {
-		if (null === $shouldAuthenticate) {
-			return $this->_shouldAuthenticate;
+	public function shouldTestAuthorisation($shouldTestAuthorisation = null) {
+		if (null === $shouldTestAuthorisation) {
+			return $this->_shouldTestAuthorisation;
 		} else {
-			$this->_shouldAuthenticate = $shouldAuthenticate;
+			$this->_shouldTestAuthorisation = $shouldTestAuthorisation;
 			return $this;
 		}
 	}

@@ -281,6 +281,14 @@ class Celsus_Data_Object extends Celsus_Data_Abstract {
 	}
 
 	/**
+	 * Having this method defined directly makes it possible for
+	 * Zend_Json::decode() to work natively.
+	 */
+	public function toJson() {
+		return $this->_output('json');
+	}
+
+	/**
 	 * Magic function implements rendering.
 	 *
 	 * @param string $name
@@ -290,27 +298,30 @@ class Celsus_Data_Object extends Celsus_Data_Abstract {
 	public function __call($method, $arguments) {
 		if ('to' == substr($method, 0, 2)) {
 			$format = substr($method, 2);
+			return $this->_output($format);
+		}
+	}
 
-			// Iterate all the formatter prefixes and determine whether we can render.
-			foreach ($this->_formatterPrefixes as $prefix) {
-				$class = $prefix . $format;
-				if (!class_exists($class, true)) {
-					// Class doesn't exist with this prefix.
-					continue;
-				}
-
-				if (!in_array('Celsus_Data_Formatter_Interface', class_implements($class))) {
-					// Class exists, but doesn't implement the correct interface.
-					continue;
-				}
-
-				// Interface dictates that we can call format() on it.
-				return call_user_func(array($class, 'format'), $this);
+	protected function _output($format) {
+		// Iterate all the formatter prefixes and determine whether we can render.
+		foreach ($this->_formatterPrefixes as $prefix) {
+			$class = $prefix . $format;
+			if (!class_exists($class, true)) {
+				// Class doesn't exist with this prefix.
+				continue;
 			}
 
-			// No formatters exist for the requested type.
-			throw new Celsus_Exception("No formatter exists for $class that implements Celsus_Data_Formatter_Interface.");
+			if (!in_array('Celsus_Data_Formatter_Interface', class_implements($class))) {
+				// Class exists, but doesn't implement the correct interface.
+				continue;
+			}
+
+			// Interface dictates that we can call format() on it.
+			return call_user_func(array($class, 'format'), $this);
 		}
+
+		// No formatters exist for the requested type.
+		throw new Celsus_Exception("No formatter exists for $class that implements Celsus_Data_Formatter_Interface.");
 	}
 
 	public function __isset($field) {

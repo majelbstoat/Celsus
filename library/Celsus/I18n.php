@@ -22,12 +22,18 @@ class Celsus_I18n {
 
 	public static function setLocale($locale) {
 		self::$_locale = $locale;
-		self::$_localePath = CONFIG_PATH . '/' . sprintf(self::CONFIG_MESSAGES, $locale);
+	}
+
+	protected static function _getLocalePath() {
+		if (null === self::$_localePath) {
+			self::$_localePath = CONFIG_PATH . '/' . sprintf(self::CONFIG_MESSAGES, self::$_locale);
+		}
+		return self::$_localePath;
 	}
 
 	public static function getMessages($type) {
 		if (!isset(self::$_messages[$type])) {
-			self::$_messages[$type] = new Zend_Config_Yaml(self::$_localePath . "/$type.yaml");
+			self::$_messages[$type] = new Zend_Config_Yaml(self::_getLocalePath() . "/$type.yaml");
 		}
 		return self::$_messages[$type];
 	}

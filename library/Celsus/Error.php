@@ -32,7 +32,7 @@ class Celsus_Error {
 	 * @param string $file
 	 * @param int $line
 	 */
-	public static function handle($type, $message, $file, $line) {
+	public static function handle($type, $message, $file, $line, $fatal = false) {
 
 		$serviceManager = Celsus_Service_Manager::getInstance();
 		$state = $serviceManager->getState();
@@ -42,17 +42,57 @@ class Celsus_Error {
 		$exception->setFile($file)->setLine($line);
 
 		$state->setException($exception);
+		self::_reprocess();
+
+// 		if ($fatal) {
+// 			// This is from a fatal error, and exceptions cannot be caught, so set
+// 			// the error directly on the state.
+// 			$state->setException($exception);
+// 		} else {
+// 			// Throwing the exception will cause it to be handled by the exception
+// 			// handler which will re-process the request.
+// 			throw $exception;
+// 		}
 	}
 
 	/**
-	 * Handles fatal, compile and parse errors, passing through to the error handler.
+	 * Handles uncaught exceptions and re-processes the request to ensure the error is
+	 * communicated to the user.
+	 *
+	 * @param Exception $exception
+	 */
+	public static function exception(Exception $exception) {
+		$serviceManager = Celsus_Service_Manager::getInstance();
+		$state = $serviceManager->getState();
+
+		$state->setException($exception);
+		self::_reprocess();
+	}
+
+	/**
+	 * Handles fatal, compile and parse errors, passing through to the error handler,
+	 * and re-dispatching the request.
 	 */
 	public static function shutdown() {
 		$error = error_get_last();
 		if (null !== $error) {
-			// The exception handler and request loop will have been destroyed, so we need to handle appropriately.
-			self::handle($error['type'], $error['message'], $error['file'], $error['line']);
+			// Turn the error into an exception, which can be set on the application state.
+			self::handle($error['type'], $error['message'], $error['file'], $error['line'], true);
+			//self::_reprocess();
 		}
+	}
+
+	/**
+	 * Reprocesses a request following uncaught exceptions or fatal errors.
+	 */
+	protected static function _reprocess() {
+		// The exception handler and request loop will have been destroyed, so we need to reprocess.
+		$manager = Celsus_Service_Manager::getInstance();
+		$state = $manager->getState();
+
+		$manager->getResponseManager()->determineContext($state);
+		$state->getRequest()->setDispatched(false);
+		$manager->process();
 	}
 
 }

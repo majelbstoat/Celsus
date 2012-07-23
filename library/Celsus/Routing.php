@@ -83,11 +83,11 @@ class Celsus_Routing {
 			$route = str_replace(":$name", $value, $route);
 		}
 
-		return $route;
+		return self::SYNTAX_DELIMITER . $route;
 	}
 
 	public static function absoluteLinkTo($routeName, $params = array()) {
-		return Celsus_Application::rootUrl() . self::SYNTAX_DELIMITER . self::linkTo($routeName, $params);
+		return Celsus_Application::rootUrl() . self::linkTo($routeName, $params);
 	}
 
 	/**

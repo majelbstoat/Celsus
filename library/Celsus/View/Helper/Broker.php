@@ -27,11 +27,14 @@ class Celsus_View_Helper_Broker {
 				$className = "{$prefix}_View_Helper_{$suffix}";
 
 				// Try to load this class.
-				if (class_exists($className, true)) {
+				$classFile = str_replace('_', DIRECTORY_SEPARATOR, $className) . '.php';
+				if (Zend_Loader::isReadable($classFile)) {
+					if (class_exists($className)) {
 
-					// Create a new helper object and return it.
-					self::$_helpers[$name] = new $className();
-					return self::$_helpers[$name];
+						// Create a new helper object and return it.
+						self::$_helpers[$name] = new $className();
+						return self::$_helpers[$name];
+					}
 				}
 			}
 

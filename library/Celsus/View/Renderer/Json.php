@@ -1,6 +1,6 @@
 <?php
 
-class Celsus_View_Renderer_Json {
+class Celsus_View_Renderer_Json extends Celsus_View_Renderer {
 
 	/**
 	 * Renders a view model as JSON, optionally
@@ -12,10 +12,10 @@ class Celsus_View_Renderer_Json {
 
 		$return = $this->encodeModel($model);
 
-		$callback = $model->getCallback();
-		if ($callback) {
-			$return = $callback . '(' . $values .')';
-		}
+//		$callback = $model->getCallback();
+//		if ($callback) {
+//			$return = $callback . '(' . $values .')';
+//		}
 
 		return $return;
 	}

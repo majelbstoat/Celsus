@@ -84,7 +84,7 @@ abstract class Celsus_Controller_Common {
 	 *
 	 * @param string $location
 	 */
-	protected function _redirect($location) {
+	protected function _setRedirect($location) {
 		$responseModel = $this->getResponseModel();
 		$responseModel->setResponseType(Celsus_Response_Model::RESPONSE_TYPE_REDIRECT);
 		$responseModel->location = $location;

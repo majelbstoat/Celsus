@@ -16,6 +16,8 @@
  */
 class Celsus_Service_ResponseManager {
 
+	const CONTEXT_DEFAULT = 'site';
+
 	protected $_contexts = array();
 
 	protected $_aliases = array();
@@ -29,6 +31,12 @@ class Celsus_Service_ResponseManager {
 
 	public function determineContext(Celsus_State $state) {
 
+		// If we have already determined the context, for example if we're re-processing
+		// due to an error, we don't need to determine it again.
+		if ($state->hasContext()) {
+			return;
+		}
+
 		$request = $state->getRequest();
 
 		foreach ($this->_contexts as $context => $resolver) {
@@ -40,7 +48,9 @@ class Celsus_Service_ResponseManager {
 		}
 
 		// @todo Figure out a way to process bad applications that don't specify a context.
-		//throw new Celsus_Exception("Context could not be determined!", Celsus_Http::BAD_REQUEST);
+		$exception = new Celsus_Exception("Context could not be determined!", Celsus_Http::BAD_REQUEST);
+		$state->setContext(self::CONTEXT_DEFAULT)
+			->setException($exception);
 	}
 
 	public function verifyContext(Celsus_State $state) {
@@ -62,9 +72,26 @@ class Celsus_Service_ResponseManager {
 		$route->setSelectedContext($context);
 	}
 
+	/**
+	 * Throws away anything in the output buffer and the body of the response object.
+	 */
+	public function cleanSlate(Celsus_State $state) {
+
+		// Throw away the output buffer.
+		// This is important because if an error occurs while rendering a page
+		// or view helper, there will be some partial context already captured.
+		while (ob_get_level()) {
+			ob_get_clean();
+		}
+
+		// Clear the body of the response.
+		$state->getResponse()->clearBody();
+	}
+
 	public function respond(Celsus_State $state) {
 
-		// Render the view model
+		$this->cleanSlate($state);
+
 		$response = $state->getResponse();
 
 		if (!$response->isRedirect()) {
