@@ -16,7 +16,7 @@
  */
 abstract class Celsus_Controller_Error extends Celsus_Controller_Common {
 
-	public function errorAction() {
+	public function errorAction(Celsus_Parameters $parameters, Celsus_Response_Model $responseModel) {
 
 		$exception = $this->_state->getException();
 		$responseModel = $this->getResponseModel();
@@ -45,7 +45,7 @@ abstract class Celsus_Controller_Error extends Celsus_Controller_Common {
 				// 405 error -- Invalid HTTP method specified for the endpoint.
 				$responseModel->setResponseType('methodNotAllowed');
 				$errorData['headline'] = 'Method Not Allowed';
-				$errorData['method'] = $this->getRequest()->getMethod();
+				$errorData['method'] = $this->_state->getRequest()->getMethod();
 				break;
 
 			case Celsus_Http::BAD_REQUEST:

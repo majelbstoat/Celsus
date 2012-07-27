@@ -77,11 +77,12 @@ class Celsus_Service_ResponseManager {
 	 */
 	public function cleanSlate(Celsus_State $state) {
 
-		// Throw away the output buffer.
-		// This is important because if an error occurs while rendering a page
-		// or view helper, there will be some partial context already captured.
-		while (ob_get_level()) {
-			ob_get_clean();
+		// Throw away the output buffer if we've had an error to make sure we don't output
+		// partial context that might have already been captured.
+		if ($state->hasException()) {
+			while (ob_get_level()) {
+				ob_get_clean();
+			}
 		}
 
 		// Clear the body of the response.

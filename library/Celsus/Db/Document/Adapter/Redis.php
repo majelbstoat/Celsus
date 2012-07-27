@@ -138,12 +138,22 @@ class Celsus_Db_Document_Adapter_Redis {
 			$identifiers = array($identifiers);
 		}
 
-		$client = $this->getClient()->multi();
+		$client = $this->startPipeline();
 		foreach ($identifiers as $identifier) {
 			$client->hGetAll($identifier);
 		}
 
-		$data = $client->exec();
+		$results = $client->exec();
+
+		$data = array();
+
+		foreach ($identifiers as $identifier) {
+			$result = array_shift($results);
+			if ($result) {
+				$data[$identifier] = $result;
+			}
+		}
+
 		if ($data) {
 			return new Celsus_Db_Document_Set_Redis(array(
 				'adapter' => $this,
@@ -165,35 +175,57 @@ class Celsus_Db_Document_Adapter_Redis {
 
 		switch ($indexType) {
 			case $query::QUERY_TYPE_HASH_ELEMENT:
-				$identifier = $this->getClient()->hGet($parameters['key'], $parameters['value']);
+				$identifiers = $this->getClient()->hGet($parameters['key'], $parameters['value']);
 				break;
 
 			case $query::QUERY_TYPE_SORTED_SET_RANGE:
 				$start = isset($parameters['start']) ? $parameters['start'] : 0;
 				$end = isset($parameters['end']) ? $parameters['end'] : -1;
 
-				$identifier = $this->getClient()->zRange($parameters['key'], $start, $end);
+				if ($parameters['reversed']) {
+					$identifiers = $this->getClient()->zRevRange($parameters['key'], $start, $end);
+				} else {
+					$identifiers = $this->getClient()->zRange($parameters['key'], $start, $end);
+				}
+
 				break;
 
 			case $query::QUERY_TYPE_SORTED_SET_SCORE:
-				$start = $parameters['start'];
-				$end = $parameters['end'];
 
-				// @todo Potentially add offset support instead of hard-coding to 0.
-				$options = array();
-				if ($parameters['limit']) {
-					$options['limit'] = array(0, $parameters['limit']);
+				// Determine the start score.
+				if (isset($parameters['startScore'])) {
+					$start = $parameters['startScore'];
+					if (isset($parameters['startExcluded'])) {
+						$start = "($start";
+					}
+				} else {
+					$start = '-inf';
 				}
 
-				if (isset($parameters['reversed'])) {
-					$identifier = $this->getClient()->zRevRangeByScore($parameters['key'], $end, $start, $options);
+				// Determine the end score.
+				if (isset($parameters['endScore'])) {
+					$end = $parameters['endScore'];
+					if (isset($parameters['endExcluded'])) {
+						$end = "($end";
+					}
 				} else {
-					$identifier = $this->getClient()->zRangeByScore($parameters['key'], $start, $end, $options);
+					$end = '+inf';
+				}
+
+				if ($parameters['limit']) {
+					// Limit parameters need to be integers otherwise they aren't applied.
+					$options['limit'] = array((int) $parameters['offset'], (int) $parameters['limit']);
+				}
+
+				if ($parameters['reversed']) {
+					$identifiers = $this->getClient()->zRevRangeByScore($parameters['key'], $end, $start, $options);
+				} else {
+					$identifiers = $this->getClient()->zRangeByScore($parameters['key'], $start, $end, $options);
 				}
 				break;
 		}
 
-		return $identifier ? $this->find($identifier) : null;
+		return $identifiers ? $this->find($identifiers) : null;
 	}
 
 	/**
@@ -209,13 +241,10 @@ class Celsus_Db_Document_Adapter_Redis {
 	{
 		$id = $document->getId();
 		$data = $document->toArray();
-		$type = $data['_type'];
-		$data['_created'] = microtime(true);
 
 		// Add the item to a sorted set, and set the modified fields.
-		$result = $this->getClient()
-			->multi()
-			->zAdd($type, $data['_created'], $id)
+		$result = $this->startPipeline()
+			->zAdd($data['_type'], $data['_created'], $id)
 			->hMset($id, $data)
 			->exec();
 
@@ -232,27 +261,44 @@ class Celsus_Db_Document_Adapter_Redis {
 	/**
 	 * Sets a simple reverse index using a single hash that maps a field to the document id.
 	 */
-	public function setIndexSimpleHash($id, $group, $name, $data, $originalData, Redis $pipeline = null) {
+	public function setIndexSimpleHash($id, $group, $name, $data, $originalData, $metadata, Redis $pipeline = null) {
 		if (null === $pipeline) {
 			$pipeline = $this->getClient();
 		}
 
-		$field = $data[$name];
-		$key = $group . ':by' . implode('', array_map('ucfirst', explode('_', $name)));
+		// If the value is new, or has been updated, write an index.
+		if ($data[$name] && ($data[$name] != $originalData[$name])) {
+			$field = $data[$name];
+			$key = $group . ':by' . implode('', array_map('ucfirst', explode('_', $name)));
+			$pipeline->hSet($key, $field, $id);
+		}
 
-		$pipeline->hMset($key, array($field => $id));
+		// If we had data already and the data has changed, delete the old index entry.
+		if ($originalData[$name] && ($originalData[$name] != $data[$name])) {
+			$field = $originalData[$name];
+			$pipeline->hDel($key, $field);
+		}
 	}
 
-	public function setIndexSetMembers($id, $group, $name, $data, $originalData, Redis $pipeline = null) {
+	public function setIndexSetMembers($id, $group, $name, $data, $originalData, $metadata, Redis $pipeline = null) {
 		if (null === $pipeline) {
 			$pipeline = $this->getClient();
 		}
 
-		$index = $data[$name];
-		$key = $group . ':membersBy' . implode('', array_map('ucfirst', explode('_', $name))) . ':' . $index;
+		// If the value is new, or has been updated, write an index.
+		if ($data[$name] && ($data[$name] != $originalData[$name])) {
+			$index = $data[$name];
+			$key = $group . ':membersBy' . implode('', array_map('ucfirst', explode('_', $name))) . ':' . $index;
+			$pipeline->zAdd($key, $metadata['_created'], $id);
+		}
 
-		$timestamp = $data['timestamp'];
-		$pipeline->zAdd($key, $timestamp, $id);
+		// If we had data already and the data has changed, delete the old index entry.
+		if ($originalData[$name] && ($originalData[$name] != $data[$name])) {
+			$index = $originalData[$name];
+			$key = $group . ':membersBy' . implode('', array_map('ucfirst', explode('_', $name))) . ':' . $index;
+			$pipeline->zRem($key, $id);
+		}
+
 	}
 
 	public function startPipeline() {
@@ -271,10 +317,14 @@ class Celsus_Db_Document_Adapter_Redis {
 	public function getClient() {
 		if (null === $this->_client) {
 			$this->_client = new Redis();
-			$this->_client->pconnect($this->getHost(), $this->getPort(), $this->getTimeout());
+			$this->_client->connect($this->getHost(), $this->getPort(), $this->getTimeout());
 			$this->_client->select($this->getDb());
+
+			// If an exception was thrown in the middle of the last multi, a permanent connection doesn't
+			// properly discard the transaction, so we do a transaction at the beginning to ensure a clean slate.
+			// Fixed in phpredis 2.2.1, but that version has other more serious errors.
+//			$this->_client->discard();
 		}
 		return $this->_client;
 	}
-
 }

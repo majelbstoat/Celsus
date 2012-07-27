@@ -4,6 +4,7 @@ class Celsus_Response_Model {
 
 	const RESPONSE_TYPE_DEFAULT = 'default';
 	const RESPONSE_TYPE_REDIRECT = 'redirect';
+	const RESPONSE_TYPE_DELETED = 'deleted';
 
 	/**
 	 * The response type set by the controller

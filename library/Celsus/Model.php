@@ -42,6 +42,14 @@ abstract class Celsus_Model extends Celsus_Data_Object {
 	protected $_marshalledSources = array();
 
 	/**
+	 * Metadata provided by the source which might be useful for
+	 * low-level tasks, but does not form part of the object's data.
+	 *
+	 * @var array $_metadata
+	 */
+	protected $_metadata = array();
+
+	/**
 	 * A breakdown of which fields are from which source.
 	 *
 	 * @param array
@@ -147,7 +155,7 @@ abstract class Celsus_Model extends Celsus_Data_Object {
 				foreach (parent::$_marshals as $provided => $marshal) {
 					if ($item instanceof $provided) {
 						// We have a provider that can marshal this object.
-						list ($this->id, $providedData) = call_user_func(array($marshal, 'provide'), $item);
+						list ($this->id, $providedData, $this->_metadata) = call_user_func(array($marshal, 'provide'), $item);
 						foreach ($providedData as $key => $value) {
 							if (array_key_exists($key, $fieldMap)) {
 								$this->_data[$fieldMap[$key]] = $value;
@@ -196,6 +204,12 @@ abstract class Celsus_Model extends Celsus_Data_Object {
 		return $return;
 	}
 
+	/**
+	 * Gets the metadata associated with this model.
+	 */
+	public function getMetadata() {
+		return $this->_metadata;
+	}
 
 	// Persistence
 
@@ -250,7 +264,7 @@ abstract class Celsus_Model extends Celsus_Data_Object {
 						$this->id = call_user_func_array(array($this->_marshalledSources[$sourceKey], 'save'), array($data, $this->_sources[$sourceKey]));
 
 						// Now, re-source the data from the underlying entity as triggers might have updated additional data fields in the underlying.
-						list ($this->id, $providedData) = call_user_func(array($this->_marshalledSources[$sourceKey], 'provide'), $this->_sources[$sourceKey]);
+						list ($this->id, $providedData, $this->_metadata) = call_user_func(array($this->_marshalledSources[$sourceKey], 'provide'), $this->_sources[$sourceKey]);
 
 						foreach ($providedData as $key => $value) {
 							if (array_key_exists($key, $fieldMap)) {
@@ -261,7 +275,7 @@ abstract class Celsus_Model extends Celsus_Data_Object {
 						}
 
 						// Allow setting of additional data and updating of secondary keys after a successful insert.
-						$this->_mapper->updateIndices($this->id, $this->_data, $this->_originalData);
+						$this->_mapper->updateIndices($this->id, $this->_data, $this->_originalData, $this->_metadata);
 					}
 
 					// Reset the dirtiness of those fields.

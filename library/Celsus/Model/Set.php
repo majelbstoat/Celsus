@@ -17,14 +17,14 @@
 abstract class Celsus_Model_Set extends Celsus_Data_Collection {
 
 	/**
-	 * Mapper that relates the business model to the underlying.
+	 * Mapper that relates each model in the set to the underlying representation.
 	 *
 	 * @var Celsus_Model_Mapper
 	 */
 	public $_mapper = null;
 
 	/**
-	 * Constructs a new Celsus Model.
+	 * Constructs a new Celsus Model Set.
 	 *
 	 * @param array $options
 	 */
@@ -32,7 +32,7 @@ abstract class Celsus_Model_Set extends Celsus_Data_Collection {
 
 		// Check that a service is specified.
 		if (!isset($config['mapper'])) {
-			throw new Celsus_Exception("Can't instantiate a model set without a service definition");
+			throw new Celsus_Exception("Can't instantiate a model set without a mapper");
 		}
 		$this->_mapper = $config['mapper'];
 

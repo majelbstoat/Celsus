@@ -42,7 +42,7 @@ abstract class Celsus_Http {
 	const USE_PROXY = 305;
 	const TEMPORARY_REDIRECT = 307;
 	const BAD_REQUEST = 400;
-	const UNAUTHORISED = 401;
+	const UNAUTHORIZED = 401;
 	const PAYMENT_REQUIRED = 402;
 	const FORBIDDEN = 403;
 	const NOT_FOUND = 404;
@@ -83,7 +83,7 @@ abstract class Celsus_Http {
 		self::USE_PROXY => 'Use Proxy',
 		self::TEMPORARY_REDIRECT => 'Temporary Redirect',
 		self::BAD_REQUEST => 'Bad Request',
-		self::UNAUTHORISED => 'Unauthorised',
+		self::UNAUTHORIZED => 'Unauthorized',
 		self::PAYMENT_REQUIRED => 'Payment Required',
 		self::FORBIDDEN => 'Forbidden',
 		self::NOT_FOUND => 'Not Found',

@@ -264,7 +264,7 @@ class Celsus_Db_Document_Adapter_Couch {
 				return null;
 				break;
 
-			case Celsus_Http::UNAUTHORISED:
+			case Celsus_Http::UNAUTHORIZED:
 				throw new Celsus_Exception("Database username and password were incorrect");
 				break;
 
@@ -314,7 +314,7 @@ class Celsus_Db_Document_Adapter_Couch {
 				throw new Celsus_Exception("There was a conflict updating the database");
 				break;
 
-			case Celsus_Http::UNAUTHORISED:
+			case Celsus_Http::UNAUTHORIZED:
 				throw new Celsus_Exception("Database username and password were incorrect");
 				break;
 

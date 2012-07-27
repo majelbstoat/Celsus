@@ -3,11 +3,8 @@
 abstract class Celsus_Model_Mapper {
 
 	const MAPPER_TYPE_SIMPLE = 'Simple';
-
 	const MAPPER_TYPE_COMPLEX = 'Complex';
-
 	const MAPPER_TYPE_DISTRIBUTED = 'Distributed';
-
 	const MAPPER_TYPE_CUSTOM = 'Custom';
 
 	/**
@@ -126,30 +123,32 @@ abstract class Celsus_Model_Mapper {
 	/**
 	 * Updates the indices for this model.
 	 *
-	 * Defining this function explicitly saves a call to __call
-	 *
 	 * @param string|int $id
 	 * @param array $data
 	 * @param array $originalData
 	 */
-	public function updateIndices($id, array $data, array $originalData) {
+	public function updateIndices($id, array $data, array $originalData, array $metadata) {
 		$base = $this->getBase();
 
 		$fieldMap = $this->getFieldMap();
 
-		$mappedData = $mappedOriginalData = array();
+		$mappedData = $this->mapDataToBaseData($data);
+		$mappedOriginalData = $this->mapDataToBaseData($originalData);
+
+		$base->updateIndices($id, $mappedData, $mappedOriginalData, $metadata);
+	}
+
+	public function mapDataToBaseData(array $data) {
+		$fieldMap = $this->getFieldMap();
+
+		$mappedData = array();
 
 		foreach ($data as $field => $value) {
 			$key = isset($fieldMap[$field]) ? $fieldMap[$field] : $field;
 			$mappedData[$key] = $value;
 		}
 
-		foreach ($originalData as $field => $value) {
-			$key = isset($fieldMap[$field]) ? $fieldMap[$field] : $field;
-			$mappedOriginalData[$key] = $value;
-		}
-
-		$base->updateIndices($id, $mappedData, $mappedOriginalData);
+		return $mappedData;
 	}
 
 	/**

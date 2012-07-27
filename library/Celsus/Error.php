@@ -43,16 +43,6 @@ class Celsus_Error {
 
 		$state->setException($exception);
 		self::_reprocess();
-
-// 		if ($fatal) {
-// 			// This is from a fatal error, and exceptions cannot be caught, so set
-// 			// the error directly on the state.
-// 			$state->setException($exception);
-// 		} else {
-// 			// Throwing the exception will cause it to be handled by the exception
-// 			// handler which will re-process the request.
-// 			throw $exception;
-// 		}
 	}
 
 	/**
@@ -78,7 +68,6 @@ class Celsus_Error {
 		if (null !== $error) {
 			// Turn the error into an exception, which can be set on the application state.
 			self::handle($error['type'], $error['message'], $error['file'], $error['line'], true);
-			//self::_reprocess();
 		}
 	}
 

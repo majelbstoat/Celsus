@@ -16,7 +16,7 @@ class Celsus_Data_Marshal_ZendDbTableRow  implements Celsus_Data_Marshal_Interfa
 		$id = $data['id'];
 		unset($data['id']);
 
-		return array($id, $data);
+		return array($id, $data, array());
 	}
 
 	public static function save(array $data, $object) {

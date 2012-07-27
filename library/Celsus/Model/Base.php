@@ -64,6 +64,6 @@ abstract class Celsus_Model_Base implements Celsus_Model_Base_Interface {
 		return $this->_secondaryIndices;
 	}
 
-	public function updateIndices($id, $data, $originalData) {}
+	public function updateIndices($id, $data, $originalData, $metadata) {}
 
 }

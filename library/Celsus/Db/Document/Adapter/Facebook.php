@@ -105,7 +105,7 @@ class Celsus_Db_Document_Adapter_Facebook {
 				case Celsus_Http::NOT_FOUND:
 					break;
 
-				case Celsus_Http::UNAUTHORISED:
+				case Celsus_Http::UNAUTHORIZED:
 					throw new Celsus_Exception("Access token was invalid");
 					break;
 

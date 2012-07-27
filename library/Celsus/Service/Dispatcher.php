@@ -31,21 +31,15 @@ class Celsus_Service_Dispatcher {
 			$request->setDispatched(true);
 			try {
 
-				// Execute the controller action.
-				$data = $controller->$action($state->getParameters());
-
+				// Set the response model on the state.
 				$responseModel = $controller->getResponseModel();
-
-				if ($data) {
-					$responseModel->setData($data);
-				}
-
-				// Set the response model.
 				$state->setResponseModel($responseModel);
+
+				// Execute the controller action.
+				$controller->$action($state->getParameters(), $responseModel);
 
 				// Respond to the request.
 				$this->marshalResponse($state);
-
 			} catch (Celsus_Exception $exception) {
 				if (self::ROUTE_ERROR === $route->getName()) {
 					var_dump("Error in the error handler?");
@@ -125,7 +119,7 @@ class Celsus_Service_Dispatcher {
 
 		}
 
-		$state->setParameters(new Celsus_Data_Object($parameters));
+		$state->setParameters(new Celsus_Parameters($parameters));
 	}
 
 	/**

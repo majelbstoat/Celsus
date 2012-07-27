@@ -315,7 +315,7 @@ abstract class Celsus_Model_Service implements Celsus_Model_Service_Interface {
 	 * @param mixed $identifer
 	 */
 	public static function find($identifier) {
-		return self::_underlying()->multiple()->find($identifier);
+		return static::_underlying()->multiple()->find($identifier);
 	}
 
 	public static function getDefaultValues() {
@@ -336,7 +336,7 @@ abstract class Celsus_Model_Service implements Celsus_Model_Service_Interface {
 			if ($useCommonIdentifer) {
 				$records = static::findByCommonIdentifier($identifier);
 			} else {
-				$records = self::_underlying()->multiple()->find($identifier);
+				$records = static::_underlying()->multiple()->find($identifier);
 			}
 
 			// Find functions always retrieve record sets, even if there is only one result.
@@ -346,7 +346,7 @@ abstract class Celsus_Model_Service implements Celsus_Model_Service_Interface {
 				throw new Celsus_Model_Exception_NotFound("Invalid identifier");
 			}
 		} else {
-			$record = self::_underlying()->single()->createRecord(self::getDefaultValues());
+			$record = static::_underlying()->single()->createRecord(self::getDefaultValues());
 		}
 		return $record;
 	}
@@ -355,16 +355,36 @@ abstract class Celsus_Model_Service implements Celsus_Model_Service_Interface {
 	 * Fetches multiple records based on supplied criteria.
 	 */
 	public static function fetchAll() {
-		return self::_underlying()->multiple()->fetchAll(func_get_args());
+		return static::_underlying()->multiple()->fetchAll(func_get_args());
 	}
 
 	/**
-	 * Execute the base delete
+	 * Execute the base delete.
 	 *
 	 * @param string $identifier
 	 */
-	public static function delete($identifier, $params = array()) {
-		return self::_underlying()->delete($identifier, $params);
+	public static function delete($parameters) {
+		$identifier = $parameters;
+		$items = static::find($identifier);
+
+		// Check that there's something to delete.
+		if (!count($items)) {
+			throw new Celsus_Exception("Item $identifier Not Found", Celsus_Http::NOT_FOUND);
+		};
+
+		$item = $items[0];
+
+		$mappedOriginalData = static::_underlying()->mapDataToBaseData($item->toArray());
+
+		$deleteData = array(
+			'identifier' => $identifier,
+			'originalData' => $mappedOriginalData,
+			'data' => array_combine(array_keys($mappedOriginalData), array_fill(0, count($mappedOriginalData), null)),
+			'metadata' => $item->getMetadata()
+		);
+
+		// Delete the item.
+		return static::_underlying()->delete($deleteData);
 	}
 
 	/**
@@ -427,7 +447,7 @@ abstract class Celsus_Model_Service implements Celsus_Model_Service_Interface {
 	 * @return array
 	 */
 	public static function getLookupValues($term = null) {
-		$data = self::_underlying()->cache(array(static::$_name, 'lookup'))->multiple()->getLookupData();
+		$data = static::_underlying()->cache(array(static::$_name, 'lookup'))->multiple()->getLookupData();
 
 		$return = array();
 		foreach ($data as $item) {

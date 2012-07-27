@@ -22,7 +22,8 @@ class Celsus_Data_Marshal_CouchDocument implements Celsus_Data_Marshal_Interface
 		// Revision and document type are implementation details that should be hidden from the application layer.
 		unset($data['type']);
 		unset($data['_rev']);
-		return array($id, $data);
+
+		return array($id, $data, array());
 	}
 
 	public static function save(array $data, $object) {

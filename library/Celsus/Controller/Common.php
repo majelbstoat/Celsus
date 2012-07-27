@@ -63,7 +63,8 @@ abstract class Celsus_Controller_Common {
 
 	public function getResponseModel() {
 		if (null === $this->_responseModel) {
-			$this->_responseModel = new Celsus_Response_Model();
+			$classname = str_replace('Controller', 'Response_Model', get_class($this));
+			$this->_responseModel = new $classname();
 		}
 		return $this->_responseModel;
 	}
@@ -84,9 +85,8 @@ abstract class Celsus_Controller_Common {
 	 *
 	 * @param string $location
 	 */
-	protected function _setRedirect($location) {
-		$responseModel = $this->getResponseModel();
-		$responseModel->setResponseType(Celsus_Response_Model::RESPONSE_TYPE_REDIRECT);
+	protected function _setRedirect($location, Celsus_Response_Model $responseModel) {
+		$responseModel->setResponseType($responseModel::RESPONSE_TYPE_REDIRECT);
 		$responseModel->location = $location;
 	}
 
