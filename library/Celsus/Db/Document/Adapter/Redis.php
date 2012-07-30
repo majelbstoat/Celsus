@@ -133,6 +133,12 @@ class Celsus_Db_Document_Adapter_Redis {
 		return $this->_config['db'];
 	}
 
+	/**
+	 * Queries redis for the specified identifier or identifiers.
+	 *
+	 * @param string|array $identifiers
+	 * @return Celsus_Db_Document_Set_Redis|null
+	 */
 	public function find($identifiers) {
 		if (!is_array($identifiers)) {
 			$identifiers = array($identifiers);
@@ -168,6 +174,7 @@ class Celsus_Db_Document_Adapter_Redis {
 	 * Queries the database using secondary index.
 	 *
 	 * @param Celsus_Db_Document_Redis_Query $query
+	 * @return Celsus_Db_Document_Set_Redis
 	 */
 	public function query(Celsus_Db_Document_Redis_Query $query) {
 		$parameters = $query->getParameters();
@@ -179,18 +186,37 @@ class Celsus_Db_Document_Adapter_Redis {
 				break;
 
 			case $query::QUERY_TYPE_SORTED_SET_RANGE:
-				$start = isset($parameters['start']) ? $parameters['start'] : 0;
-				$end = isset($parameters['end']) ? $parameters['end'] : -1;
 
-				if ($parameters['reversed']) {
-					$identifiers = $this->getClient()->zRevRange($parameters['key'], $start, $end);
+				if (isset($parameters['auxiliary'])) {
+					$sortFieldName = implode('', array_map('ucfirst', explode('_', $parameters['index'])));
+					$lookupFieldName = implode('', array_map('ucfirst', explode('_', $parameters['auxiliary'])));
+
+					$key = $parameters['group'] . ':sortedLookupBy' . $sortFieldName . $lookupFieldName . ':' . $parameters['auxiliaryId'];
 				} else {
-					$identifiers = $this->getClient()->zRange($parameters['key'], $start, $end);
+					$key = $parameters['group'] . ':sortedBy' . implode('', array_map('ucfirst', explode('_', $parameters['index'])));
 				}
 
+				$reversed = isset($parameters['reversed']) ? $parameters['reversed'] : false;
+				$start = isset($parameters['offset']) ? $parameters['offset'] : 0;
+				$end = isset($parameters['limit']) ? $start - 1 + $parameters['limit'] : -1;
+
+				if ($reversed) {
+					$identifiers = $this->getClient()->zRevRange($key, $start, $end);
+				} else {
+					$identifiers = $this->getClient()->zRange($key, $start, $end);
+				}
 				break;
 
 			case $query::QUERY_TYPE_SORTED_SET_SCORE:
+
+				if (isset($parameters['auxiliary'])) {
+					$sortFieldName = implode('', array_map('ucfirst', explode('_', $parameters['index'])));
+					$lookupFieldName = implode('', array_map('ucfirst', explode('_', $parameters['auxiliary'])));
+
+					$key = $parameters['group'] . ':sortedLookupBy' . $sortFieldName . $lookupFieldName . ':' . $parameters['auxiliaryId'];
+				} else {
+					$key = $parameters['group'] . ':sortedBy' . implode('', array_map('ucfirst', explode('_', $parameters['index'])));
+				}
 
 				// Determine the start score.
 				if (isset($parameters['startScore'])) {
@@ -198,8 +224,10 @@ class Celsus_Db_Document_Adapter_Redis {
 					if (isset($parameters['startExcluded'])) {
 						$start = "($start";
 					}
+					$missingStart = false;
 				} else {
 					$start = '-inf';
+					$missingStart = true;
 				}
 
 				// Determine the end score.
@@ -208,8 +236,10 @@ class Celsus_Db_Document_Adapter_Redis {
 					if (isset($parameters['endExcluded'])) {
 						$end = "($end";
 					}
+					$missingEnd = false;
 				} else {
 					$end = '+inf';
+					$missingEnd = true;
 				}
 
 				if ($parameters['limit']) {
@@ -218,9 +248,18 @@ class Celsus_Db_Document_Adapter_Redis {
 				}
 
 				if ($parameters['reversed']) {
-					$identifiers = $this->getClient()->zRevRangeByScore($parameters['key'], $end, $start, $options);
+					if ($missingEnd) {
+						// H, F, G, following a previous set of E, D, C.
+						$identifiers = array_reverse($this->getClient()->zRangeByScore($key, $start, $end, $options));
+					} else {
+						$identifiers = $this->getClient()->zRevRangeByScore($key, $end, $start, $options);
+					}
 				} else {
-					$identifiers = $this->getClient()->zRangeByScore($parameters['key'], $start, $end, $options);
+					if ($missingStart) {
+						$identifiers = array_reverse($this->getClient()->zRevRangeByScore($key, $end, $start, $options));
+					} else {
+						$identifiers = $this->getClient()->zRangeByScore($key, $start, $end, $options);
+					}
 				}
 				break;
 		}
@@ -244,7 +283,7 @@ class Celsus_Db_Document_Adapter_Redis {
 
 		// Add the item to a sorted set, and set the modified fields.
 		$result = $this->startPipeline()
-			->zAdd($data['_type'], $data['_created'], $id)
+			->sAdd($data['_type'], $id)
 			->hMset($id, $data)
 			->exec();
 
@@ -280,25 +319,15 @@ class Celsus_Db_Document_Adapter_Redis {
 		}
 	}
 
-	public function setIndexSetMembers($id, $group, $name, $data, $originalData, $metadata, Redis $pipeline = null) {
+	public function updateIndex($type, $id, $config, Redis $pipeline = null) {
 		if (null === $pipeline) {
 			$pipeline = $this->getClient();
 		}
 
-		// If the value is new, or has been updated, write an index.
-		if ($data[$name] && ($data[$name] != $originalData[$name])) {
-			$index = $data[$name];
-			$key = $group . ':membersBy' . implode('', array_map('ucfirst', explode('_', $name))) . ':' . $index;
-			$pipeline->zAdd($key, $metadata['_created'], $id);
-		}
+		$indexClass = 'Celsus_Db_Document_Redis_Index_' . ucfirst($type);
+		$index = new $indexClass();
 
-		// If we had data already and the data has changed, delete the old index entry.
-		if ($originalData[$name] && ($originalData[$name] != $data[$name])) {
-			$index = $originalData[$name];
-			$key = $group . ':membersBy' . implode('', array_map('ucfirst', explode('_', $name))) . ':' . $index;
-			$pipeline->zRem($key, $id);
-		}
-
+		$index->update($id, $config, $pipeline);
 	}
 
 	public function startPipeline() {

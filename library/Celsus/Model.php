@@ -288,7 +288,6 @@ abstract class Celsus_Model extends Celsus_Data_Object {
 			}
 		}
 
-
 		return $this->id;
 	}
 

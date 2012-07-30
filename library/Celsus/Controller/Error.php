@@ -16,7 +16,7 @@
  */
 abstract class Celsus_Controller_Error extends Celsus_Controller_Common {
 
-	public function errorAction(Celsus_Parameters $parameters, Celsus_Response_Model $responseModel) {
+	public function errorAction() {
 
 		$exception = $this->_state->getException();
 		$responseModel = $this->getResponseModel();

@@ -19,7 +19,7 @@ class Celsus_Log extends Zend_Log {
 	public static function getLogger($loggerName)
 	{
 		if (!array_key_exists($loggerName, self::$_loggers)) {
-			$config = Zend_Registry::get('config')->log->$loggerName;
+			$config = Celsus_Service_Manager::getInstance()->getState()->getConfig()->log->$loggerName;
 
 			if ($config instanceof Zend_Config) {
 				$config = $config->toArray();

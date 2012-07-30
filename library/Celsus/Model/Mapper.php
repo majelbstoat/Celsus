@@ -128,14 +128,25 @@ abstract class Celsus_Model_Mapper {
 	 * @param array $originalData
 	 */
 	public function updateIndices($id, array $data, array $originalData, array $metadata) {
-		$base = $this->getBase();
-
 		$fieldMap = $this->getFieldMap();
 
 		$mappedData = $this->mapDataToBaseData($data);
 		$mappedOriginalData = $this->mapDataToBaseData($originalData);
 
-		$base->updateIndices($id, $mappedData, $mappedOriginalData, $metadata);
+		$this->getBase()->updateIndices($id, $mappedData, $mappedOriginalData, $metadata);
+	}
+
+	public function slice($parameters) {
+		if (isset($parameters['auxiliary'])) {
+			// Map the auxiliary field name from the the model's representation to the underlying.
+			$parameters['auxiliary'] = $this->mapFieldName($parameters['auxiliary']);
+		}
+		return $this->rangeFilter($parameters);
+	}
+
+	public function mapFieldName($field) {
+		$fieldMap = $this->getFieldMap();
+		return isset($fieldMap[$field]) ? $fieldMap[$field] : $field;
 	}
 
 	public function mapDataToBaseData(array $data) {
@@ -150,6 +161,13 @@ abstract class Celsus_Model_Mapper {
 
 		return $mappedData;
 	}
+
+	/**
+	 * Gets the base for this model.
+	 *
+	 * @return Celsus_Model_Base
+	 */
+	abstract public function getBase();
 
 	/**
 	 * Executes the required function from the base(s).

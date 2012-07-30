@@ -36,7 +36,7 @@ class Celsus_View_Renderer_Php extends Celsus_View_Renderer {
 
 		// Buffer the result of the compiled template.
 		ob_start();
-		include 'data://text/plain,' . $this->_getCompiledTemplate(VIEW_PATH . self::SCRIPT_PATH . '/' . $this->_template);
+		include 'data://text/plain,' . $this->_getCompiledTemplate(VIEW_PATH . self::SCRIPT_PATH . $this->_template);
 		return ob_get_clean();
 	}
 

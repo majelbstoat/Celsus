@@ -8,7 +8,16 @@
  * @version $Id: Http.php 69 2010-09-08 12:32:03Z jamie $
  */
 
-require_once 'Zend/Test/PHPUnit/ControllerTestCase.php';
+/** @see PHPUnit_Runner_Version */
+require_once 'PHPUnit/Runner/Version.php';
+
+/**
+ * Depending on version, include the proper PHPUnit support
+ * @see PHPUnit_Autoload
+ */
+require_once (version_compare(PHPUnit_Runner_Version::id(), '3.5.0', '>=')) ? 'PHPUnit/Autoload.php' : 'PHPUnit/Framework.php';
+
+require_once 'Celsus/Test/PHPUnit/ControllerTestCase.php';
 
 /**
  * Controller test harness that boots an application with the specified components.
@@ -16,7 +25,7 @@ require_once 'Zend/Test/PHPUnit/ControllerTestCase.php';
  * @category Celsus
  * @package Celsus_Test
  */
-class Celsus_Test_PHPUnit_ControllerTestCase_Http extends Zend_Test_PHPUnit_ControllerTestCase {
+abstract class Celsus_Test_PHPUnit_ControllerTestCase_Http extends Celsus_Test_PHPUnit_ControllerTestCase {
 
 	/**
 	 * The application instance to test with.
@@ -55,14 +64,29 @@ class Celsus_Test_PHPUnit_ControllerTestCase_Http extends Zend_Test_PHPUnit_Cont
 	}
 
 	/**
+	 * Reset MVC state
+	 *
+	 * Creates new request/response objects, resets the front controller
+	 * instance, and resets the action helper broker.
+	 *
 	 * Also clears any authentication session.
+	 *
+	 * @todo   Need to update Zend_Layout to add a resetInstance() method
+	 * @return void
 	 */
 	public function reset() {
+		require_once 'Zend/Registry.php';
+		Zend_Registry::_unsetInstance();
+
 		require_once 'Zend/Auth.php';
 		require_once 'Celsus/Auth.php';
-		Zend_Registry::_unsetInstance();
 		Zend_Auth::getInstance()->clearIdentity();
-		return parent::reset();
+		$_SESSION = array();
+		$_COOKIE  = array();
+
+		// Reset the request and response objects.
+		$this->resetRequest()->resetResponse();
+		Zend_Session::$_unitTestEnabled = true;
 	}
 
 	protected function _bootstrap() {
@@ -78,6 +102,22 @@ class Celsus_Test_PHPUnit_ControllerTestCase_Http extends Zend_Test_PHPUnit_Cont
 		$this->_application->bootstrap($this->_bootstrapComponents, $this->_excludedBootstrapComponents);
 	}
 
+	/**
+	 * Resets and bootstraps the application.
+	 */
+	final public function bootstrap()
+	{
+		$this->reset();
+		call_user_func($this->bootstrap);
+	}
+
+	/**
+	 * Set up MVC app
+	 *
+	 * Calls {@link bootstrap()} by default
+	 *
+	 * @return void
+	 */
 	public function setUp() {
 		$this->bootstrap = array($this, '_bootstrap');
 		parent::setUp();
@@ -90,13 +130,6 @@ class Celsus_Test_PHPUnit_ControllerTestCase_Http extends Zend_Test_PHPUnit_Cont
 	 * @return void
 	 */
 	public function dispatch($url = null) {
-		// redirector should not exit
-		$redirector = Zend_Controller_Action_HelperBroker::getStaticHelper('redirector');
-		$redirector->setExit(false);
-
-		// json helper should not exit
-		$json = Zend_Controller_Action_HelperBroker::getStaticHelper('json');
-		$json->suppressExit = true;
 
 		$request = $this->getRequest();
 		if (null !== $url) {
@@ -104,18 +137,13 @@ class Celsus_Test_PHPUnit_ControllerTestCase_Http extends Zend_Test_PHPUnit_Cont
 		}
 		$request->setPathInfo(null);
 
-		$controller = $this->getFrontController();
-		$this->frontController
+		$this->_serviceManager->getState()
 			->setRequest($request)
-			->setResponse($this->getResponse())
-			->throwExceptions(true)
-			->returnResponse(false);
+			->setResponse($this->getResponse());
 
-		if ($this->bootstrap instanceof Zend_Application) {
-			$this->bootstrap->run();
-		} else {
-			$this->frontController->dispatch();
-		}
+		$this->_serviceManager->getResponseManager()->returnResponse(true);
+
+		$this->_serviceManager->handle();
 	}
 
 	/**
@@ -150,27 +178,48 @@ class Celsus_Test_PHPUnit_ControllerTestCase_Http extends Zend_Test_PHPUnit_Cont
 		return $this->_request;
 	}
 
-	// Additional Assertions
-
 	/**
-	 * Asserts that we are in the expect context (json, xml etc).
+	 * Retrieve test case response object
 	 *
-	 * @param string $context
+	 * @return Zend_Controller_Response_HttpTestCase
 	 */
-	public function assertContext($context) {
-		$this->_incrementAssertionCount();
-		$actualContext = Zend_Controller_Action_HelperBroker::getStaticHelper('ContextSwitch')->getCurrentContext();
-		if ($context != $actualContext) {
-			$message = sprintf('Failed asserting context <"%s"> was "%s"', $actualContext, $context);
-			$this->fail($message);
+	public function getResponse()
+	{
+		if (null === $this->_response) {
+			require_once 'Zend/Controller/Response/HttpTestCase.php';
+			$this->_response = new Zend_Controller_Response_HttpTestCase;
 		}
+		return $this->_response;
 	}
 
-	public function assertFeedback($code) {
-		$this->_incrementAssertionCount();
-		if (!Celsus_Feedback::has($code)) {
-			$message = sprintf('Failed asserting feedback of <"%s">', $code);
-			$this->fail($message);
+
+	/**
+	 * Reset the request object
+	 *
+	 * Useful for test cases that need to test multiple trips to the server.
+	 *
+	 * @return Zend_Test_PHPUnit_ControllerTestCase
+	 */
+	public function resetRequest()
+	{
+		require_once 'Celsus/Controller/Request/HttpTestCase.php';
+		if ($this->_request instanceof Celsus_Controller_Request_HttpTestCase) {
+			$this->_request->clearQuery()->clearPost();
 		}
+		$this->_request = null;
+		return $this;
+	}
+
+	/**
+	 * Reset the response object
+	 *
+	 * Useful for test cases that need to test multiple trips to the server.
+	 *
+	 * @return Zend_Test_PHPUnit_ControllerTestCase
+	 */
+	public function resetResponse()
+	{
+		$this->_response = null;
+		return $this;
 	}
 }

@@ -29,7 +29,6 @@ abstract class Celsus_Model_Base implements Celsus_Model_Base_Interface {
 			$identifiers = array($identifiers);
 		}
 
-		$fields = $this->getFields();
 		return $this->getAdapter()->find($identifiers);
 	}
 
@@ -64,6 +63,5 @@ abstract class Celsus_Model_Base implements Celsus_Model_Base_Interface {
 		return $this->_secondaryIndices;
 	}
 
-	public function updateIndices($id, $data, $originalData, $metadata) {}
-
+	public function updateIndices($id, $data, $originalData, $metadata, Redis $pipeline = null) {}
 }

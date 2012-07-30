@@ -403,8 +403,8 @@ abstract class Celsus_Model_Service implements Celsus_Model_Service_Interface {
 	 *
 	 * /users/id/
 	 *
-	 * However, subclasses may reimplement with a specific lookup mechanism, for example in
-	 * the case of:
+	 * However, subclasses may reimplement with a specific lookup mechanism,
+	 * for example in the case of:
 	 *
 	 * /users/username/
 	 *

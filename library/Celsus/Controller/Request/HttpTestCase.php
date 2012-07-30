@@ -19,6 +19,8 @@
  * @version    $Id$
  */
 
+require_once 'Celsus/Controller/Request/Http.php';
+
 /**
  * Celsus_Controller_Request_HttpTestCase
  *

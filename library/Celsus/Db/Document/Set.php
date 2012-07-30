@@ -73,6 +73,20 @@ class Celsus_Db_Document_Set implements Celsus_Db_Document_Set_Interface, Iterat
 		}
 	}
 
+	/**
+	 * Removes the document with the specified identifiers from the document set.
+	 *
+	 * @param array|string $ids
+	 */
+	public function remove($ids) {
+		if (!is_array($ids)) {
+			$ids = array($ids);
+		}
+		foreach ($ids as $id) {
+			unset($this->_documents[$id]);
+		}
+	}
+
 	public function toArray() {
 		$return = array();
 		foreach ($this->_documents as $document) {

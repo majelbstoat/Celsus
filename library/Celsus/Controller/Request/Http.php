@@ -8,6 +8,8 @@
  * @version $Id$
  */
 
+require_once 'Zend/Controller/Request/Http.php';
+
 /**
  * Defines a request object that is populated from an HTTP request.
  *

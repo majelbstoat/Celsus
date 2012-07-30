@@ -46,7 +46,10 @@ abstract class Celsus_Model_Set extends Celsus_Data_Collection {
 				'mapper' => $config['mapper'],
 				'data' => $data
 			));
+			$this->_add($data);
 			$this->_count++;
 		}
 	}
+
+	protected function _add($data) {}
 }

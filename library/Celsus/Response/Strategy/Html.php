@@ -4,7 +4,7 @@ abstract class Celsus_Response_Strategy_Html extends Celsus_Response_Strategy {
 
 	const CONFIG_METADATA = 'pageMetadata';
 
-	protected $_layout = 'layouts/layout.phtml';
+	protected $_layout = '/layouts/layout.phtml';
 
 	protected $_rendererClass = 'Celsus_View_Renderer_Php';
 
