@@ -30,7 +30,7 @@ class Celsus_Model_Mapper_Simple extends Celsus_Model_Mapper {
 	 */
 	protected $_baseClass = null;
 
-	public function __construct($service, Celsus_Model_Base_Interface $base = null) {
+	public function __construct($service, Celsus_Model_Base $base = null) {
 		$this->_service = $service;
 
 		if (null === $base) {
@@ -56,13 +56,22 @@ class Celsus_Model_Mapper_Simple extends Celsus_Model_Mapper {
 			$base = new $base($config);
 		}
 
-		if (!$base instanceof Celsus_Model_Base_Interface) {
+		if (!$base instanceof Celsus_Model_Base) {
 			$class = get_class($base);
 			throw new Celsus_Exception("Model base '$class' must implement Celsus_Model_Base_Interface");
 		}
 
 		$this->_base = $base;
 		return $this;
+	}
+
+	/**
+	 * Resets the base used by the application.
+	 *
+	 * Primarily used in testing.
+	 */
+	public function resetBase() {
+		$this->_base = null;
 	}
 
 	/**
@@ -83,7 +92,7 @@ class Celsus_Model_Mapper_Simple extends Celsus_Model_Mapper {
 	}
 
 	protected function _result($data) {
-		return ($data) ? true : false;
+		return (isset($data)) ? true : false;
 	}
 
 	/**

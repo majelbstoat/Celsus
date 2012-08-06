@@ -13,6 +13,7 @@
  * @defgroup Celsus_Auth Celsus Authentication
  */
 
+require_once 'Zend/Auth.php';
 
 /**
  * Defines authentication, and allows adapters to be switched for mocking.

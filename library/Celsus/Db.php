@@ -21,6 +21,13 @@
 class Celsus_Db {
 
 	/**
+	 * A collection of the databases in use.
+	 *
+	 * @var array
+	 */
+	protected static $_databases = array();
+
+	/**
 	 * The default adapter for the application.
 	 *
 	 * @var string
@@ -81,12 +88,7 @@ class Celsus_Db {
 	 * @return mixed
 	 */
 	public static function getAdapter($name) {
-		if (Zend_Registry::isRegistered('databases')) {
-			$databaseRegistry = Zend_Registry::get('databases');
-		}
-
-		if (!isset($databaseRegistry) || !isset($databaseRegistry->$name)) {
-			$instance = Zend_Registry::getInstance();
+		if (!isset(self::$_databases[$name])) {
 			$config = self::$_config->database->$name;
 			if (null == $config) {
 				throw new Celsus_Exception("$name is not a valid database to connect to.");
@@ -99,13 +101,9 @@ class Celsus_Db {
 				throw new Celsus_Exception($type . " is not a valid database type");
 			}
 
-			$db = call_user_func_array(array($factory, 'factory'), array($config->engine, $connection));
-
-			$databaseRegistry = new StdClass;
-			$databaseRegistry->$name = $db;
-			Zend_Registry::set('databases', $databaseRegistry);
+			self::$_databases[$name] = call_user_func_array(array($factory, 'factory'), array($config->engine, $connection));
 		}
-		return $databaseRegistry->$name;
+		return self::$_databases[$name];
 	}
 
 	/**
@@ -114,10 +112,33 @@ class Celsus_Db {
 	 * @return array
 	 */
 	public static function getLoadedAdapters() {
-		if (!Zend_Registry::isRegistered('databases')) {
-			return array();
+		return array_keys(self::$_databases);
+	}
+
+	/**
+	 * Drops all application databases.
+	 *
+	 * This is a potentially very dangerous function as it drops all
+	 * the application databases.  Consequently it is only enabled
+	 * for testing environments.
+	 */
+	public static function flushDatabases() {
+		if (!Celsus_Application::isMocking() && !Celsus_Application::isTesting()) {
+			return;
 		}
-		return array_keys((array) Zend_Registry::get('databases'));
+
+		foreach (self::getLoadedAdapters() as $adapter) {
+			self::getAdapter($adapter)->flushDatabase();
+		}
+	}
+
+	/**
+	 * Resets all the database adapters, requiring them to be reinitialised.
+	 *
+	 * Mostly used for testing.
+	 */
+	public static function resetAdapters() {
+		self::$_databases = array();
 	}
 
 	/**
@@ -152,5 +173,3 @@ class Celsus_Db {
 		return self::$_profiling;
 	}
 }
-
-?>

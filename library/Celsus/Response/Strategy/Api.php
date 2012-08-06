@@ -6,6 +6,10 @@ abstract class Celsus_Response_Strategy_Api extends Celsus_Response_Strategy {
 
 	protected $_pageTitle = null;
 
+	public function createdResponse(Celsus_Response_Model $responseModel) {
+		$this->_state->getResponse()->setHttpResponseCode(Celsus_Http::CREATED);
+	}
+
 	protected function _init() {
 		$renderer = new $this->_rendererClass();
 		$this->_viewModel->setRenderer($renderer);

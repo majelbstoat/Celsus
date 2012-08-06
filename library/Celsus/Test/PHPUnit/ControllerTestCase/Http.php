@@ -71,18 +71,28 @@ abstract class Celsus_Test_PHPUnit_ControllerTestCase_Http extends Celsus_Test_P
 	 *
 	 * Also clears any authentication session.
 	 *
-	 * @todo   Need to update Zend_Layout to add a resetInstance() method
 	 * @return void
 	 */
 	public function reset() {
 		require_once 'Zend/Registry.php';
 		Zend_Registry::_unsetInstance();
 
-		require_once 'Zend/Auth.php';
 		require_once 'Celsus/Auth.php';
-		Zend_Auth::getInstance()->clearIdentity();
+		Celsus_Auth::getInstance()->clearIdentity();
+		Celsus_Auth::resetAuthAdapter();
+
+		require_once 'Celsus/Db.php';
+		Celsus_Db::flushDatabases();
+		Celsus_Db::resetAdapters();
+
+		require_once 'Celsus/Model/Base.php';
+		Celsus_Model_Base::resetAdapters();
+
 		$_SESSION = array();
 		$_COOKIE  = array();
+
+		// Undo the mocking set up by the test.
+		$this->_mock()->reset();
 
 		// Reset the request and response objects.
 		$this->resetRequest()->resetResponse();
@@ -95,32 +105,12 @@ abstract class Celsus_Test_PHPUnit_ControllerTestCase_Http extends Celsus_Test_P
 		// Require manually, as this will be executed before autoloading.
 		require_once APPLICATION_CLASS . ".php";
 
+		$configuration =
 		$this->_application = new $application (APPLICATION_ENV, array(
 			APPLICATION_PATH . '/configs/common.yaml',
 			APPLICATION_PATH . '/configs/web.yaml'
 		), false);
 		$this->_application->bootstrap($this->_bootstrapComponents, $this->_excludedBootstrapComponents);
-	}
-
-	/**
-	 * Resets and bootstraps the application.
-	 */
-	final public function bootstrap()
-	{
-		$this->reset();
-		call_user_func($this->bootstrap);
-	}
-
-	/**
-	 * Set up MVC app
-	 *
-	 * Calls {@link bootstrap()} by default
-	 *
-	 * @return void
-	 */
-	public function setUp() {
-		$this->bootstrap = array($this, '_bootstrap');
-		parent::setUp();
 	}
 
 	/**
@@ -153,6 +143,7 @@ abstract class Celsus_Test_PHPUnit_ControllerTestCase_Http extends Celsus_Test_P
 	 */
 	protected function _mock($force = false) {
 		if (null === $this->_mockBroker) {
+			require_once 'Celsus/Test/Mock/Broker.php';
 			$this->_mockBroker = new Celsus_Test_Mock_Broker(APPLICATION_CLASS . '_Mock_');
 		}
 
@@ -173,7 +164,7 @@ abstract class Celsus_Test_PHPUnit_ControllerTestCase_Http extends Celsus_Test_P
 	public function getRequest()
 	{
 		if (null === $this->_request) {
-			$this->_request = new Celsus_Controller_Request_HttpTestCase;
+			$this->_request = new Celsus_Controller_Request_HttpTestCase();
 		}
 		return $this->_request;
 	}
@@ -186,8 +177,8 @@ abstract class Celsus_Test_PHPUnit_ControllerTestCase_Http extends Celsus_Test_P
 	public function getResponse()
 	{
 		if (null === $this->_response) {
-			require_once 'Zend/Controller/Response/HttpTestCase.php';
-			$this->_response = new Zend_Controller_Response_HttpTestCase;
+			require_once 'Celsus/Controller/Response/HttpTestCase.php';
+			$this->_response = new Celsus_Controller_Response_HttpTestCase;
 		}
 		return $this->_response;
 	}

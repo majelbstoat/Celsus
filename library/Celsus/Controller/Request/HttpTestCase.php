@@ -32,7 +32,9 @@ require_once 'Celsus/Controller/Request/Http.php';
  */
 class Celsus_Controller_Request_HttpTestCase extends Celsus_Controller_Request_Http
 {
-    /**
+    protected $_getData = array();
+
+	/**
      * Request headers
      * @var array
      */
@@ -43,6 +45,8 @@ class Celsus_Controller_Request_HttpTestCase extends Celsus_Controller_Request_H
      * @var string
      */
     protected $_method = 'GET';
+
+    protected $_postData = array();
 
     /**
      * Raw POST body
@@ -68,10 +72,28 @@ class Celsus_Controller_Request_HttpTestCase extends Celsus_Controller_Request_H
      *
      * @return Celsus_Controller_Request_HttpTestCase
      */
-    public function clearQuery()
-    {
-        $_GET = array();
+    public function clearQuery() {
+        $this->_getData = array();
         return $this;
+    }
+
+    public function getQuery($key = null, $default = null) {
+    	if (null === $key) {
+    		return $this->_getData;
+    	}
+
+    	return (isset($this->_getData[$key])) ? $this->_getData[$key] : $default;
+    }
+
+    public function setQuery($spec, $value = null) {
+    	if ((null === $value) && is_array($spec)) {
+    		foreach ($spec as $key => $value) {
+    			$this->setQuery($key, $value);
+    		}
+    		return $this;
+    	}
+    	$this->_getData[(string) $spec] = $value;
+    	return $this;
     }
 
     /**
@@ -79,9 +101,34 @@ class Celsus_Controller_Request_HttpTestCase extends Celsus_Controller_Request_H
      *
      * @return Celsus_Controller_Request_HttpTestCase
      */
-    public function clearPost()
-    {
-        $_POST = array();
+    public function clearPost() {
+        $this->_postData = array();
+        return $this;
+    }
+
+    public function getPost($key = null, $default = null) {
+    	if (null === $key) {
+    		return $this->_postData;
+    	}
+
+    	return (isset($this->_postData[$key])) ? $this->_postData[$key] : $default;
+    }
+
+    /**
+     * Set POST values
+     *
+     * @param  string|array $spec
+     * @param  null|mixed $value
+     * @return Zend_Controller_Request_Http
+     */
+    public function setPost($spec, $value = null) {
+        if ((null === $value) && is_array($spec)) {
+            foreach ($spec as $key => $value) {
+                $this->setPost($key, $value);
+            }
+            return $this;
+        }
+        $this->_postData[(string) $spec] = $value;
         return $this;
     }
 
@@ -91,8 +138,7 @@ class Celsus_Controller_Request_HttpTestCase extends Celsus_Controller_Request_H
      * @param  string $content
      * @return Celsus_Controller_Request_HttpTestCase
      */
-    public function setRawBody($content)
-    {
+    public function setRawBody($content) {
         $this->_rawBody = (string) $content;
         return $this;
     }
@@ -102,8 +148,7 @@ class Celsus_Controller_Request_HttpTestCase extends Celsus_Controller_Request_H
      *
      * @return string|null
      */
-    public function getRawBody()
-    {
+    public function getRawBody() {
         return $this->_rawBody;
     }
 
@@ -112,8 +157,7 @@ class Celsus_Controller_Request_HttpTestCase extends Celsus_Controller_Request_H
      *
      * @return Celsus_Controller_Request_HttpTestCase
      */
-    public function clearRawBody()
-    {
+    public function clearRawBody() {
         $this->_rawBody = null;
         return $this;
     }
@@ -125,8 +169,7 @@ class Celsus_Controller_Request_HttpTestCase extends Celsus_Controller_Request_H
      * @param  mixed $value
      * @return Celsus_Controller_Request_HttpTestCase
      */
-    public function setCookie($key, $value)
-    {
+    public function setCookie($key, $value) {
         $_COOKIE[(string) $key] = $value;
         return $this;
     }
@@ -137,8 +180,7 @@ class Celsus_Controller_Request_HttpTestCase extends Celsus_Controller_Request_H
      * @param array $cookies
      * @return void
      */
-    public function setCookies(array $cookies)
-    {
+    public function setCookies(array $cookies) {
         foreach ($cookies as $key => $value) {
             $_COOKIE[$key] = $value;
         }
@@ -150,8 +192,7 @@ class Celsus_Controller_Request_HttpTestCase extends Celsus_Controller_Request_H
      *
      * @return Celsus_Controller_Request_HttpTestCase
      */
-    public function clearCookies()
-    {
+    public function clearCookies() {
         $_COOKIE = array();
         return $this;
     }
@@ -162,8 +203,7 @@ class Celsus_Controller_Request_HttpTestCase extends Celsus_Controller_Request_H
      * @param  string $type
      * @return Celsus_Controller_Request_HttpTestCase
      */
-    public function setMethod($type)
-    {
+    public function setMethod($type) {
         $type = strtoupper(trim((string) $type));
         if (!in_array($type, $this->_validMethodTypes)) {
             require_once 'Zend/Controller/Exception.php';
@@ -178,8 +218,7 @@ class Celsus_Controller_Request_HttpTestCase extends Celsus_Controller_Request_H
      *
      * @return string|null
      */
-    public function getMethod()
-    {
+    public function getMethod() {
         return $this->_method;
     }
 
@@ -190,8 +229,7 @@ class Celsus_Controller_Request_HttpTestCase extends Celsus_Controller_Request_H
      * @param  string $value
      * @return Celsus_Controller_Request_HttpTestCase
      */
-    public function setHeader($key, $value)
-    {
+    public function setHeader($key, $value) {
         $key = $this->_normalizeHeaderName($key);
         $this->_headers[$key] = (string) $value;
         return $this;
@@ -203,8 +241,7 @@ class Celsus_Controller_Request_HttpTestCase extends Celsus_Controller_Request_H
      * @param  array $headers
      * @return Celsus_Controller_Request_HttpTestCase
      */
-    public function setHeaders(array $headers)
-    {
+    public function setHeaders(array $headers) {
         foreach ($headers as $key => $value) {
             $this->setHeader($key, $value);
         }
@@ -218,8 +255,7 @@ class Celsus_Controller_Request_HttpTestCase extends Celsus_Controller_Request_H
      * @param  mixed $default
      * @return string|null
      */
-    public function getHeader($header, $default = null)
-    {
+    public function getHeader($header, $default = null) {
         $header = $this->_normalizeHeaderName($header);
         if (array_key_exists($header, $this->_headers)) {
             return $this->_headers[$header];
@@ -232,8 +268,7 @@ class Celsus_Controller_Request_HttpTestCase extends Celsus_Controller_Request_H
      *
      * @return array
      */
-    public function getHeaders()
-    {
+    public function getHeaders() {
         return $this->_headers;
     }
 
@@ -242,8 +277,7 @@ class Celsus_Controller_Request_HttpTestCase extends Celsus_Controller_Request_H
      *
      * @return Celsus_Controller_Request_HttpTestCase
      */
-    public function clearHeaders()
-    {
+    public function clearHeaders() {
         $this->_headers = array();
         return $this;
     }
@@ -253,8 +287,7 @@ class Celsus_Controller_Request_HttpTestCase extends Celsus_Controller_Request_H
      *
      * @return null|string
      */
-    public function getRequestUri()
-    {
+    public function getRequestUri() {
         return $this->_requestUri;
     }
 
@@ -264,8 +297,7 @@ class Celsus_Controller_Request_HttpTestCase extends Celsus_Controller_Request_H
      * @param  string $name
      * @return string
      */
-    protected function _normalizeHeaderName($name)
-    {
+    protected function _normalizeHeaderName($name) {
         $name = strtoupper((string) $name);
         $name = str_replace('-', '_', $name);
         return $name;

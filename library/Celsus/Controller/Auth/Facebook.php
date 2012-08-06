@@ -23,14 +23,14 @@ abstract class Celsus_Controller_Auth_Facebook extends Celsus_Controller_Auth {
 	/**
 	 * Handles an inbound Facebook-based auth request.
 	 */
-	public function facebookAction(Celsus_Data_Object $parameters) {
+	public function facebookAction(Celsus_Data_Object $parameters, Celsus_Response_Model $responseModel) {
 
 		$adapter = Celsus_Auth::getAuthAdapter();
-		if (!$adapter->canAuthenticate()) {
-			if ($adapter->accessDenied()) {
-				$this->getResponseModel()->setResponseType('userDeclined');
+		if (!$adapter->canAuthenticate($parameters)) {
+			if ($adapter->accessDenied($parameters)) {
+				$responseModel->setResponseType($responseModel::RESPONSE_TYPE_USER_DECLINED);
 			} else {
-				$this->getResponseModel()->setResponseType('missingAuthentication');
+				$responseModel->setResponseType($responseModel::RESPONSE_TYPE_MISSING_AUTHENTICATION);
 			}
 
 			// The request did not supply enough information to authenticate, so we bail.
@@ -41,16 +41,15 @@ abstract class Celsus_Controller_Auth_Facebook extends Celsus_Controller_Auth {
 
 		$callbackUrl = Celsus_Routing::absoluteLinkTo('auth_facebook_callback', array('context' => $context));
 		$adapter->setCallbackUrl($callbackUrl);
-		$adapter->populateAuthorisationPayload();
+		$adapter->populateAuthorisationPayload($parameters);
 		$result = $adapter->authenticate();
 
 		if (!$result->isValid()) {
-			// This shouldn't be possible, but just in case, bail gracefully.  Might be possible due to timeouts for example.
-			$this->getRequest()->setParam(Celsus_Error::ERROR_FLAG, Celsus_Auth::EXCEPTION_AUTH_ERROR);
-			$this->_forward('error', 'error');
+			// Error authenticating to Facebook.
+			$responseModel->setResponseType($responseModel::RESPONSE_TYPE_ERROR);
+			return;
 		} else {
 			$facebookData = $adapter->getResult();
-			Zend_Registry::set(self::REGISTRY_KEY_FACEBOOK_DATA, $facebookData);
 		}
 
 		$auth = Celsus_Auth::getInstance();
@@ -58,12 +57,12 @@ abstract class Celsus_Controller_Auth_Facebook extends Celsus_Controller_Auth {
 		if ($auth->hasIdentity()) {
 			// Already has a session, so we really shouldn't have authenticated, but now that we have, just go to the home.
 			// @todo Log this, because if it ever happens, it means the identity checking plugin isn't working.
-			$this->getResponseModel()->setResponseType('loggedIn');
+			$this->getResponseModel()->setResponseType($responseModel::RESPONSE_TYPE_LOGGED_IN);
 			return;
 		} else {
 			// Check the Facebook data received against the local adapter.
-			$localAdapter = $adapter->getLocalAuthAdapter();
 			$facebookId = $result->getIdentity();
+			$localAdapter = $adapter->getLocalAuthAdapter();
 			$localAdapter->setCredential($facebookId)->setIdentity($facebookId);
 			$result = $localAdapter->authenticate();
 
@@ -71,9 +70,9 @@ abstract class Celsus_Controller_Auth_Facebook extends Celsus_Controller_Auth {
 				// The user is successfully authenticated, so allow the application the opportunity to merge fresh data from
 				// Facebook and then redirect them back to from whence they came.
 
-				$identity = $this->_merge($localAdapter->getResult());
+				$identity = $this->_merge($localAdapter->getResult(), $facebookData);
 				$auth->getStorage()->write($identity);
-				$this->getResponseModel()->setResponseType('success');
+				$this->getResponseModel()->setResponseType($responseModel::RESPONSE_TYPE_SUCCESS);
 			} else {
 				$code = $result->getCode();
 				if (Zend_Auth_Result::FAILURE_IDENTITY_AMBIGUOUS == $code) {
@@ -83,11 +82,11 @@ abstract class Celsus_Controller_Auth_Facebook extends Celsus_Controller_Auth {
 
 				} elseif (Zend_Auth_Result::FAILURE_IDENTITY_NOT_FOUND == $code) {
 					// User not found, so register them locally.
-					$this->_register();
+					$this->_register($facebookData);
 				} else {
 					// Another unspecified error.
-					$this->getRequest()->setParam(Celsus_Error::ERROR_FLAG, Celsus_Auth::EXCEPTION_AUTH_ERROR);
-					$this->_forward('error', 'error');
+					$responseModel->setResponseType($responseModel::RESPONSE_TYPE_ERROR);
+					return;
 				}
 			}
 		}
@@ -97,20 +96,19 @@ abstract class Celsus_Controller_Auth_Facebook extends Celsus_Controller_Auth {
 	 * Updates user information from Facebook to keep their data fresh.
 	 *
 	 * @param Celsus_Model $local;
+	 * @param Celsus_Model $facebookData;
 	 * @return Celsus_Model
 	 */
-	protected function _merge($local) {
-		return $local;
-	}
+	abstract protected function _merge(Celsus_Model $local, Celsus_Model $facebookData);
 
 	/**
 	 * Application-specific function that registers a Facebook user locally.
 	 */
-	abstract protected function _register();
+	abstract protected function _register(Celsus_Model $facebookData);
 
 	/**
 	 * Application-specific function that logs a Facebook user in locally.
 	 */
-	abstract public function loginAction(Celsus_Parameters $parameters, Shinnen_Response_Model_Auth $responseModel);
+	abstract public function loginAction(Celsus_Parameters $parameters, Celsus_Response_Model $responseModel);
 
 }

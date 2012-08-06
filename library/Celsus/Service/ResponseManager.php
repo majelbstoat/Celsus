@@ -99,15 +99,15 @@ class Celsus_Service_ResponseManager {
 			$response->appendBody($state->getViewModel()->render());
 		}
 
-		if ($this->returnResponse()) {
-			return $state;
-		} else {
+		if (!$this->returnResponse()) {
 			// Send the headers.
         	$response->sendHeaders();
 
         	// Echo the response.
 			$response->outputBody();
 		}
+
+		return $state;
 	}
 
 	/**

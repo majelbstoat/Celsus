@@ -64,19 +64,16 @@ class Celsus_Auth_Adapter_Facebook_ServerSide implements Celsus_Auth_Adapter_Int
 		return $this;
 	}
 
-	public function populateAuthorisationPayload() {
-		// @todo Do not read from $_GET directly, pass in parameters.
-		$this->setAuthorisationCode($_GET['code']);
+	public function populateAuthorisationPayload($parameters) {
+		$this->setAuthorisationCode($parameters->code);
 	}
 
-	public function canAuthenticate() {
-		// @todo Do not read from $_GET directly, pass in parameters.
-		return array_key_exists('code', $_GET);
+	public function canAuthenticate($parameters) {
+		return isset($parameters->code);
 	}
 
-	public function accessDenied() {
-		// @todo Do not read from $_GET directly, pass in parameters.
-		return array_key_exists('access_denied', $_GET);
+	public function accessDenied($parameters) {
+		return isset($parameters->access_denied);
 	}
 
 	protected function _base64UrlDecode($input) {
@@ -91,14 +88,18 @@ class Celsus_Auth_Adapter_Facebook_ServerSide implements Celsus_Auth_Adapter_Int
 	public function authenticate() {
 
 		if (!$this->_authorisationCode || !$this->_callbackUrl) {
-			throw new Zend_Auth_Adapter_Exception("Missing information for Facebook authentication.");
+			throw new Celsus_Exception("Missing information for Facebook authentication.", Celsus_Http::BAD_REQUEST);
 		}
 
 		$accessToken = Celsus_External_Model_Service_FacebookUser::acquireAccessToken($this->_authorisationCode, $this->_callbackUrl);
 
 		$userData = Celsus_External_Model_Service_FacebookUser::getProfileInformation($accessToken);
 
-		$user = $userData->current();
+		if (!count($userData)) {
+			return new Celsus_Auth_Result(Celsus_Auth_Result::FAILURE, null);
+		}
+
+		$user = $userData[0];
 		$user->access_token = $accessToken;
 		$this->_result = $user;
 

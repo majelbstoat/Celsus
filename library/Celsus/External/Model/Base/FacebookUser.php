@@ -2,9 +2,7 @@
 
 class Celsus_External_Model_Base_FacebookUser extends Celsus_Model_Base_Facebook {
 
-	protected $_name = 'user';
-
-	protected $_designDocument = 'user';
+	protected $_name = 'facebookUser';
 
 	protected $_fields = array(
 		"name",
@@ -18,9 +16,4 @@ class Celsus_External_Model_Base_FacebookUser extends Celsus_Model_Base_Facebook
 		"updated_time",
 		"hometown"
 	);
-
-	public function publishAction(array $data) {
-
-	}
-
 }

@@ -2,17 +2,17 @@
 
 abstract class Celsus_Model_Base implements Celsus_Model_Base_Interface {
 
+	/**
+	 * The database adapters available to the application.
+	 *
+	 * @var array
+	 */
+	protected static $_adapters = array();
+
 	protected $_secondaryIndices = array();
 
-	public static function setDefaultAdapter($adapter) {
-		static::$_defaultAdapter = $adapter;
-	}
-
-	public static function getDefaultAdapter() {
-		if (null === static::$_defaultAdapter) {
-			self::setDefaultAdapter(Celsus_Db::getAdapter(Celsus_Db::getDefaultAdapterName()));
-		}
-		return static::$_defaultAdapter;
+	protected static function _getDefaultAdapter() {
+		return Celsus_Db::getAdapter(Celsus_Db::getDefaultAdapterName());
 	}
 
 	/**
@@ -29,7 +29,7 @@ abstract class Celsus_Model_Base implements Celsus_Model_Base_Interface {
 			$identifiers = array($identifiers);
 		}
 
-		return $this->getAdapter()->find($identifiers);
+		return self::_getAdapter()->find($identifiers);
 	}
 
 	/**
@@ -52,7 +52,7 @@ abstract class Celsus_Model_Base implements Celsus_Model_Base_Interface {
 		$dataClass = static::$_dataClass;
 
 		$record = new $dataClass(array(
-			'adapter' => $this->getAdapter(),
+			'adapter' => self::_getAdapter(),
 			'data' => array_merge($defaults, $data)
 		));
 
@@ -61,6 +61,22 @@ abstract class Celsus_Model_Base implements Celsus_Model_Base_Interface {
 
 	public function getIndices() {
 		return $this->_secondaryIndices;
+	}
+
+	public static function resetAdapters() {
+		self::$_adapters = array();
+	}
+
+	/**
+	 * Gets the adapter for this base.
+	 *
+	 * @return Celsus_Db_Document_Adapter_Redis
+	 */
+	protected static function _getAdapter() {
+		if (!isset(self::$_adapters[static::BACKEND_TYPE])) {
+			self::$_adapters[static::BACKEND_TYPE] = static::_getDefaultAdapter();
+		}
+		return self::$_adapters[static::BACKEND_TYPE];
 	}
 
 	public function updateIndices($id, $data, $originalData, $metadata, Redis $pipeline = null) {}

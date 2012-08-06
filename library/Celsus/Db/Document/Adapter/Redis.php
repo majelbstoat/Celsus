@@ -276,6 +276,10 @@ class Celsus_Db_Document_Adapter_Redis {
 		return $this->getClient()->incr(self::KEY_OBJECT_COUNTER);
 	}
 
+	public function cardinality($setName) {
+		return $this->getClient()->sCard($setName);
+	}
+
 	public function save(Celsus_Db_Document_Redis $document)
 	{
 		$id = $document->getId();
@@ -286,10 +290,6 @@ class Celsus_Db_Document_Adapter_Redis {
 			->sAdd($data['_type'], $id)
 			->hMset($id, $data)
 			->exec();
-
-		if (!$result) {
-			throw new Celsus_Exception("There was an error saving the object with ID $id");
-		}
 	}
 
 	public function flushDatabase()
@@ -352,7 +352,7 @@ class Celsus_Db_Document_Adapter_Redis {
 			// If an exception was thrown in the middle of the last multi, a permanent connection doesn't
 			// properly discard the transaction, so we do a transaction at the beginning to ensure a clean slate.
 			// Fixed in phpredis 2.2.1, but that version has other more serious errors.
-//			$this->_client->discard();
+			// $this->_client->discard();
 		}
 		return $this->_client;
 	}

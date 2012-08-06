@@ -2,6 +2,8 @@
 
 class Celsus_Db_Document_Adapter_Facebook {
 
+	const DATA_TYPE_PROFILE_INFO = '';
+
 	/**
 	 * @var Zend_Http_Client HTTP client used for accessing server
 	 */
@@ -64,7 +66,7 @@ class Celsus_Db_Document_Adapter_Facebook {
 	 * @return Celsus_Db_Document_Set_Facebook
 	 */
 	public function find($accessTokens) {
-		return $this->getUserData($accessTokens, Celsus_Service_Facebook::DATA_BASIC);
+		return $this->getUserData($accessTokens);
 	}
 
 	/**
@@ -75,7 +77,7 @@ class Celsus_Db_Document_Adapter_Facebook {
 	 * @throws Celsus_Exception
 	 * @return Celsus_Db_Document_Set_Facebook
 	 */
-	public function getUserData($accessTokens, $dataType) {
+	public function getUserData($accessTokens, $dataType = self::DATA_TYPE_PROFILE_INFO) {
 		if (!is_array($accessTokens)) {
 			$accessTokens = array($accessTokens);
 		}
@@ -90,11 +92,9 @@ class Celsus_Db_Document_Adapter_Facebook {
 			$return = null;
 			switch ($status) {
 				case Celsus_Http::OK:
-					if (null === $return) {
-						$return = new Celsus_Db_Document_Set_Facebook(array(
-							'adapter' => $this
-						));
-					}
+					$return = new Celsus_Db_Document_Set_Facebook(array(
+						'adapter' => $this
+					));
 					$document = new Celsus_Db_Document_Facebook(array(
 						'adapter' => $this,
 						'data' => Zend_Json::decode($response->getBody())

@@ -80,6 +80,10 @@ abstract class Celsus_Application extends Zend_Application {
 		return ('testing' == APPLICATION_ENV);
 	}
 
+	public static function isMocking() {
+		return ('mocking' == APPLICATION_ENV);
+	}
+
 	/**
 	 * Create a new application instance.  Tries to load from cache where possible.
 	 *

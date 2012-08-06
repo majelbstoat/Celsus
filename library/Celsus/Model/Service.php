@@ -397,6 +397,13 @@ abstract class Celsus_Model_Service implements Celsus_Model_Service_Interface {
 	}
 
 	/**
+	 * Resets the base(s) to be used for this service via the mapper.  Enables mocking.
+	 */
+	public static function resetBase() {
+		static::_underlying()->resetBase();
+	}
+
+	/**
 	 * Finds a single record from the underlying using the common identifier.
 	 *
 	 * By default, this just assumes that the route identifier is an ID:

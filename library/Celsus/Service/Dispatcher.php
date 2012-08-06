@@ -79,22 +79,24 @@ class Celsus_Service_Dispatcher {
 	 * Populates parameters supplied by the client.
 	 * @param Celsus_State $state
 	 */
-	public function populateParameters(Celsus_State $state)
-	{
-		$route = $state->getRoute();
-		$request = $state->getRequest();
+	public function populateParameters(Celsus_State $state) {
 
+		// Get the parameters available for this route.
+		$route = $state->getRoute();
 		$routeParameters = $route->getParameters();
 
+		// Extract any parameters from the url path.
+		$request = $state->getRequest();
 		$path = $request->getPathInfo();
 		$pathParameters = $route->extractParametersFromPath($path);
 
 		// @todo Merge with default parameters from the route config.
 
-		$request = $state->getRequest();
+		// Get additional parameters from the query string or request body.
 		if ($request->isDelete() || $request->isPut() || $request->isPost()) {
 			$additionalParameters = array();
 			parse_str($request->getRawBody(), $additionalParameters);
+			$additionalParameters = array_merge($additionalParameters, $request->getPost());
 		} elseif ($request->isGet()) {
 			$additionalParameters = $request->getQuery();
 		}

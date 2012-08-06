@@ -2,17 +2,12 @@
 
 class Celsus_Model_Base_Redis extends Celsus_Model_Base {
 
+	const BACKEND_TYPE = 'redis';
+
 	const INDEX_TYPE_SIMPLE_HASH = 'simpleHash';
 	const INDEX_TYPE_SET_MEMBERS = 'setMembers';
 	const INDEX_TYPE_SORTED_SET_MEMBERS = 'sortedSetMembers';
 	const INDEX_TYPE_SORTED_SET_LOOKUP = 'sortedSetLookup';
-
-	/**
-	 * The adapter to use for this connection.
-	 *
-	 * @var Celsus_Db_Document_Adapter_Redis
-	 */
-	protected $_adapter;
 
 	/**
 	 * The adapter to use if it hasn't been set.
@@ -23,8 +18,8 @@ class Celsus_Model_Base_Redis extends Celsus_Model_Base {
 
 	protected static $_dataClass = 'Celsus_Db_Document_Redis';
 
-	public function __construct(array $config = array()) {
-		$this->_adapter = isset($config['adapter']) ? $config['adapter'] : self::getDefaultAdapter();
+	public function cardinality() {
+		return self::_getAdapter()->cardinality($this->_name);
 	}
 
 	/**
@@ -38,7 +33,7 @@ class Celsus_Model_Base_Redis extends Celsus_Model_Base {
 		$originalData = $where['originalData'];
 		$metadata = $where['metadata'];
 
-		$adapter = $this->getAdapter();
+		$adapter = self::_getAdapter();
 		$pipeline = $adapter->startPipeline();
 
 		$this->updateIndices($identifier, $data, $originalData, $metadata, $pipeline);
@@ -96,7 +91,7 @@ class Celsus_Model_Base_Redis extends Celsus_Model_Base {
 	 */
 	public function fetchAll() {
 		$query = func_get_arg(0);
-		return $this->getAdapter()->query($query);
+		return self::_getAdapter()->query($query);
 	}
 
 	/**
@@ -114,7 +109,7 @@ class Celsus_Model_Base_Redis extends Celsus_Model_Base {
 		}
 
 		// Fetch records by the identifiers.
-		$results = $this->getAdapter()->find($identifiers);
+		$results = self::_getAdapter()->find($identifiers);
 
 		// If we found records, make sure they're all of the right type.
 		return $results ? $this->_filterResultSet($results) : null;
@@ -146,15 +141,6 @@ class Celsus_Model_Base_Redis extends Celsus_Model_Base {
 	}
 
 	/**
-	 * Gets the adapter for this base.
-	 *
-	 * @return Celsus_Db_Document_Adapter_Redis
-	 */
-	public function getAdapter() {
-		return $this->_adapter;
-	}
-
-	/**
 	 * Updates the secondary indices for this model representation to aid queries.
 	 *
 	 * @see Celsus_Model_Base::updateIndices()
@@ -162,7 +148,7 @@ class Celsus_Model_Base_Redis extends Celsus_Model_Base {
 	public function updateIndices($id, $data, $originalData, $metadata, Redis $pipeline = null) {
 		$indices = $this->getIndices();
 		if ($indices) {
-			$adapter = $this->getAdapter();
+			$adapter = self::_getAdapter();
 			$pipelined = true;
 
 			// If we don't already have a pipeline, create one.

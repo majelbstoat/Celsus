@@ -44,6 +44,14 @@ class Celsus_Test_Mock_Broker {
 		return $this->_mockData;
 	}
 
+	public function reset() {
+		foreach ($this->_mockGenerators as $generator) {
+			$generator->reset();
+		}
+		$this->_mockData = null;
+		$this->_mockGenerators = array();
+	}
+
 	/**
 	 * Proxies a call through to the actual mocking function.
 	 *

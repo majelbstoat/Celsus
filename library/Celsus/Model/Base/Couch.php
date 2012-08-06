@@ -2,15 +2,7 @@
 
 class Celsus_Model_Base_Couch implements Celsus_Model_Base_Interface {
 
-	// This class will behave in a similar fashion to Celsus_Model_Base_DbTable
-	// and reference a document, like the latter references a Zend_Db_Table_Row
-
-	/**
-	 * The adapter to use for this connection.
-	 *
-	 * @var Celsus_Db_Document_Adapter_Couch
-	 */
-	protected $_adapter;
+	const BACKEND_TYPE = 'couch';
 
 	/**
 	 * The adapter to use if it hasn't been set.
@@ -32,13 +24,6 @@ class Celsus_Model_Base_Couch implements Celsus_Model_Base_Interface {
 
 	public static function setDefaultAdapter($adapter) {
 		self::$_defaultAdapter = $adapter;
-	}
-
-	public static function getDefaultAdapter() {
-		if (null === self::$_defaultAdapter) {
-			self::setDefaultAdapter(Celsus_Db::getAdapter(Celsus_Db::getDefaultAdapterName()));
-		}
-		return self::$_defaultAdapter;
 	}
 
 	/**

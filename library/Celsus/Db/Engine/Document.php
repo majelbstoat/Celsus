@@ -24,12 +24,9 @@ class Celsus_Db_Engine_Document implements Celsus_Db_Engine_Interface {
 			unset($config['adapterNamespace']);
 		}
 
-		$adapterName = $adapterNamespace . '_';
-		$adapterName .= str_replace(' ', '_', ucwords(str_replace('_', ' ', strtolower($adapter))));
+		$adapterName = $adapterNamespace . '_' . ucfirst($adapter);
 
 		// Create the new adapter
 		return new $adapterName($config);
 	}
 }
-
-?>

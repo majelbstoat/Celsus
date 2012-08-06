@@ -5,6 +5,12 @@ class Celsus_Response_Model {
 	const RESPONSE_TYPE_DEFAULT = 'default';
 	const RESPONSE_TYPE_REDIRECT = 'redirect';
 	const RESPONSE_TYPE_DELETED = 'deleted';
+	const RESPONSE_TYPE_CREATED = 'created';
+	const RESPONSE_TYPE_LOGGED_IN = 'loggedIn';
+	const RESPONSE_TYPE_SUCCESS = 'success';
+	const RESPONSE_TYPE_USER_DECLINED = 'userDeclined';
+	const RESPONSE_TYPE_MISSING_AUTHENTICATION = 'missingAuthentication';
+	const RESPONSE_TYPE_ERROR = 'error';
 
 	/**
 	 * The response type set by the controller

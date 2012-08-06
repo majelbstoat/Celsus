@@ -2,22 +2,7 @@
 
 class Celsus_Model_Base_Facebook extends Celsus_Model_Base {
 
-	// This class will behave in a similar fashion to Celsus_Model_Base_DbTable
-	// and reference a document, like the latter references a Zend_Db_Table_Row
-
-	/**
-	 * The adapter to use for this connection.
-	 *
-	 * @var Celsus_Db_Document_Adapter_Facebook
-	 */
-	protected $_adapter;
-
-	/**
-	 * The adapter to use if it hasn't been set.
-	 *
-	 * @var unknown_type
-	 */
-	protected static $_defaultAdapter = null;
+	const BACKEND_TYPE = 'facebook';
 
 	protected static $_dataClass = 'Celsus_Db_Document_Facebook';
 
@@ -28,27 +13,16 @@ class Celsus_Model_Base_Facebook extends Celsus_Model_Base {
 	 */
 	protected $_fields = null;
 
-	public function __construct(array $config = array()) {
-		$this->_adapter = isset($config['adapter']) ? $config['adapter'] : self::getDefaultAdapter();
-	}
-
-	public static function setDefaultAdapter($adapter) {
-		self::$_defaultAdapter = $adapter;
-	}
-
-	public static function getDefaultAdapter() {
-		if (null === self::$_defaultAdapter) {
-			self::setDefaultAdapter(Celsus_Db::getAdapter('facebook'));
-		}
-		return self::$_defaultAdapter;
+	protected static function _getDefaultAdapter() {
+		return Celsus_Db::getAdapter('facebook');
 	}
 
 	public function acquireAccessToken($authorisationCode, $callbackUrl) {
-		return $this->getAdapter()->acquireAccessToken($authorisationCode, $callbackUrl);
+		return self::_getAdapter()->acquireAccessToken($authorisationCode, $callbackUrl);
 	}
 
-	public function getUserData($accessToken, $dataType) {
-		return $this->getAdapter()->getUserData($accessToken, $dataType);
+	public function getUserData($accessToken, $dataType = Celsus_Db_Document_Adapter_Facebook::DATA_TYPE_PROFILE_INFO) {
+		return self::_getAdapter()->getUserData($accessToken, $dataType);
 	}
 
 	/**
@@ -72,15 +46,4 @@ class Celsus_Model_Base_Facebook extends Celsus_Model_Base {
 		$fields = $this->getFields();
 		return array_combine($fields, array_fill(0, count($fields), null));
 	}
-
-	/**
-	 * Gets the adapter for this base.
-	 *
-	 * @return Celsus_Db_Document_Adapter_Couch
-	 */
-	public function getAdapter() {
-		return $this->_adapter;
-	}
 }
-
-?>
