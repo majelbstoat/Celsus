@@ -274,14 +274,14 @@ abstract class Celsus_Model extends Celsus_Data_Object {
 							}
 						}
 
-						// Allow setting of additional data and updating of secondary keys after a successful insert.
-						$this->_mapper->updateIndices($this->id, $this->_data, $this->_originalData, $this->_metadata);
 					}
 
 					// Reset the dirtiness of those fields.
 					$this->_dirty = array_diff($this->_dirty, array_keys($data));
 				}
 
+				// Allow setting of additional data and updating of secondary keys after a successful insert.
+				$this->_mapper->updateIndices($this->id, $this->_data, $this->_originalData, $this->_metadata);
 
 			} else {
 				throw new Celsus_Model_Exception_InvalidData("One or more fields were invalid.  Please check your data and try again.");
@@ -306,7 +306,7 @@ abstract class Celsus_Model extends Celsus_Data_Object {
 	/**
 	 * Marks the current data as the original data, resets dirtiness.
 	 */
-	public function fixData() {
+	public function fixateData() {
 		$this->_originalData = null;
 		$this->_dirty = array();
 	}
@@ -317,7 +317,7 @@ abstract class Celsus_Model extends Celsus_Data_Object {
 	public function resetData() {
 		if ($this->_dirty) {
 			$this->data = $this->_originalData;
-			$this->fixData();
+			$this->fixateData();
 		}
 	}
 

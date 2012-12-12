@@ -1,6 +1,6 @@
 <?php
 
-class Celsus_Db_Document_Adapter_Couch {
+class Celsus_Db_Document_Adapter_Couch extends Celsus_Db_Document_Adapter {
 
 	/**
 	 * @var Zend_Http_Client HTTP client used for accessing server

@@ -268,6 +268,10 @@ abstract class Celsus_Model_Service implements Celsus_Model_Service_Interface {
 		return static::$_defaultFields;
 	}
 
+	public static function getName() {
+		return static::$_name;
+	}
+
 	public static function getFieldMetadata() {
 		$fields = static::$_defaultFields;
 		foreach ($fields as $field => $definition) {

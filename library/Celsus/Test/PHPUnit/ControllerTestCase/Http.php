@@ -56,6 +56,8 @@ abstract class Celsus_Test_PHPUnit_ControllerTestCase_Http extends Celsus_Test_P
 	 */
 	protected $_mockBroker = null;
 
+	protected $_integrationBroker = null;
+
 	/**
 	 * Resets the state after every test.
 	 */
@@ -81,18 +83,13 @@ abstract class Celsus_Test_PHPUnit_ControllerTestCase_Http extends Celsus_Test_P
 		Celsus_Auth::getInstance()->clearIdentity();
 		Celsus_Auth::resetAuthAdapter();
 
-		require_once 'Celsus/Db.php';
-		Celsus_Db::flushDatabases();
-		Celsus_Db::resetAdapters();
-
-		require_once 'Celsus/Model/Base.php';
-		Celsus_Model_Base::resetAdapters();
-
 		$_SESSION = array();
 		$_COOKIE  = array();
 
 		// Undo the mocking set up by the test.
 		$this->_mock()->reset();
+
+		$this->_integration()->reset();
 
 		// Reset the request and response objects.
 		$this->resetRequest()->resetResponse();
@@ -140,6 +137,7 @@ abstract class Celsus_Test_PHPUnit_ControllerTestCase_Http extends Celsus_Test_P
 	 * Provides a mechanism by which parts of the SUT can be mocked and stubbed out.
 	 *
 	 * @param boolean $force Certain components should always be mocked, even during integration testing.
+	 * @return Celsus_Test_Mock_Broker
 	 */
 	protected function _mock($force = false) {
 		if (null === $this->_mockBroker) {
@@ -150,6 +148,21 @@ abstract class Celsus_Test_PHPUnit_ControllerTestCase_Http extends Celsus_Test_P
 		// We enable mocking if we are not integration testing, or if explicitly forced.
 		$this->_mockBroker->setEnabled($force || !INTEGRATION_TESTING);
 		return $this->_mockBroker;
+	}
+
+	/**
+	 * For integration testing, allows the test to specify what source should be used to
+	 * put the datastore into a good known state.
+	 */
+	protected function _integration() {
+		if (null === $this->_integrationBroker) {
+			require_once 'Celsus/Test/Integration/Broker.php';
+			$this->_integrationBroker = new Celsus_Test_Integration_Broker();
+		}
+
+		// We enable integrationing if we are not integration testing, or if explicitly forced.
+		$this->_integrationBroker->setEnabled(INTEGRATION_TESTING);
+		return $this->_integrationBroker;
 	}
 
 	public function getMockObject() {

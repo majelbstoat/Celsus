@@ -113,7 +113,7 @@ class Celsus_Model_Mapper_Simple extends Celsus_Model_Mapper {
 		}
 
 		// Now fix the data, as dirtiness will have been set by the attaching of fields.
-		$model->fixData();
+		$model->fixateData();
 	}
 
 	protected function _wrap($data) {

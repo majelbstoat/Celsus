@@ -1,6 +1,6 @@
 <?php
 
-class Celsus_Db_Document_Adapter_Facebook {
+class Celsus_Db_Document_Adapter_Facebook extends Celsus_Db_Document_Adapter {
 
 	const DATA_TYPE_PROFILE_INFO = '';
 

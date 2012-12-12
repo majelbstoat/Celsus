@@ -12,7 +12,7 @@ class Celsus_Db_Document {
 	/**
 	 * The adapter of this result set.
 	 *
-	 * @var Celsus_Db_Doc_Adapter_Couch
+	 * @var Celsus_Db_Doc_Adapter
 	 */
 	protected $_adapter = null;
 
@@ -110,6 +110,18 @@ class Celsus_Db_Document {
 		$this->_data = array_merge(array_combine($fields, array_fill(0, count($fields), null)), $this->_data);
 	}
 
+	public function toArray() {
+		return $this->_data;
+	}
+
+	public function toJson() {
+		return Zend_Json::encode($this->_data);
+	}
+
+	public function __get($index) {
+		return $this->_data[$index];
+	}
+
 	/**
 	 * Updates a document in the database and returns its id.
 	 */
@@ -126,17 +138,5 @@ class Celsus_Db_Document {
 	protected function _insert() {
 		$this->_adapter->save($this);
 		return $this->getId();
-	}
-
-	public function toArray() {
-		return $this->_data;
-	}
-
-	public function toJson() {
-		return Zend_Json::encode($this->_data);
-	}
-
-	public function __get($index) {
-		return $this->_data[$index];
 	}
 }

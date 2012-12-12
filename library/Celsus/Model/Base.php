@@ -63,10 +63,6 @@ abstract class Celsus_Model_Base implements Celsus_Model_Base_Interface {
 		return $this->_secondaryIndices;
 	}
 
-	public static function resetAdapters() {
-		self::$_adapters = array();
-	}
-
 	/**
 	 * Gets the adapter for this base.
 	 *

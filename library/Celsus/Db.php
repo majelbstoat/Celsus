@@ -106,6 +106,11 @@ class Celsus_Db {
 		return self::$_databases[$name];
 	}
 
+	public static function getEngineType($name) {
+		$config = self::$_config->database->$name;
+		return $config->engine;
+	}
+
 	/**
 	 * Returns an array of the database adapters that have been loaded so far.
 	 *
@@ -113,32 +118,6 @@ class Celsus_Db {
 	 */
 	public static function getLoadedAdapters() {
 		return array_keys(self::$_databases);
-	}
-
-	/**
-	 * Drops all application databases.
-	 *
-	 * This is a potentially very dangerous function as it drops all
-	 * the application databases.  Consequently it is only enabled
-	 * for testing environments.
-	 */
-	public static function flushDatabases() {
-		if (!Celsus_Application::isMocking() && !Celsus_Application::isTesting()) {
-			return;
-		}
-
-		foreach (self::getLoadedAdapters() as $adapter) {
-			self::getAdapter($adapter)->flushDatabase();
-		}
-	}
-
-	/**
-	 * Resets all the database adapters, requiring them to be reinitialised.
-	 *
-	 * Mostly used for testing.
-	 */
-	public static function resetAdapters() {
-		self::$_databases = array();
 	}
 
 	/**

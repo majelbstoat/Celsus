@@ -1,6 +1,6 @@
 <?php
 
-class Celsus_Db_Document_Adapter_Redis {
+class Celsus_Db_Document_Adapter_Redis extends Celsus_Db_Document_Adapter {
 
 	// Redis defines 16 numerically named databases.  By convention,
 	// we reserve 0 for testing as it is the default, and 1 for development.
