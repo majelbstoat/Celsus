@@ -2,12 +2,21 @@
 /**
  * Semi-immutable objects that provide a simple standard way for marshalling data
  * in an application.  When data is changed, the object is marked dirty.
+ *
  * Each object is subject to a filter, allowing field-level read and write
  * permissions to be set as needed.  Data can be read in any number of forms,
  * as long as a formatter exists for that format.
- *
  */
-class Celsus_Data_Object extends Celsus_Data_Abstract {
+class Celsus_Data_Object extends Celsus_Data {
+
+	protected static $_marshals = array();
+
+	/**
+	 * The object data in a non-nested assoc array
+	 *
+	 * @var mixed
+	 */
+	protected $_data = array();
 
 	/**
 	 * The default filter to be used for new objects.
@@ -17,13 +26,25 @@ class Celsus_Data_Object extends Celsus_Data_Abstract {
 	protected static $_defaultFilter = 'Celsus_Data_Filter_Default';
 
 	/**
+	 * Records whether data has been changed.
+	 *
+	 * @var array
+	 */
+	protected $_dirty = array();
+
+	/**
 	 * The filter to be used for this object.
 	 *
 	 * @var string
 	 */
 	protected $_filter = null;
 
-	protected static $_marshals = array();
+	/**
+	 * The original, pristine data in the object.
+	 *
+	 * @var array
+	 */
+	protected $_originalData = null;
 
 	/**
 	 * The fields that are readable to the current identity.
@@ -48,6 +69,15 @@ class Celsus_Data_Object extends Celsus_Data_Abstract {
 	public function __construct($data) {
 		$this->_filter = static::$_defaultFilter;
 		$this->_setData($data);
+	}
+
+	/**
+	 * Determines whether this object holds data.
+	 *
+	 * @return boolean
+	 */
+	public function isEmpty() {
+		return empty($this->_data);
 	}
 
 	public static function addMarshal($marshal) {
@@ -79,6 +109,7 @@ class Celsus_Data_Object extends Celsus_Data_Abstract {
 					break;
 				}
 			}
+
 			if (!$provided && method_exists($data, "toArray")) {
 				// Final fallback approach - comes from a source that can set the data from an array.
 				$this->_data = $data->toArray();
@@ -198,7 +229,6 @@ class Celsus_Data_Object extends Celsus_Data_Abstract {
 	public function __get($field) {
 		if (!array_key_exists($field, $this->_data)) {
 			return null;
-			//throw new Celsus_Exception("Unknown field $field in $this->_name Celsus Data Object.");
 		}
 
 		if (!$this->isReadable($field)) {
@@ -273,56 +303,6 @@ class Celsus_Data_Object extends Celsus_Data_Abstract {
 		return array_intersect_key($this->_data, array_flip($this->_readableFields));
 	}
 
-	/**
-	 * Convenience method, in case people expect it.
-	 */
-	public function toArray() {
-		return $this->getData();
-	}
-
-	/**
-	 * Having this method defined directly makes it possible for
-	 * Zend_Json::decode() to work natively.
-	 */
-	public function toJson() {
-		return $this->_output('json');
-	}
-
-	/**
-	 * Magic function implements rendering.
-	 *
-	 * @param string $name
-	 * @param arguments $arguments
-	 * @see Celsus_Data_Formatter_Interface
-	 */
-	public function __call($method, $arguments) {
-		if ('to' == substr($method, 0, 2)) {
-			$format = substr($method, 2);
-			return $this->_output($format);
-		}
-	}
-
-	protected function _output($format) {
-		// Iterate all the formatter prefixes and determine whether we can render.
-		foreach ($this->_formatterPrefixes as $prefix) {
-			$class = $prefix . $format;
-			if (!class_exists($class, true)) {
-				// Class doesn't exist with this prefix.
-				continue;
-			}
-
-			if (!in_array('Celsus_Data_Formatter_Interface', class_implements($class))) {
-				// Class exists, but doesn't implement the correct interface.
-				continue;
-			}
-
-			// Interface dictates that we can call format() on it.
-			return call_user_func(array($class, 'format'), $this);
-		}
-
-		// No formatters exist for the requested type.
-		throw new Celsus_Exception("No formatter exists for $class that implements Celsus_Data_Formatter_Interface.");
-	}
 
 	public function __isset($field) {
 		return isset($this->_data[$field]);

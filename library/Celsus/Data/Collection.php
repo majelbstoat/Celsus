@@ -1,6 +1,6 @@
 <?php
 
-class Celsus_Data_Collection implements Iterator, Countable, ArrayAccess {
+class Celsus_Data_Collection extends Celsus_Data implements Iterator, Countable, ArrayAccess {
 
 	/**
 	 * Counting is used as a proxy for truthiness of collections, so maintain an internal
@@ -71,17 +71,25 @@ class Celsus_Data_Collection implements Iterator, Countable, ArrayAccess {
 		return isset($this->_objects[$offset]) ? $this->_objects[$offset] : null;
 	}
 
-	public function __call($method, $args) {
-		foreach ($this->_objects as $object) {
-			call_user_func_array(array($object, $method), $args);
-		}
-	}
-
 	public function toArray() {
 		$return = array();
 		foreach ($this->_objects as $object) {
 			$return[] = $object->toArray();
 		}
 		return $return;
+	}
+
+	public function __call($method, $args) {
+
+		// First, determine if we are trying to render.
+		if ('to' == substr($method, 0, 2)) {
+			$format = substr($method, 2);
+			return $this->_output($format);
+		}
+
+		// Otherwise, execute the required method on all the contained objects.
+		foreach ($this->_objects as $object) {
+			call_user_func_array(array($object, $method), $args);
+		}
 	}
 }
