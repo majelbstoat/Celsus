@@ -1,6 +1,7 @@
 <?php
 
 interface Celsus_Temporal_Expression_Interface {
+
 	/**
 	 * Determines whether the date specified is included in this temporal expression.
 	 *
@@ -8,5 +9,3 @@ interface Celsus_Temporal_Expression_Interface {
 	 */
 	public function includes($date);
 }
-
-?>

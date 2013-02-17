@@ -3,18 +3,11 @@
 class Celsus_Mixer_Source_Result extends Celsus_Data_Struct {
 
 	/**
-	 * The source that generated this result.
+	 * The confidence of the result expressed from 0 - 100.
 	 *
-	 * @var string $source
+	 * @var int $weight;
 	 */
-	public $source;
-
-	/**
-	 * The actual result itself.
-	 *
-	 * @var mixed $result
-	 */
-	public $result;
+	public $confidence = null;
 
 	/**
 	 * The internal label of this result.
@@ -23,13 +16,20 @@ class Celsus_Mixer_Source_Result extends Celsus_Data_Struct {
 	 *
 	 * @var string $label
 	 */
-	public $label;
+	public $label = null;
 
 	/**
-	 * The confidence of the result expressed from 0 - 100.
+	 * The actual result itself.
 	 *
-	 * @var int $weight;
+	 * @var mixed $result
 	 */
-	public $weight;
+	public $result = null;
+
+	/**
+	 * The source that generated this result.
+	 *
+	 * @var string $source
+	 */
+	public $source = null;
 
 }

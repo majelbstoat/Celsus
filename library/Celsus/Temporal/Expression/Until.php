@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Handles scheduling rules like "until 26th June 2009"
+ * Handles scheduling rules like "until 26th June 2019"
  */
 class Celsus_Temporal_Expression_Until implements Celsus_Temporal_Expression_Interface {
 
@@ -35,5 +35,3 @@ class Celsus_Temporal_Expression_Until implements Celsus_Temporal_Expression_Int
 	}
 
 }
-
-?>

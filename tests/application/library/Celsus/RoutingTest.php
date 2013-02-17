@@ -86,8 +86,8 @@ class Celsus_RoutingTest extends PHPUnit_Framework_TestCase {
         );
 
         foreach ($paths as $path) {
-            $routeDefinition = Celsus_Routing::getRouteByPath($path);
-            $parameters = Celsus_Routing::extractRouteParametersFromPath($routeDefinition, $path);
+            $route = Celsus_Routing::getRouteByPath($path);
+            $parameters = $route->extractParametersFromPath($path);
             $expected = array(
                 'identifier' => 42
             );

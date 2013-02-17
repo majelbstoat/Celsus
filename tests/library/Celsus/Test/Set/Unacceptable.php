@@ -12,5 +12,3 @@ class Celsus_Test_Set_Unacceptable implements Celsus_Test_Set_Interface {
 	}
 
 }
-
-?>

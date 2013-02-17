@@ -1,6 +1,6 @@
 <?php
 
-abstract class Celsus_Set_Operation_Collection extends Celsus_Set_Operation_Abstract {
+abstract class Celsus_Set_Operation_Collection extends Celsus_Set_Operation {
 
 	/**
 	 * The elements of this set.
@@ -33,4 +33,3 @@ abstract class Celsus_Set_Operation_Collection extends Celsus_Set_Operation_Abst
 		}
 	}
 }
-?>

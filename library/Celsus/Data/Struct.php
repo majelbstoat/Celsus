@@ -9,6 +9,12 @@
  */
 class Celsus_Data_Struct extends Celsus_Data {
 
+	public function __construct($data = array()) {
+		if ($data) {
+			$this->setFromArray($data);
+		}
+	}
+
 	public function setFromArray($data) {
 		foreach ($data as $key => $value) {
 			$this->$key = $value;

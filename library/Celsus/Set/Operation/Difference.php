@@ -1,6 +1,6 @@
 <?php
 
-class Celsus_Set_Operation_Difference extends Celsus_Set_Operation_Abstract {
+class Celsus_Set_Operation_Difference extends Celsus_Set_Operation {
 
 	/**
 	 * The elements to be included in this set.
@@ -43,6 +43,7 @@ class Celsus_Set_Operation_Difference extends Celsus_Set_Operation_Abstract {
 				return false;
 			}
 		}
+
 		// Now, iterate through the excludes, calling the supplied method name on each.
 		// If any return true, this difference is false.
 		foreach ($this->_excludes as $exclude) {
@@ -101,5 +102,3 @@ class Celsus_Set_Operation_Difference extends Celsus_Set_Operation_Abstract {
 		}
 	}
 }
-
-?>

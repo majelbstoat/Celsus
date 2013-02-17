@@ -34,5 +34,3 @@ class Celsus_Set_Operation_Intersection extends Celsus_Set_Operation_Collection 
 		return true;
 	}
 }
-
-?>

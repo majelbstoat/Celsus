@@ -1,7 +1,6 @@
 <?php
 
-abstract class Celsus_Set_Operation_Abstract {
-
+abstract class Celsus_Set_Operation {
 
 	/**
 	 * The classname of the set to be operated on.
@@ -26,4 +25,3 @@ abstract class Celsus_Set_Operation_Abstract {
 		$this->_setInterface = $setInterface;
 	}
 }
-?>

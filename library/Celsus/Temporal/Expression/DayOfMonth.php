@@ -56,5 +56,3 @@ class Celsus_Temporal_Expression_DayOfMonth implements Celsus_Temporal_Expressio
 		return ((date('t', $timestamp) - date('j', $timestamp)) + 1) == abs($this->_day);
 	}
 }
-
-?>

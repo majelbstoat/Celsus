@@ -94,9 +94,9 @@ class Celsus_Routing {
 	 * Clears the stored routes.  Primary used for testing.
 	 */
 	public static function clearRoutes() {
-		self::$_routeMap = null;
-		self::$_routeConfigs = null;
-		self::$_routeObjects = null;
+		self::$_routeMap = array();
+		self::$_routeConfigs = array();
+		self::$_routes = array();
 	}
 
 	/**

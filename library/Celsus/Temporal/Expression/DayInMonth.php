@@ -98,5 +98,3 @@ class Celsus_Temporal_Expression_DayInMonth implements Celsus_Temporal_Expressio
 		return $this->_dayMatches($date) && $this->_weekMatches($date);
 	}
 }
-
-?>

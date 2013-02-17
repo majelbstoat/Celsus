@@ -25,5 +25,3 @@ class Celsus_Set_Operation_Union extends Celsus_Set_Operation_Collection {
 		return false;
 	}
 }
-
-?>
