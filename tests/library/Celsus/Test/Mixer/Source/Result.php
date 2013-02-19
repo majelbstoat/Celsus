@@ -1,6 +1,6 @@
 <?php
 
-class Celsus_Test_Mixer_SourceResult {
+class Celsus_Test_Mixer_Source_Result {
 
 	/**
 	 * Helper method to help generate dummy source result sets from simple definitions.
@@ -15,14 +15,13 @@ class Celsus_Test_Mixer_SourceResult {
 	 *
 	 * @param array $sourceDefinition
 	 */
-	public static function generateSimpleSet($sourceDefinition, $initialConfidence = 100, $confidenceStep = 1) {
+	public static function generateSimpleResultSet($sourceDefinition, $initialConfidence = 100, $confidenceStep = 1) {
 
 		$return = array();
 		foreach ($sourceDefinition as $sourceName => $desiredResults) {
-			$results = array();
 			$confidence = $initialConfidence;
 			foreach ($desiredResults as $desiredResult) {
-				$results[] = new Celsus_Mixer_Source_Result(array(
+				$return[] = new Celsus_Mixer_Source_Result(array(
 					'confidence' => $confidence,
 					'label' => $desiredResult,
 					'result' => null,
@@ -30,7 +29,6 @@ class Celsus_Test_Mixer_SourceResult {
 				));
 				$confidence -= $confidenceStep;
 			}
-			$return[$sourceName] = $results;
 		}
 
 		return $return;
@@ -46,5 +44,13 @@ class Celsus_Test_Mixer_SourceResult {
 		return array_reduce($sourceData, function($partial, $item) {
 			return $partial + count($item);
 		}, 0);
+	}
+
+	public static function extractLabelsToArray($results) {
+		$return = array();
+		foreach ($results as $result) {
+			$return[] = $result->label;
+		}
+		return $return;
 	}
 }

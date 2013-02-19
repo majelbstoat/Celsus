@@ -1,0 +1,4 @@
+Celsus_Mixer
+Multiple operations should be supported.
+The result of mixing should be usable as a mixing source.
+When requesting an exact count, a backfill method should be specified.

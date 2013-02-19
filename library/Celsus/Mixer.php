@@ -11,14 +11,96 @@
  */
 class Celsus_Mixer {
 
-	protected $_sourceParent;
+	protected $_operators = array();
 
-	public function __construct(Celsus_Mixer_Source_Interface $sourceParent) {
+	protected $_sources = null;
+
+	protected $_sourceParent = null;
+
+	protected $_sourceTypes = null;
+
+	public function __construct($sourceParent) {
+		$interfaces = class_implements($sourceParent);
+
+		if (!in_array('Celsus_Mixer_Source_Interface', $interfaces)) {
+			throw new Celsus_Exception("$sourceParent must implement Celsus_Mixer_Source_Interface", Celsus_Http::INTERNAL_SERVER_ERROR);
+		}
 		$this->_sourceParent = $sourceParent;
 	}
 
-	public function get($count) {
+	public function setSourceTypes(array $sourceTypes) {
+		$sourceParent = $this->_sourceParent;
+		$availableSourceTypes = $sourceParent::getTypes();
+		$sourceTypeMap = array_flip($availableSourceTypes);
 
+		foreach ($sourceTypes as $sourceType) {
+			if (!isset($sourceTypeMap[$sourceType])) {
+				$class = get_class($this->_sourceParent);
+				throw new Celsus_Exception("$sourceType is not a valid source type for $class", Celsus_Http::INTERNAL_SERVER_ERROR);
+			}
+		}
+
+		$this->_sourceTypes = $sourceTypes;
+	}
+
+	public function getSourceTypes() {
+		if (null === $this->_sourceTypes) {
+			$sourceParent = $this->_sourceParent;
+			$this->_sourceTypes = $sourceParent::getTypes();
+		}
+		return $this->_sourceTypes;
+	}
+
+	public function setSources($sources) {
+		foreach ($sources as $source) {
+			if (!($source instanceof Celsus_Mixer_Source_Interface)) {
+				throw new Celsus_Exception("$source is not a valid source", Celsus_Http::INTERNAL_SERVER_ERROR);
+			}
+		}
+
+		$this->_sources = $sources;
+		return $this;
+	}
+
+	public function getSources() {
+		if (null === $this->_sources) {
+			$sourceTypes = $this->_getSourceTypes();
+		}
+
+		return $this->_sources;
+	}
+
+	public function addOperator($operator) {
+		$this->_operators[] = $operator;
+		return $this;
+	}
+
+	public function addOperators(array $operators) {
+		$this->_operators = array_merge($this->_operators, $operators);
+		return $this;
+	}
+
+	public function setOperators(array $operators) {
+		$this->_operators = $operators;
+		return $this;
+	}
+
+	public function mix($count) {
+
+		// First, get the sources that we will be pulling from.
+		$sources = $this->getSources();
+
+		$sourceResults = array();
+
+		foreach ($sources as $sourceName => $source) {
+			$sourceResults = array_merge($sourceResults, $source->yield($count));
+		}
+
+		foreach ($this->_operators as $operator) {
+			$sourceResults = $operator->process($sourceResults);
+		}
+
+		return $sourceResults;
 	}
 
 	// Source Selection - from the mixing strategy.  All by default (check source parent), or inclusion, or exclusion.
@@ -28,19 +110,19 @@ class Celsus_Mixer {
 	//    === all the sources guarantee to return their results in confidence order,
 	//        as a bare array with plain incrementing integer keys.
 
-	// Boosting - according to mixing strategy.  Potentially assign a boosting multiplier for each strategy.
+	// Boosting
 
-	// Deduplicating - this mixer.
+	// Deduplicating
 
-	// Ranking - this mixer
+	// Ranking
 
-	// Combination - according to mixing strategy
+	// Combination
 
-	// Diversity - according to diversity strategy  ?? Difficult
+	// Diversity
 
-	// Backfilling - from designated backfill source.
+	// Backfilling
 
-	// Sampling - from designated sample source
+	// Sampling
 
 	/**
 	 * Quote by jocasa
@@ -103,12 +185,61 @@ function logposition(value) {
 }
 
 /**
+ * Diversity Strategies
+ *
+ *
+ *
+ * DiversityByValue: Application specific.
+ */
+
+/**
  * Combination strategies:
  *
- * Simple: Take all of A, and if not finished take all of B, and if not finished take all of C
+ * + Simple: Take all of A, and if not finished take all of B, and if not finished take all of C
  * Decorate Only: Take all the results from source A, replace the source as source B for all items in B that are in A. Repeat for C.
- * Round Robin: Take one from each in turn until full.
+ * + Round Robin: Take one from each in turn until full.
  * Average Confidence: Simple average of confidences for each item.
  * Raw Votes: Each time an item is supplied by a source, increment its count by one.  Probably unbalanced.
  * Summed Confidence: Simply add all the confidences together.
+ *
+ * MinimumConfidence: Take only those that have the minimum required confidence.
+ *
+ *
+ * Facebook	/ Twitter / LinkedIn				Popular
+ * BoostGeneric
+ * SummedConfidence
+ * MinimumConfidence							MinimumConfidence
+ * Diversity By SuperCat
+ *                     \
+ *                     Decorate =>
+ *
+ *
+ * Sources lazily give up their results.
+ *
+ * array(
+ * 	"A" => array(
+ * 		"sources" => array("Facebook", "Twitter", "LinkedIn"),
+ * 		"operations" => array("BoostGeneric", "SummedConfidence", "MinimumConfidence", "Diversity By SuperCat"),
+ * 		"maximum" => 20
+ * 	),
+ * 	"B" => array(
+ * 		"sources" => array("Popular"),
+ * 		"operations" => array("MinimumConfidence"),
+ * 		"maximum" => 60
+ * 	),
+ * 	"C" => array(
+ * 		"sources" => array("A", "B"),
+ * 		"operations" => array("Decorate", "Sampling"),
+ * 		"count" => 60,
+ * 		"backfill" => array("Popular")
+ * 	)
+ * )
+ *
+ * If specify count, must specify backfill.
+ *
+ *
+ *
+ *
+ *
+ *
  */

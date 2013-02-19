@@ -1,4 +1,4 @@
-Celsus_Mixer_CombinationStrategy_Simple
+Celsus_Mixer_Operation_Simple
 Results should be combined using the simple strategy.
 Insufficient results should cause all items to be used.
 Too many results should cause excess results to be discarded.

@@ -17,7 +17,7 @@
  * Defines a standard exception and methods for handling them,
  * based on the the environment.
  *
- * @ingroup Celsus_Auth
+ * @ingroup Celsus_Exception
  */
 class Celsus_Exception extends Exception {
 

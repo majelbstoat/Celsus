@@ -1,4 +1,4 @@
-Celsus_Mixer_CombinationStrategy_RoundRobin
+Celsus_Mixer_Operation_RoundRobin
 Results should be combined using a round robin strategy.
 Insufficient results should cause all items to be used.
 Too many results should cause excess results to be discarded.

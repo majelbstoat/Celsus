@@ -1,12 +1,8 @@
 <?php
 
-class Celsus_Data_Marshal_FacebookDocument implements Celsus_Data_Marshal_Interface {
+class Celsus_Data_Marshal_FacebookDocument extends Celsus_Data_Marshal {
 
 	protected static $_marshalledClass = 'Celsus_Db_Document_Facebook';
-
-	public static function provides() {
-		return self::$_marshalledClass;
-	}
 
 	public static function provide($object) {
 		if (!$object instanceof Celsus_Db_Document_Facebook) {
@@ -26,5 +22,3 @@ class Celsus_Data_Marshal_FacebookDocument implements Celsus_Data_Marshal_Interf
 		return $object->setFromArray($data)->save();
 	}
 }
-
-?>

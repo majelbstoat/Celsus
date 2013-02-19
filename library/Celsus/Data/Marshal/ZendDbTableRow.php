@@ -1,12 +1,8 @@
 <?php
 
-class Celsus_Data_Marshal_ZendDbTableRow  implements Celsus_Data_Marshal_Interface {
+class Celsus_Data_Marshal_ZendDbTableRow extends Celsus_Data_Marshal {
 
 	protected static $_marshalledClass = 'Zend_Db_Table_Row_Abstract';
-
-	public static function provides() {
-		return self::$_marshalledClass;
-	}
 
 	public static function provide($object) {
 		if (!$object instanceof Zend_Db_Table_Row_Abstract) {
@@ -26,5 +22,3 @@ class Celsus_Data_Marshal_ZendDbTableRow  implements Celsus_Data_Marshal_Interfa
 		return $object->setFromArray($data)->save();
 	}
 }
-
-?>

@@ -16,7 +16,7 @@ class Celsus_Data_Object extends Celsus_Data {
 	 *
 	 * @var mixed
 	 */
-	protected $_data = array();
+	protected $_data = null;
 
 	/**
 	 * The default filter to be used for new objects.
@@ -96,6 +96,7 @@ class Celsus_Data_Object extends Celsus_Data {
 	}
 
 	protected function _setData($data) {
+
 		if (is_array($data)) {
 			// Simplified object mode.
 			$this->_data = $data;
