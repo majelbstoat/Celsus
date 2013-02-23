@@ -48,7 +48,7 @@ abstract class Celsus_Test_Mixer_Source extends Celsus_Mixer_Source {
 			$results = array();
 			$source = self::getSource($sourceType);
 			foreach ($desiredResults as $desiredResult) {
-				$results[] = new Celsus_Mixer_Source_Result(array(
+				$results[] = new Celsus_Mixer_Component(array(
 					'confidence' => $confidence,
 					'label' => $desiredResult,
 					'result' => null,

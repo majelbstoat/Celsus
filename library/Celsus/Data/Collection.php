@@ -14,9 +14,9 @@ class Celsus_Data_Collection extends Celsus_Data implements Iterator, Countable,
 
 	protected $_objects = array();
 
-	public function __construct($objects) {
-		foreach ($objects as $object) {
-			$this->_objects[] = new $this->_objectClass($object);
+	public function __construct($items) {
+		foreach ($items as $item) {
+			$this->_objects[] = new $this->_objectClass($item);
 			$this->_count++;
 		}
 	}

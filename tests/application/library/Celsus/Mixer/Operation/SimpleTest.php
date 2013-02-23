@@ -13,14 +13,14 @@ class Celsus_Mixer_Operation_SimpleTest extends PHPUnit_Framework_TestCase {
 			"C" => array("H", "I", "J")
 		);
 
-		$sourceData = Celsus_Test_Mixer_Source_Result::generateSimpleResultSet($sourceDefinition);
+		$sourceData = Celsus_Test_Mixer_Component::generateSimpleComponentGroup($sourceDefinition);
 
 		$expected = array(
 			"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"
 		);
 
 		$results = $operator->process($sourceData);
-		$this->assertSame($expected, Celsus_Test_Mixer_Source_Result::extractLabelsToArray($results));
+		$this->assertSame($expected, Celsus_Test_Mixer_Component::extractLabelsToArray($results));
 	}
 
 	public function testInsufficientResultsShouldCauseAllItemsToBeUsed() {
@@ -32,14 +32,14 @@ class Celsus_Mixer_Operation_SimpleTest extends PHPUnit_Framework_TestCase {
 			"C" => array("H", "I", "J")
 		);
 
-		$sourceData = Celsus_Test_Mixer_Source_Result::generateSimpleResultSet($sourceDefinition);
+		$sourceData = Celsus_Test_Mixer_Component::generateSimpleComponentGroup($sourceDefinition);
 
 		$expected = array(
 			"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"
 		);
 
 		$results = $operator->process($sourceData);
-		$this->assertSame($expected, Celsus_Test_Mixer_Source_Result::extractLabelsToArray($results));
+		$this->assertSame($expected, Celsus_Test_Mixer_Component::extractLabelsToArray($results));
 	}
 
 	public function testTooManyResultsShouldCauseExcessResultsToBeDiscarded() {
@@ -51,14 +51,14 @@ class Celsus_Mixer_Operation_SimpleTest extends PHPUnit_Framework_TestCase {
 			"C" => array("H", "I", "J")
 		);
 
-		$sourceData = Celsus_Test_Mixer_Source_Result::generateSimpleResultSet($sourceDefinition);
+		$sourceData = Celsus_Test_Mixer_Component::generateSimpleComponentGroup($sourceDefinition);
 
 		$expected = array(
 			"A", "B", "C", "D", "E"
 		);
 
 		$results = $operator->process($sourceData);
-		$this->assertSame($expected, Celsus_Test_Mixer_Source_Result::extractLabelsToArray($results));
+		$this->assertSame($expected, Celsus_Test_Mixer_Component::extractLabelsToArray($results));
 	}
 
 	public function testSimilarResultsFromDifferentSourcesShouldBeMerged() {
@@ -70,13 +70,13 @@ class Celsus_Mixer_Operation_SimpleTest extends PHPUnit_Framework_TestCase {
 			"C" => array("F", "G", "H", "I", "J")
 		);
 
-		$sourceData = Celsus_Test_Mixer_Source_Result::generateSimpleResultSet($sourceDefinition);
+		$sourceData = Celsus_Test_Mixer_Component::generateSimpleComponentGroup($sourceDefinition);
 
 		$expected = array(
 			"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"
 		);
 
 		$results = $operator->process($sourceData);
-		$this->assertSame($expected, Celsus_Test_Mixer_Source_Result::extractLabelsToArray($results));
+		$this->assertSame($expected, Celsus_Test_Mixer_Component::extractLabelsToArray($results));
 	}
 }

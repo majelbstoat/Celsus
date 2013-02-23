@@ -13,14 +13,14 @@ class Celsus_Mixer_Operation_RoundRobinTest extends PHPUnit_Framework_TestCase {
 			"C" => array("H", "I", "J")
 		);
 
-		$sourceData = Celsus_Test_Mixer_Source_Result::generateSimpleResultSet($sourceDefinition);
+		$sourceData = Celsus_Test_Mixer_Component::generateSimpleComponentGroup($sourceDefinition);
 
 		$expected = array(
 			"A", "E", "H", "B", "F", "I", "C", "G", "J", "D"
 		);
 
 		$results = $operator->process($sourceData);
-		$this->assertSame($expected, Celsus_Test_Mixer_Source_Result::extractLabelsToArray($results));
+		$this->assertSame($expected, Celsus_Test_Mixer_Component::extractLabelsToArray($results));
 	}
 
 	public function testInsufficientResultsShouldCauseAllItemsToBeUsed() {
@@ -32,7 +32,7 @@ class Celsus_Mixer_Operation_RoundRobinTest extends PHPUnit_Framework_TestCase {
 			"C" => array("H", "I", "J")
 		);
 
-		$sourceData = Celsus_Test_Mixer_Source_Result::generateSimpleResultSet($sourceDefinition);
+		$sourceData = Celsus_Test_Mixer_Component::generateSimpleComponentGroup($sourceDefinition);
 
 		$expected = array(
 			"A", "E", "H", "B", "F", "I", "C", "G", "J", "D"
@@ -41,7 +41,7 @@ class Celsus_Mixer_Operation_RoundRobinTest extends PHPUnit_Framework_TestCase {
 		// Test that the available results are combined, and returns what is possible.
 
 		$results = $operator->process($sourceData);
-		$this->assertSame($expected, Celsus_Test_Mixer_Source_Result::extractLabelsToArray($results));
+		$this->assertSame($expected, Celsus_Test_Mixer_Component::extractLabelsToArray($results));
 	}
 
 	public function testTooManyResultsShouldCauseExcessResultsToBeDiscarded() {
@@ -53,7 +53,7 @@ class Celsus_Mixer_Operation_RoundRobinTest extends PHPUnit_Framework_TestCase {
 			"C" => array("H", "I", "J")
 		);
 
-		$sourceData = Celsus_Test_Mixer_Source_Result::generateSimpleResultSet($sourceDefinition);
+		$sourceData = Celsus_Test_Mixer_Component::generateSimpleComponentGroup($sourceDefinition);
 
 		$expected = array(
 			"A", "E", "H", "B", "F"
@@ -62,7 +62,7 @@ class Celsus_Mixer_Operation_RoundRobinTest extends PHPUnit_Framework_TestCase {
 		// Test that the available results are combined, and returns what is possible.
 
 		$results = $operator->process($sourceData);
-		$this->assertSame($expected, Celsus_Test_Mixer_Source_Result::extractLabelsToArray($results));
+		$this->assertSame($expected, Celsus_Test_Mixer_Component::extractLabelsToArray($results));
 	}
 
 	public function testOneSourceHavingLessResultsThanOthersShouldNotCauseIssues() {
@@ -80,14 +80,14 @@ class Celsus_Mixer_Operation_RoundRobinTest extends PHPUnit_Framework_TestCase {
 			"C" => array("G", "H", "I", "J")
 		);
 
-		$sourceData = Celsus_Test_Mixer_Source_Result::generateSimpleResultSet($sourceDefinition);
+		$sourceData = Celsus_Test_Mixer_Component::generateSimpleComponentGroup($sourceDefinition);
 
 		$expected = array(
 			"A", "C", "G", "B", "D", "H", "E", "I", "F", "J"
 		);
 
 		$results = $operator->process($sourceData);
-		$this->assertSame($expected, Celsus_Test_Mixer_Source_Result::extractLabelsToArray($results));
+		$this->assertSame($expected, Celsus_Test_Mixer_Component::extractLabelsToArray($results));
 	}
 
 	public function testSimilarResultsFromDifferentSourcesShouldBeMerged() {
@@ -99,14 +99,14 @@ class Celsus_Mixer_Operation_RoundRobinTest extends PHPUnit_Framework_TestCase {
 			"C" => array("G", "H", "I", "J")
 		);
 
-		$sourceData = Celsus_Test_Mixer_Source_Result::generateSimpleResultSet($sourceDefinition);
+		$sourceData = Celsus_Test_Mixer_Component::generateSimpleComponentGroup($sourceDefinition);
 
 		$expected = array(
 			"A", "C", "G", "B", "D", "H", "I", "J"
 		);
 
 		$results = $operator->process($sourceData);
-		$this->assertSame($expected, Celsus_Test_Mixer_Source_Result::extractLabelsToArray($results));
+		$this->assertSame($expected, Celsus_Test_Mixer_Component::extractLabelsToArray($results));
 	}
 
 	public function testSuppliedResultSetShouldNotBeModified() {
@@ -118,13 +118,13 @@ class Celsus_Mixer_Operation_RoundRobinTest extends PHPUnit_Framework_TestCase {
 			"C" => array("G", "H", "I", "J")
 		);
 
-		$sourceData = Celsus_Test_Mixer_Source_Result::generateSimpleResultSet($sourceDefinition);
+		$sourceData = Celsus_Test_Mixer_Component::generateSimpleComponentGroup($sourceDefinition);
 
-		$expected = Celsus_Test_Mixer_Source_Result::countSources($sourceData);
+		$expected = Celsus_Test_Mixer_Component::countSources($sourceData);
 
 		$results = $operator->process($sourceData);
 
-		$actual = Celsus_Test_Mixer_Source_Result::countSources($sourceData);
+		$actual = Celsus_Test_Mixer_Component::countSources($sourceData);
 
 		$this->assertSame($expected, $actual);
 	}

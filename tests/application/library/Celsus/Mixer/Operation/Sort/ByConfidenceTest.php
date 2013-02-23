@@ -13,13 +13,13 @@ class Celsus_Mixer_Operation_Sort_ByConfidenceTest extends PHPUnit_Framework_Tes
 			"C" => array("H", "I", "J")
 		);
 
-		$sourceData = Celsus_Test_Mixer_Source_Result::generateSimpleResultSet($sourceDefinition, 5, -5);
+		$sourceData = Celsus_Test_Mixer_Component::generateSimpleComponentGroup($sourceDefinition, 5, -5);
 
 		$expected = array(
 			"D", "C", "G", "J", "B", "F", "I", "A", "E", "H"
 		);
 
 		$results = $operator->process($sourceData);
-		$this->assertSame($expected, Celsus_Test_Mixer_Source_Result::extractLabelsToArray($results));
+		$this->assertSame($expected, Celsus_Test_Mixer_Component::extractLabelsToArray($results));
 	}
 }

@@ -8,27 +8,36 @@ abstract class Celsus_Mixer_Operation_Sort extends Celsus_Mixer_Operation {
 		$this->_count = $count;
 	}
 
+	/**
+	 * Sorts the results according to specific criteria.
+	 *
+	 * PHP sort methods are not stable, so we allow specific methods to
+	 * do decorate/sort/undecorate if they want.  Also allows expensive
+	 * compare key operations to be processed once.
+	 *
+	 * @see Celsus_Mixer_Operation_Interface::process()
+	 */
 	public function process($results) {
-		$return = array();
-		$decorated = array();
 
-		// Need to do a pseudo-Schwartzian Transform as PHP sort methods are not stable.
-		foreach ($results as $i => $result) {
-			$decorated[] = array($i, $result);
-		}
+		$decorated = $this->_decorate($results);
 
 		uasort($decorated, array($this, '_compare'));
 
-		// Undecorate.
-		foreach ($decorated as $decoratedItem) {
-			$return[] = $decoratedItem[1];
-		}
+		$return = $this->_undecorate($decorated);
 
 		if (null !== $this->_count) {
 			$return = array_slice($return, 0, $this->_count);
 		}
 
 		return $return;
+	}
+
+	protected function _decorate($results) {
+		return $results;
+	}
+
+	protected function _undecorate($decorated) {
+		return $decorated;
 	}
 
 	abstract protected function _compare(array $a, array $b);

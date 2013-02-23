@@ -13,7 +13,7 @@ class Celsus_Mixer {
 
 	protected $_operators = array();
 
-	protected $_sources = null;
+	protected $_sources = array();
 
 	protected $_sourceParent = null;
 
@@ -62,10 +62,24 @@ class Celsus_Mixer {
 		return $this;
 	}
 
+	public function addSource($source) {
+		$this->_sources[] = $source;
+
+		return $this;
+	}
+
+	public function clearSources() {
+		$this->_sources = array();
+
+		return $this;
+	}
+
 	public function getSources() {
-		if (null === $this->_sources) {
+		if (!$this->_sources) {
 			$sourceTypes = $this->_getSourceTypes();
 		}
+
+		// Get the sources here.
 
 		return $this->_sources;
 	}
@@ -90,17 +104,17 @@ class Celsus_Mixer {
 		// First, get the sources that we will be pulling from.
 		$sources = $this->getSources();
 
-		$sourceResults = array();
+		$results = array();
 
-		foreach ($sources as $sourceName => $source) {
-			$sourceResults = array_merge($sourceResults, $source->yield($count));
+		foreach ($sources as $source) {
+			$results = array_merge($results, $source->yield($count));
 		}
 
 		foreach ($this->_operators as $operator) {
-			$sourceResults = $operator->process($sourceResults);
+			$results = $operator->process($results);
 		}
 
-		return $sourceResults;
+		return new Celsus_Mixer_Component_Group($results);
 	}
 
 	// Source Selection - from the mixing strategy.  All by default (check source parent), or inclusion, or exclusion.
@@ -110,19 +124,6 @@ class Celsus_Mixer {
 	//    === all the sources guarantee to return their results in confidence order,
 	//        as a bare array with plain incrementing integer keys.
 
-	// Boosting
-
-	// Deduplicating
-
-	// Ranking
-
-	// Combination
-
-	// Diversity
-
-	// Backfilling
-
-	// Sampling
 
 	/**
 	 * Quote by jocasa
@@ -213,6 +214,14 @@ function logposition(value) {
  *                     \
  *                     Decorate =>
  *
+ *	// Boosting
+	// Deduplicating
+	// Ranking
+	// Combination
+	// Diversity
+	// Backfilling
+	// Sampling
+
  *
  * Sources lazily give up their results.
  *

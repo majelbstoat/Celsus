@@ -7,9 +7,7 @@
  * permissions to be set as needed.  Data can be read in any number of forms,
  * as long as a formatter exists for that format.
  */
-class Celsus_Data_Object extends Celsus_Data {
-
-	protected static $_marshals = array();
+class Celsus_Data_Object extends Celsus_Data_Struct {
 
 	/**
 	 * The object data in a non-nested assoc array
@@ -68,7 +66,7 @@ class Celsus_Data_Object extends Celsus_Data {
 	 */
 	public function __construct($data) {
 		$this->_filter = static::$_defaultFilter;
-		$this->_setData($data);
+		$this->_importData($data);
 	}
 
 	/**
@@ -80,56 +78,14 @@ class Celsus_Data_Object extends Celsus_Data {
 		return empty($this->_data);
 	}
 
-	public static function addMarshal($marshal) {
-		if (!in_array('Celsus_Data_Marshal_Interface', class_implements($marshal, true))) {
-			throw new Celsus_Exception("$marshal must implement Celsus_Data_Marshal_Interface.");
-		}
-		$marshalledClass = call_user_func(array($marshal, 'provides'));
-		self::$_marshals[$marshalledClass] = $marshal;
-	}
+	protected function _importData($data) {
 
-	public static function setMarshals(array $marshals) {
-		self::$_marshals = array();
-		foreach($marshals as $marshal) {
-			self::addMarshal($marshal);
-		}
-	}
-
-	protected function _setData($data) {
-
-		if (is_array($data)) {
-			// Simplified object mode.
-			$this->_data = $data;
-		} elseif (is_object($data)) {
-			$provided = false;
-			foreach(self::$_marshals as $provided => $marshal) {
-				if ($provided == get_class($data)) {
-					// We have a provider that can marshal this object.
-					$this->_data = call_user_func(array($marshal, 'provide'), $data);
-					$provided = true;
-					break;
-				}
-			}
-
-			if (!$provided && method_exists($data, "toArray")) {
-				// Final fallback approach - comes from a source that can set the data from an array.
-				$this->_data = $data->toArray();
-			}
-		}
-
-		if (null === $this->_data) {
-			throw new Celsus_Exception("Data must be an array, have a providing marshal, or be an object implementing toArray");
-		}
+		parent::_importData($data);
 
 		$this->_readableFields = null;
 		$this->_writeableFields = null;
-		return $this;
-	}
 
-	public function setFromArray($data) {
-		foreach ($data as $key => $value) {
-			$this->$key = $value;
-		}
+		return $this;
 	}
 
 	/**
@@ -223,6 +179,22 @@ class Celsus_Data_Object extends Celsus_Data {
 	}
 
 	/**
+	 * Returns all the data, subject to the current identity's permissions.
+	 *
+	 * @return array;
+	 */
+	public function getData() {
+		if (null === $this->_readableFields) {
+			$this->_determineReadableFields();
+		}
+		return array_intersect_key($this->_data, array_flip($this->_readableFields));
+	}
+
+	protected function _setData($data) {
+		$this->_data = $data;
+	}
+
+	/**
 	 * Allows simple, secure access to the data.
 	 *
 	 * @param string $field
@@ -274,36 +246,6 @@ class Celsus_Data_Object extends Celsus_Data {
 		$this->_data[$field] = $value;
 		return true;
 	}
-
-	/**
-	 * Merges another Celsus_Data_Object into this one.  The objects must both
-	 * be of the same name.
-	 *
-	 * @param string $field
-	 * @param mixed $value
-	 */
-	public function mergeData(Celsus_Data_Object $new) {
-		$name = $new->getName();
-		$data = $new->toArray();
-		if (isset($data[$name])) {
-			foreach ($data[$name] as $field => $value) {
-				$this->$field = $value;
-			}
-		}
-	}
-
-	/**
-	 * Returns all the data, subject to the current identity's permissions.
-	 *
-	 * @return array;
-	 */
-	public function getData() {
-		if (null === $this->_readableFields) {
-			$this->_determineReadableFields();
-		}
-		return array_intersect_key($this->_data, array_flip($this->_readableFields));
-	}
-
 
 	public function __isset($field) {
 		return isset($this->_data[$field]);
