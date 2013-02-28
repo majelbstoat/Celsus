@@ -12,19 +12,45 @@ abstract class Celsus_Test_Mixer_Source extends Celsus_Mixer_Source {
 		self::SOURCE_TYPE_C
 	);
 
-	protected $_desiredResults = array();
+	protected $_defaultConfig = array(
+		'count' => null,
+		'exclude' => null
+	);
 
-	public static function getSource($type) {
+	/**
+	 * The results that will be yielded from this dummy source.
+	 *
+	 * @var Celsus_Mixer_Component_Group $_desiredResults
+	 */
+	protected $_desiredResults = null;
+
+	protected static $_defaultResults = array();
+
+	public static function getSource($type, array $config = array()) {
 		$classname = get_called_class() . '_' . $type;
-		return new $classname();
+		return new $classname($config);
 	}
 
-	public function setDesiredResults(array $desiredResults) {
+	public function setDesiredResults(Celsus_Mixer_Component_Group $desiredResults) {
 		$this->_desiredResults = $desiredResults;
 	}
 
-	public function yield($maximum) {
-		return array_slice($this->_desiredResults, 0, $maximum);
+	public function yield(array $config = array()) {
+		$this->configure($config);
+
+		$results = $this->_desiredResults ?: Celsus_Test_Mixer_Component::generateSimpleComponentGroup(array(
+			$this->_type => static::$_defaultResults
+		));
+
+		if ($this->_config['count']) {
+			$results = $results->slice($this->_config['count']);
+		}
+
+		return $results;
+	}
+
+	public static function setDefaultResults($defaultResults) {
+		static::$_defaultResults = $defaultResults;
 	}
 
 	/**
@@ -40,7 +66,7 @@ abstract class Celsus_Test_Mixer_Source extends Celsus_Mixer_Source {
 	 *
 	 * @param array $sourceDefinition
 	 */
-	public static function generateSimpleSourceSet($sourceDefinition, $initialConfidence = 100, $confidenceStep = 1) {
+	public static function generateSimpleComponentGroupSet($sourceDefinition, $initialConfidence = 100, $confidenceStep = 1) {
 
 		$sources = array();
 		foreach ($sourceDefinition as $sourceType => $desiredResults) {
@@ -56,7 +82,7 @@ abstract class Celsus_Test_Mixer_Source extends Celsus_Mixer_Source {
 				));
 				$confidence -= $confidenceStep;
 			}
-			$source->setDesiredResults($results);
+			$source->setDesiredResults(new Celsus_Mixer_Component_Group($results));
 			$sources[] = $source;
 		}
 

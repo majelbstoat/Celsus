@@ -7,18 +7,18 @@
  *
  * @author majelbstoat
  */
-class Celsus_Mixer_Operation_Simple extends Celsus_Mixer_Operation {
+class Celsus_Mixer_Operation_Select_Simple extends Celsus_Mixer_Operation {
 
-	protected $_count;
+	protected $_defaultConfig = array(
+		'count' => null
+	);
 
-	public function __construct($count) {
-		$this->_count = $count;
-	}
+	protected $_name = 'selectSimple';
 
-	public function process($results) {
+	protected function _process(Celsus_Mixer_Component_Group $results) {
 
 		$returnCount = 0;
-		$return = array();
+		$return = new Celsus_Mixer_Component_Group();
 		$processedItems = array();
 
 		foreach ($results as $result) {
@@ -28,7 +28,7 @@ class Celsus_Mixer_Operation_Simple extends Celsus_Mixer_Operation {
 				$returnCount++;
 			}
 
-			if ($returnCount == $this->_count) {
+			if ($this->_config['count'] && ($returnCount === $this->_config['count'])) {
 				break;
 			}
 		}

@@ -14,6 +14,7 @@ class Celsus_Test_Mixer_Component {
 	 * );
 	 *
 	 * @param array $sourceDefinition
+	 * @return Celsus_Mixer_Component_Group
 	 */
 	public static function generateSimpleComponentGroup($sourceDefinition, $initialConfidence = 100, $confidenceStep = 1) {
 
@@ -37,8 +38,8 @@ class Celsus_Test_Mixer_Component {
 	/**
 	 * Counts the total number of sources in a component group, regardless of duplicates.
 	 *
-	 * @param Celsus_Mixer_SourceResult[] $sourceData
-	 * @return mixed|number
+	 * @param Celsus_Mixer_Component_Group[] $sourceData
+	 * @return int
 	 */
 	public static function countSources($sourceData) {
 		$count = 0;

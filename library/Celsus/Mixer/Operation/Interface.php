@@ -2,6 +2,10 @@
 
 interface Celsus_Mixer_Operation_Interface {
 
-	public function process($results);
+	/**
+	 * @param Celsus_Mixer_Component_Group $results
+	 * @return Celsus_Mixer_Component_Group
+	 */
+	public function process(Celsus_Mixer_Component_Group $results);
 
 }

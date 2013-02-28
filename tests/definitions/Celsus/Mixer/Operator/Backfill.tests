@@ -1,0 +1,8 @@
+Celsus_Mixer_Operation_Backfill
+Results should be backfilled using the specified sources.
+If there are already enough results, the backfill sources should not have to yield anything.
+Should be able to specify a number of retry attempts if the first backfill doesn't yield enough results.
+Attempting to process with no specified minimum should throw an exception.
+Attempting to process without at least one source should throw an exception.
+Should be able to specify more than one source.
+Backfilling should not introduce duplicates.

@@ -1,0 +1,3 @@
+Celsus_Mixer_Operation_RoundRobin_ByPreviousOperation
+Results should be selected based on prior operations.
+Should be able to define a step program to vary the amount taken from each source.

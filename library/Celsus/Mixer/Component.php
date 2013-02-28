@@ -32,4 +32,11 @@ class Celsus_Mixer_Component extends Celsus_Data_Struct {
 	 */
 	public $source = null;
 
+	/**
+	 * The operations that took place on this component.
+	 *
+	 * @var array $operations
+	 */
+	public $operations = array();
+
 }

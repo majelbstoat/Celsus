@@ -1,7 +1,8 @@
-Celsus_Mixer_Operation_RoundRobin
+Celsus_Mixer_Operation_RoundRobin_BySource
 Results should be combined using a round robin strategy.
 Insufficient results should cause all items to be used.
 Too many results should cause excess results to be discarded.
 One source having less results than others should not cause issues.
 Similar results from different sources should be merged.
 Supplied result set should not be modified.
+Should be able to define a step program to vary the amount taken from each source.

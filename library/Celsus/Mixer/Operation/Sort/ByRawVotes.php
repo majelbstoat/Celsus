@@ -7,15 +7,19 @@
  *
  * @author majelbstoat
  */
-class Celsus_Mixer_Operation_Sort_ByConfidence extends Celsus_Mixer_Operation_Sort_ByInteger {
+class Celsus_Mixer_Operation_Sort_ByRawVotes extends Celsus_Mixer_Operation_Sort_ByInteger {
 
-	protected $_name = 'sortByConfidence';
+	protected $_name = 'sortByRawVotes';
 
 	public function decorate($results) {
 		$decorated = array();
 
 		foreach ($results as $i => $result) {
-			$decorated[] = array($i, $result->confidence, $result);
+			if (isset($decorated[$result->label])) {
+				$decorated[$result->label][1]++;
+			} else {
+				$decorated[$result->label] = array($i, 1, $result);
+			}
 		}
 
 		return $decorated;

@@ -15,6 +15,8 @@ class Celsus_Mixer {
 
 	protected $_sources = array();
 
+	protected $_sourceConfiguration = array();
+
 	protected $_sourceParent = null;
 
 	protected $_sourceTypes = null;
@@ -46,24 +48,28 @@ class Celsus_Mixer {
 	public function getSourceTypes() {
 		if (null === $this->_sourceTypes) {
 			$sourceParent = $this->_sourceParent;
-			$this->_sourceTypes = $sourceParent::getTypes();
+			$sourceTypes = $sourceParent::getTypes();
+			$this->_sourceTypes = array_combine($sourceTypes, $sourceTypes);
 		}
 		return $this->_sourceTypes;
 	}
 
 	public function setSources($sources) {
+		$this->clearSources();
 		foreach ($sources as $source) {
-			if (!($source instanceof Celsus_Mixer_Source_Interface)) {
-				throw new Celsus_Exception("$source is not a valid source", Celsus_Http::INTERNAL_SERVER_ERROR);
-			}
+			$this->addSource($source);
 		}
-
-		$this->_sources = $sources;
 		return $this;
 	}
 
-	public function addSource($source) {
-		$this->_sources[] = $source;
+	public function addSource(Celsus_Mixer_Source_Interface $source) {
+		$sourceTypes = $this->getSourceTypes();
+		$class = 'Celsus_Mixer_Component_Group';
+		if (!($source instanceof $this->_sourceParent) && !($source instanceof $class)) {
+			throw new Celsus_Exception("$source is not a valid source", Celsus_Http::INTERNAL_SERVER_ERROR);
+		}
+
+		$this->_sources[$source->getType()] = $source;
 
 		return $this;
 	}
@@ -76,12 +82,24 @@ class Celsus_Mixer {
 
 	public function getSources() {
 		if (!$this->_sources) {
-			$sourceTypes = $this->_getSourceTypes();
+			// We haven't directly specified any sources, so load all of them specified on the source parent.
+			$sourceTypes = $this->getSourceTypes();
+
+			$sourceParent = $this->_sourceParent;
+			foreach ($sourceTypes as $sourceType) {
+				$config = isset($this->_sourceConfiguration[$sourceType]) ? $this->_sourceConfiguration[$sourceType] : array();
+				$source = $sourceParent::getSource($sourceType, $config);
+				$this->_sources[$sourceType] = $source;
+			}
 		}
 
-		// Get the sources here.
-
 		return $this->_sources;
+	}
+
+	public function configureSource($sourceType, $config) {
+		$this->_sourceConfiguration[$sourceType] = $config;
+
+		return $this;
 	}
 
 	public function addOperator($operator) {
@@ -99,156 +117,59 @@ class Celsus_Mixer {
 		return $this;
 	}
 
-	public function mix($count) {
+	public function mix() {
 
 		// First, get the sources that we will be pulling from.
 		$sources = $this->getSources();
 
-		$results = array();
+		$results = new Celsus_Mixer_Component_Group();
 
 		foreach ($sources as $source) {
-			$results = array_merge($results, $source->yield($count));
+			$results = $results->append($source->yield());
 		}
 
 		foreach ($this->_operators as $operator) {
 			$results = $operator->process($results);
 		}
 
-		return new Celsus_Mixer_Component_Group($results);
+		$hash = $this->_hash();
+
+		$results->setType($hash)
+			->noteOperation($hash);
+
+		return $results;
 	}
 
-	// Source Selection - from the mixing strategy.  All by default (check source parent), or inclusion, or exclusion.
-
-	// Weighing - from the sources themselves.
-
-	//    === all the sources guarantee to return their results in confidence order,
-	//        as a bare array with plain incrementing integer keys.
-
-
 	/**
-	 * Quote by jocasa
-Hi!
-
-I'm making a computer program that represents some quantities in a graph in this way:
-
-x'i=(xi-xmin)/(xmax-xmin)
-
-so that the possible values of x range from 0 to 1. This is a linear scale. I want to do the same with the logarithmic values of xi. That is, I want to implement a log scale in my graphs, also in the range from 0 to 1.
-
-Can anyone tell me how to do it?
-
-Thanks!
-I think this will work:
-
-x'i = (log(xi)-log(xmin)) / (log(xmax)-log(xmin))
-As a test, we can see that if xmin,max are 1 and 100,
-then xi=10 gives x'i=0.5. As it should, since 10 is halfway between 1 and 100 on a log scale.
-
-----
-
-function logslider(position) {
-  // position will be between 0 and 100
-  var minp = 0;
-  var maxp = 100;
-
-  // The result should be between 100 an 10000000
-  var minv = Math.log(100);
-  var maxv = Math.log(10000000);
-
-  // calculate adjustment factor
-  var scale = (maxv-minv) / (maxp-minp);
-
-  return Math.exp(minv + scale*(position-minp));
-}
-The resulting values match a logarithmic scale:
-
-js> logslider(0);
-100.00000000000004
-js> logslider(10);
-316.22776601683825
-js> logslider(20);
-1000.0000000000007
-js> logslider(40);
-10000.00000000001
-js> logslider(60);
-100000.0000000002
-js> logslider(100);
-10000000.000000006
-The reverse function would, with the same definitions for minp, maxp, minv, maxv and scale, calculate a slider position from a value like this:
-
-function logposition(value) {
-   // set minv, ... like above
-   // ...
-   return (Math.log(value)-minv) / scale + minp;
-}
+	 * Computes a reasonably unique 7 byte hash of the parameters used for mixing.
+	 *
+	 * This is not for security purposes, but to allow the results of mixing
+	 * to be used as the input to a secondary mix, without colliding with
+	 * another pre-mixed input.
+	 *
+	 * @return string
 	 */
-
+	protected function _hash() {
+		$data = array_keys($this->getSources());
+		foreach ($this->_operators as $operator) {
+			$data[] = get_class($operator);
+		}
+		return substr(sha1(implode(":", $data)), 0, 7);
+	}
 }
-
-/**
- * Diversity Strategies
- *
- *
- *
- * DiversityByValue: Application specific.
- */
 
 /**
  * Combination strategies:
  *
- * + Simple: Take all of A, and if not finished take all of B, and if not finished take all of C
  * Decorate Only: Take all the results from source A, replace the source as source B for all items in B that are in A. Repeat for C.
- * + Round Robin: Take one from each in turn until full.
- * Average Confidence: Simple average of confidences for each item.
- * Raw Votes: Each time an item is supplied by a source, increment its count by one.  Probably unbalanced.
  * Summed Confidence: Simply add all the confidences together.
- *
  * MinimumConfidence: Take only those that have the minimum required confidence.
  *
- *
- * Facebook	/ Twitter / LinkedIn				Popular
- * BoostGeneric
- * SummedConfidence
- * MinimumConfidence							MinimumConfidence
- * Diversity By SuperCat
- *                     \
- *                     Decorate =>
- *
- *	// Boosting
-	// Deduplicating
-	// Ranking
-	// Combination
-	// Diversity
-	// Backfilling
-	// Sampling
-
- *
- * Sources lazily give up their results.
- *
- * array(
- * 	"A" => array(
- * 		"sources" => array("Facebook", "Twitter", "LinkedIn"),
- * 		"operations" => array("BoostGeneric", "SummedConfidence", "MinimumConfidence", "Diversity By SuperCat"),
- * 		"maximum" => 20
- * 	),
- * 	"B" => array(
- * 		"sources" => array("Popular"),
- * 		"operations" => array("MinimumConfidence"),
- * 		"maximum" => 60
- * 	),
- * 	"C" => array(
- * 		"sources" => array("A", "B"),
- * 		"operations" => array("Decorate", "Sampling"),
- * 		"count" => 60,
- * 		"backfill" => array("Popular")
- * 	)
- * )
- *
- * If specify count, must specify backfill.
- *
- *
- *
- *
- *
- *
- */
+ *	//   Boosting
+	//   Deduplicating
+	//    Ranking
+	// + Combination
+	//   Diversity
+	// + Backfilling
+	//   Sampling
+*/

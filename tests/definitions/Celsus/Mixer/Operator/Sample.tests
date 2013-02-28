@@ -1,0 +1,7 @@
+Celsus_Mixer_Operation_Sample
+Sampled results should be mixed in using the specified sources.
+Attempting to process without at least one source should throw an exception.
+At least one result should be sampled in.
+Specifying a sampling rate higher than 100 should throw an exception.
+Should be able to specify more than one source.
+Attempting to process with no specified sample rate should throw an exception.

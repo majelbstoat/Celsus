@@ -1,11 +1,11 @@
 <?php
 
-class Celsus_Mixer_Operation_SimpleTest extends PHPUnit_Framework_TestCase {
+class Celsus_Mixer_Operation_Select_SimpleTest extends PHPUnit_Framework_TestCase {
 
 	// Tests
 
 	public function testResultsShouldBeCombinedUsingTheSimpleStrategy() {
-		$operator = new Celsus_Mixer_Operation_Simple(10);
+		$operator = new Celsus_Mixer_Operation_Select_Simple();
 
 		$sourceDefinition = array(
 			"A" => array("A", "B", "C", "D"),
@@ -24,7 +24,9 @@ class Celsus_Mixer_Operation_SimpleTest extends PHPUnit_Framework_TestCase {
 	}
 
 	public function testInsufficientResultsShouldCauseAllItemsToBeUsed() {
-		$operator = new Celsus_Mixer_Operation_Simple(20);
+		$operator = new Celsus_Mixer_Operation_Select_Simple(array(
+			'count' => 20
+		));
 
 		$sourceDefinition = array(
 			"A" => array("A", "B", "C", "D"),
@@ -43,7 +45,9 @@ class Celsus_Mixer_Operation_SimpleTest extends PHPUnit_Framework_TestCase {
 	}
 
 	public function testTooManyResultsShouldCauseExcessResultsToBeDiscarded() {
-		$operator = new Celsus_Mixer_Operation_Simple(5);
+		$operator = new Celsus_Mixer_Operation_Select_Simple(array(
+			'count' => 5
+		));
 
 		$sourceDefinition = array(
 			"A" => array("A", "B", "C", "D"),
@@ -62,7 +66,9 @@ class Celsus_Mixer_Operation_SimpleTest extends PHPUnit_Framework_TestCase {
 	}
 
 	public function testSimilarResultsFromDifferentSourcesShouldBeMerged() {
-		$operator = new Celsus_Mixer_Operation_Simple(10);
+		$operator = new Celsus_Mixer_Operation_Select_Simple(array(
+			'count' => 10
+		));
 
 		$sourceDefinition = array(
 			"A" => array("A", "B", "C", "D"),

@@ -1,11 +1,11 @@
 <?php
 
-class Celsus_Mixer_Operation_RoundRobinTest extends PHPUnit_Framework_TestCase {
+class Celsus_Mixer_Operation_RoundRobin_BySourceTest extends PHPUnit_Framework_TestCase {
 
 	// Tests
 
 	public function testResultsShouldBeCombinedUsingARoundRobinStrategy() {
-		$operator = new Celsus_Mixer_Operation_RoundRobin(10);
+		$operator = new Celsus_Mixer_Operation_RoundRobin_BySource();
 
 		$sourceDefinition = array(
 			"A" => array("A", "B", "C", "D"),
@@ -20,11 +20,14 @@ class Celsus_Mixer_Operation_RoundRobinTest extends PHPUnit_Framework_TestCase {
 		);
 
 		$results = $operator->process($sourceData);
+		$this->assertSame('Celsus_Mixer_Component_Group', get_class($results));
 		$this->assertSame($expected, Celsus_Test_Mixer_Component::extractLabelsToArray($results));
 	}
 
 	public function testInsufficientResultsShouldCauseAllItemsToBeUsed() {
-		$operator = new Celsus_Mixer_Operation_RoundRobin(20);
+		$operator = new Celsus_Mixer_Operation_RoundRobin_BySource(array(
+			'count' => 20
+		));
 
 		$sourceDefinition = array(
 			"A" => array("A", "B", "C", "D"),
@@ -45,7 +48,9 @@ class Celsus_Mixer_Operation_RoundRobinTest extends PHPUnit_Framework_TestCase {
 	}
 
 	public function testTooManyResultsShouldCauseExcessResultsToBeDiscarded() {
-		$operator = new Celsus_Mixer_Operation_RoundRobin(5);
+		$operator = new Celsus_Mixer_Operation_RoundRobin_BySource(array(
+			'count' => 5
+		));
 
 		$sourceDefinition = array(
 			"A" => array("A", "B", "C", "D"),
@@ -66,7 +71,9 @@ class Celsus_Mixer_Operation_RoundRobinTest extends PHPUnit_Framework_TestCase {
 	}
 
 	public function testOneSourceHavingLessResultsThanOthersShouldNotCauseIssues() {
-		$operator = new Celsus_Mixer_Operation_RoundRobin(10);
+		$operator = new Celsus_Mixer_Operation_RoundRobin_BySource(array(
+			'count' => 10
+		));
 
 		$sourceA = array("A", "B");
 		$sourceB = array("C", "D", "E", "F");
@@ -91,7 +98,9 @@ class Celsus_Mixer_Operation_RoundRobinTest extends PHPUnit_Framework_TestCase {
 	}
 
 	public function testSimilarResultsFromDifferentSourcesShouldBeMerged() {
-		$operator = new Celsus_Mixer_Operation_RoundRobin(10);
+		$operator = new Celsus_Mixer_Operation_RoundRobin_BySource(array(
+			'count' => 10
+		));
 
 		$sourceDefinition = array(
 			"A" => array("A", "B"),
@@ -110,7 +119,9 @@ class Celsus_Mixer_Operation_RoundRobinTest extends PHPUnit_Framework_TestCase {
 	}
 
 	public function testSuppliedResultSetShouldNotBeModified() {
-		$operator = new Celsus_Mixer_Operation_RoundRobin(10);
+		$operator = new Celsus_Mixer_Operation_RoundRobin_BySource(array(
+			'count' => 10
+		));
 
 		$sourceDefinition = array(
 			"A" => array("A", "B"),
@@ -127,5 +138,31 @@ class Celsus_Mixer_Operation_RoundRobinTest extends PHPUnit_Framework_TestCase {
 		$actual = Celsus_Test_Mixer_Component::countSources($sourceData);
 
 		$this->assertSame($expected, $actual);
+	}
+
+	public function testShouldBeAbleToDefineAStepProgramToVaryTheAmountTakenFromEachSource() {
+		$operator = new Celsus_Mixer_Operation_RoundRobin_BySource(array(
+			'steps' => array(
+				Celsus_Test_Mixer_Source::SOURCE_TYPE_A => 2,
+				Celsus_Test_Mixer_Source::SOURCE_TYPE_B => 1,
+				Celsus_Test_Mixer_Source::SOURCE_TYPE_C => 1
+			)
+		));
+
+		$sourceDefinition = array(
+			"A" => array("A", "B", "C", "D"),
+			"B" => array("E", "F", "G"),
+			"C" => array("H", "I", "J")
+		);
+
+		$sourceData = Celsus_Test_Mixer_Component::generateSimpleComponentGroup($sourceDefinition);
+
+		$expected = array(
+			"A", "B", "E", "H", "C", "D", "F", "I", "G", "J"
+		);
+
+		$results = $operator->process($sourceData);
+		$this->assertSame('Celsus_Mixer_Component_Group', get_class($results));
+		$this->assertSame($expected, Celsus_Test_Mixer_Component::extractLabelsToArray($results));
 	}
 }

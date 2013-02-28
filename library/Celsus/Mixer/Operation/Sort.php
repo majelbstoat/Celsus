@@ -2,11 +2,13 @@
 
 abstract class Celsus_Mixer_Operation_Sort extends Celsus_Mixer_Operation {
 
-	protected $_count = null;
+	const SORT_HIGHER = 1;
+	const SORT_LOWER = -1;
 
-	public function __construct($count = null) {
-		$this->_count = $count;
-	}
+	protected $_defaultConfig = array(
+		'count' => null,
+		'direction' => SORT_DESC
+	);
 
 	/**
 	 * Sorts the results according to specific criteria.
@@ -17,28 +19,27 @@ abstract class Celsus_Mixer_Operation_Sort extends Celsus_Mixer_Operation {
 	 *
 	 * @see Celsus_Mixer_Operation_Interface::process()
 	 */
-	public function process($results) {
+	protected function _process(Celsus_Mixer_Component_Group $results) {
 
-		$decorated = $this->_decorate($results);
+		$results->sort(array($this, 'compare'), array($this, 'decorate'), array($this, 'undecorate'));
 
-		uasort($decorated, array($this, '_compare'));
-
-		$return = $this->_undecorate($decorated);
-
-		if (null !== $this->_count) {
-			$return = array_slice($return, 0, $this->_count);
+		if ($this->_config['count']) {
+			$results = $results->slice($this->_config['count']);
 		}
 
-		return $return;
-	}
-
-	protected function _decorate($results) {
 		return $results;
 	}
 
-	protected function _undecorate($decorated) {
+	public function decorate($results) {
+		return $results;
+	}
+
+	/**
+	 * @param array $decorated
+	 */
+	public function undecorate($decorated) {
 		return $decorated;
 	}
 
-	abstract protected function _compare(array $a, array $b);
+	abstract public function compare(array $a, array $b);
 }
