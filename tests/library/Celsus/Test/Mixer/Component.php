@@ -26,7 +26,7 @@ class Celsus_Test_Mixer_Component {
 					'confidence' => $confidence,
 					'label' => $desiredResult,
 					'result' => null,
-					'source' => $sourceName
+					'sources' => array($sourceName)
 				));
 				$confidence -= $confidenceStep;
 			}

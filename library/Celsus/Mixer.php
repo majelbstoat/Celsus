@@ -163,11 +163,10 @@ class Celsus_Mixer {
  *
  * Decorate Only: Take all the results from source A, replace the source as source B for all items in B that are in A. Repeat for C.
  * Summed Confidence: Simply add all the confidences together.
- * MinimumConfidence: Take only those that have the minimum required confidence.
  *
- *	//   Boosting
-	//   Deduplicating
-	//    Ranking
+ *	// + Boosting
+	// + Deduplicating
+	// + Ranking
 	// + Combination
 	//   Diversity
 	// + Backfilling

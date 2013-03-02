@@ -24,22 +24,26 @@ abstract class Celsus_Mixer_Operation implements Celsus_Mixer_Operation_Interfac
 	 * @param array $components
 	 * @param string $field
 	 */
-	protected function _separateByField(Celsus_Mixer_Source_Interface $components, $field) {
+	protected function _separateByField(Celsus_Mixer_Source_Interface $components, $field, $takeAll = true) {
 
 		$return = array();
 
 		foreach ($components as $component) {
-			$key = $component->$field;
+			$keys = $component->$field;
 
-			if (is_array($key)) {
-				$key = reset($key);
+			if (!is_array($keys)) {
+				$keys = array($keys);
+			} elseif (!$takeAll) {
+				$keys = array_slice($keys, 0, 1);
 			}
 
-			if (empty($return[$key])) {
-				$return[$key] = array();
-			}
+			foreach ($keys as $key) {
+				if (empty($return[$key])) {
+					$return[$key] = array();
+				}
 
-			$return[$key][] = $component;
+				$return[$key][] = $component;
+			}
 		}
 
 		return $return;

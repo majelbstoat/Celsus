@@ -19,11 +19,11 @@ class Celsus_Mixer_Component_Group extends Celsus_Data_Collection implements Cel
 	}
 
 	public function extractConfidencesToArray() {
-		$return = array();
-		foreach ($this->_objects as $component) {
-			$return[$component->label] = $component->confidence;
-		}
-		return $return;
+		return $this->_extractFieldByLabelToArray('confidence');
+	}
+
+	public function extractSourcesToArray() {
+		return $this->_extractFieldByLabelToArray('sources');
 	}
 
 	public function setType($type) {
@@ -59,5 +59,13 @@ class Celsus_Mixer_Component_Group extends Celsus_Data_Collection implements Cel
 		return $this->filter(function($component) use ($labels) {
 			return !isset($labels[$component->label]);
 		});
+	}
+
+	protected function _extractFieldByLabelToArray($field) {
+		$return = array();
+		foreach ($this->_objects as $component) {
+			$return[$component->label] = $component->$field;
+		}
+		return $return;
 	}
 }

@@ -20,7 +20,7 @@ class Celsus_Mixer_Operation_RoundRobin_BySourceTest extends PHPUnit_Framework_T
 		);
 
 		$results = $operator->process($sourceData);
-		$this->assertSame('Celsus_Mixer_Component_Group', get_class($results));
+
 		$this->assertSame($expected, $results->extractLabelsToArray());
 	}
 

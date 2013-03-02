@@ -86,7 +86,7 @@ abstract class Celsus_Test_Mixer_Source extends Celsus_Mixer_Source {
 					'confidence' => $confidence,
 					'label' => $desiredResult,
 					'result' => null,
-					'source' => $sourceType
+					'sources' => array($sourceType)
 				));
 				$confidence -= $confidenceStep;
 			}

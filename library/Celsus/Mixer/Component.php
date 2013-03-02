@@ -26,11 +26,11 @@ class Celsus_Mixer_Component extends Celsus_Data_Struct {
 	public $result = null;
 
 	/**
-	 * The source that generated this result.
+	 * The sources that generated this result.
 	 *
-	 * @var string $source
+	 * @var array $sources
 	 */
-	public $source = null;
+	public $sources = array();
 
 	/**
 	 * The operations that took place on this component.

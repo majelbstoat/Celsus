@@ -12,7 +12,7 @@ class Celsus_Mixer_Operation_RoundRobin_BySource extends Celsus_Mixer_Operation 
 		'steps' => array()
 	);
 
-	protected $_keyField = 'source';
+	protected $_keyField = 'sources';
 
 	protected $_name = 'roundRobinBySource';
 
