@@ -20,7 +20,7 @@ class Celsus_Mixer_Operation_Select_SimpleTest extends PHPUnit_Framework_TestCas
 		);
 
 		$results = $operator->process($sourceData);
-		$this->assertSame($expected, Celsus_Test_Mixer_Component::extractLabelsToArray($results));
+		$this->assertSame($expected, $results->extractLabelsToArray());
 	}
 
 	public function testInsufficientResultsShouldCauseAllItemsToBeUsed() {
@@ -41,7 +41,7 @@ class Celsus_Mixer_Operation_Select_SimpleTest extends PHPUnit_Framework_TestCas
 		);
 
 		$results = $operator->process($sourceData);
-		$this->assertSame($expected, Celsus_Test_Mixer_Component::extractLabelsToArray($results));
+		$this->assertSame($expected, $results->extractLabelsToArray());
 	}
 
 	public function testTooManyResultsShouldCauseExcessResultsToBeDiscarded() {
@@ -62,7 +62,7 @@ class Celsus_Mixer_Operation_Select_SimpleTest extends PHPUnit_Framework_TestCas
 		);
 
 		$results = $operator->process($sourceData);
-		$this->assertSame($expected, Celsus_Test_Mixer_Component::extractLabelsToArray($results));
+		$this->assertSame($expected, $results->extractLabelsToArray());
 	}
 
 	public function testSimilarResultsFromDifferentSourcesShouldBeMerged() {
@@ -83,6 +83,6 @@ class Celsus_Mixer_Operation_Select_SimpleTest extends PHPUnit_Framework_TestCas
 		);
 
 		$results = $operator->process($sourceData);
-		$this->assertSame($expected, Celsus_Test_Mixer_Component::extractLabelsToArray($results));
+		$this->assertSame($expected, $results->extractLabelsToArray());
 	}
 }

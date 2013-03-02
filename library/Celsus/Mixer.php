@@ -171,5 +171,5 @@ class Celsus_Mixer {
 	// + Combination
 	//   Diversity
 	// + Backfilling
-	//   Sampling
+	// + Sampling
 */

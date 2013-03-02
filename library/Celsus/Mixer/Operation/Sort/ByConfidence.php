@@ -31,3 +31,4 @@ class Celsus_Mixer_Operation_Sort_ByConfidence extends Celsus_Mixer_Operation_So
 		return $results;
 	}
 }
+

@@ -1,0 +1,5 @@
+Celsus_Mixer_Operation_Select_ByConfidence
+Should be able to specify a minimum confidence only.
+Should be able to specify a maximum confidence only.
+Should be able to specify a minimum and a maximum confidence.
+Not specifying a minimum or a maximum should throw an exception.

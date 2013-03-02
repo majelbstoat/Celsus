@@ -29,7 +29,7 @@ class Celsus_MixerTest extends Celsus_TestCase {
 
 		$results = $mixer->mix();
 
-		$this->assertSame($expected, Celsus_Test_Mixer_Component::extractLabelsToArray($results));
+		$this->assertSame($expected, $results->extractLabelsToArray());
 	}
 
 	public function testTheResultOfMixingShouldBeUsableAsAMixingSource() {
@@ -78,7 +78,7 @@ class Celsus_MixerTest extends Celsus_TestCase {
 			"A", "C", "B", "D"
 		);
 
-		$this->assertSame($expected, Celsus_Test_Mixer_Component::extractLabelsToArray($results));
+		$this->assertSame($expected, $results->extractLabelsToArray());
 	}
 
 	public function testNotSpecifyingAnySourcesShouldResultInAllSourcesBeingUsed() {
@@ -94,7 +94,7 @@ class Celsus_MixerTest extends Celsus_TestCase {
 			"U", "W", "T", "V", "X", "Y"
 		);
 
-		$this->assertSame($expected, Celsus_Test_Mixer_Component::extractLabelsToArray($results));
+		$this->assertSame($expected, $results->extractLabelsToArray());
 	}
 
 	public function testSourcesCanBeConfigured() {
@@ -114,6 +114,6 @@ class Celsus_MixerTest extends Celsus_TestCase {
 			"U", "W", "T", "V", "D", "E", "F", "X", "Y"
 		);
 
-		$this->assertSame($expected, Celsus_Test_Mixer_Component::extractLabelsToArray($results));
+		$this->assertSame($expected, $results->extractLabelsToArray());
 	}
 }

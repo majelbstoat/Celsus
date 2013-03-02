@@ -24,6 +24,13 @@ abstract class Celsus_Test_Mixer_Source extends Celsus_Mixer_Source {
 	 */
 	protected $_desiredResults = null;
 
+	/**
+	 * Static results that can be set without instantiating an object.
+	 *
+	 * Useful in testing mixing scenarios where sources aren't explicitly specified.
+	 *
+	 * @var array $_defaultResults
+	 */
 	protected static $_defaultResults = array();
 
 	public static function getSource($type, array $config = array()) {
@@ -65,6 +72,7 @@ abstract class Celsus_Test_Mixer_Source extends Celsus_Mixer_Source {
 	 * );
 	 *
 	 * @param array $sourceDefinition
+	 * @return Celsus_Mixer_Source[]
 	 */
 	public static function generateSimpleComponentGroupSet($sourceDefinition, $initialConfidence = 100, $confidenceStep = 1) {
 

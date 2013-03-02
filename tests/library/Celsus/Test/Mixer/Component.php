@@ -50,12 +50,4 @@ class Celsus_Test_Mixer_Component {
 
 		return $count;
 	}
-
-	public static function extractLabelsToArray($results) {
-		$return = array();
-		foreach ($results as $result) {
-			$return[] = $result->label;
-		}
-		return $return;
-	}
 }

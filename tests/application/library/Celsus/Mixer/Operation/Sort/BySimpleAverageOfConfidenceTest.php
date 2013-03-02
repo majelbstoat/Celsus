@@ -28,7 +28,7 @@ class Celsus_Mixer_Operation_Sort_BySimpleAverageOfConfidenceTest extends PHPUni
 
 		$results = $operator->process($sourceData);
 
-		$this->assertSame($expected, Celsus_Test_Mixer_Component::extractLabelsToArray($results));
+		$this->assertSame($expected, $results->extractLabelsToArray());
 	}
 
 	public function testShouldBeAbleToSortAscending() {
@@ -51,7 +51,7 @@ class Celsus_Mixer_Operation_Sort_BySimpleAverageOfConfidenceTest extends PHPUni
 
 		$results = $operator->process($sourceData);
 
-		$this->assertSame($expected, Celsus_Test_Mixer_Component::extractLabelsToArray($results));
+		$this->assertSame($expected, $results->extractLabelsToArray());
 
 	}
 }

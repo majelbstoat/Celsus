@@ -22,6 +22,6 @@ class Celsus_Mixer_Operation_Sort_ByRawVotesTest extends PHPUnit_Framework_TestC
 		);
 
 		$results = $operator->process($sourceData);
-		$this->assertSame($expected, Celsus_Test_Mixer_Component::extractLabelsToArray($results));
+		$this->assertSame($expected, $results->extractLabelsToArray());
 	}
 }

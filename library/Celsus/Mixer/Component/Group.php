@@ -13,7 +13,15 @@ class Celsus_Mixer_Component_Group extends Celsus_Data_Collection implements Cel
 	public function extractLabelsToArray() {
 		$return = array();
 		foreach ($this->_objects as $component) {
-			$return[$component->label] = $component->label;
+			$return[] = $component->label;
+		}
+		return $return;
+	}
+
+	public function extractConfidencesToArray() {
+		$return = array();
+		foreach ($this->_objects as $component) {
+			$return[$component->label] = $component->confidence;
 		}
 		return $return;
 	}
@@ -45,7 +53,7 @@ class Celsus_Mixer_Component_Group extends Celsus_Data_Collection implements Cel
 	public function yield(array $config = array()) {
 
 		// If we are being asked to exclude some items, figure out what the labels of those items are.
-		$labels = isset($config['exclude']) ? $config['exclude']->extractLabelsToArray() : array();
+		$labels = isset($config['exclude']) ? array_flip($config['exclude']->extractLabelsToArray()) : array();
 
 		// Return all the items which haven't been excluded.
 		return $this->filter(function($component) use ($labels) {

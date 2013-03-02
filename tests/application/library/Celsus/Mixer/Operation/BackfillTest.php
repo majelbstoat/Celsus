@@ -26,7 +26,7 @@ class Celsus_Mixer_Operation_BackfillTest extends PHPUnit_Framework_TestCase {
 		);
 
 		$results = $operator->process($sourceData);
-		$this->assertSame($expected, Celsus_Test_Mixer_Component::extractLabelsToArray($results));
+		$this->assertSame($expected, $results->extractLabelsToArray());
 	}
 
 	public function testIfThereAreAlreadyEnoughResultsTheBackfillSourcesShouldNotHaveToYieldAnything() {
@@ -51,7 +51,7 @@ class Celsus_Mixer_Operation_BackfillTest extends PHPUnit_Framework_TestCase {
 		);
 
 		$results = $operator->process($sourceData);
-		$this->assertSame($expected, Celsus_Test_Mixer_Component::extractLabelsToArray($results));
+		$this->assertSame($expected, $results->extractLabelsToArray());
 	}
 
 	public function testShouldBeAbleToSpecifyANumberOfRetryAttemptsIfTheFirstBackfillDoesntYieldEnoughResults() {
@@ -87,7 +87,7 @@ class Celsus_Mixer_Operation_BackfillTest extends PHPUnit_Framework_TestCase {
 		);
 
 		$results = $operator->process($sourceData);
-		$this->assertSame($expected, Celsus_Test_Mixer_Component::extractLabelsToArray($results));
+		$this->assertSame($expected, $results->extractLabelsToArray());
 	}
 
 	/**
@@ -152,7 +152,7 @@ class Celsus_Mixer_Operation_BackfillTest extends PHPUnit_Framework_TestCase {
 		);
 
 		$results = $operator->process($sourceData);
-		$this->assertSame($expected, Celsus_Test_Mixer_Component::extractLabelsToArray($results));
+		$this->assertSame($expected, $results->extractLabelsToArray());
 	}
 
 	public function testBackfillingShouldNotIntroduceDuplicates() {
@@ -177,6 +177,6 @@ class Celsus_Mixer_Operation_BackfillTest extends PHPUnit_Framework_TestCase {
 		);
 
 		$results = $operator->process($sourceData);
-		$this->assertSame($expected, Celsus_Test_Mixer_Component::extractLabelsToArray($results));
+		$this->assertSame($expected, $results->extractLabelsToArray());
 	}
 }

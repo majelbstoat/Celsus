@@ -22,7 +22,7 @@ class Celsus_Mixer_Operation_RoundRobin_ByPreviousOperationTest extends PHPUnit_
 			"C", "F", "I", "B", "E", "H", "A", "D", "G", "W"
 		);
 
-		$this->assertSame($expected, Celsus_Test_Mixer_Component::extractLabelsToArray($partialA));
+		$this->assertSame($expected, $partialA->extractLabelsToArray());
 
 		$partialB = $mixer->setOperators(array(
 			new Celsus_Mixer_Operation_Select_Simple(array(
@@ -34,7 +34,7 @@ class Celsus_Mixer_Operation_RoundRobin_ByPreviousOperationTest extends PHPUnit_
 			"U", "W", "A", "B", "C"
 		);
 
-		$this->assertSame($expected, Celsus_Test_Mixer_Component::extractLabelsToArray($partialB));
+		$this->assertSame($expected, $partialB->extractLabelsToArray());
 
 		// Now, interleave the results from the previous two mixes.
 		$results = $mixer->setSources(array(
@@ -50,7 +50,7 @@ class Celsus_Mixer_Operation_RoundRobin_ByPreviousOperationTest extends PHPUnit_
 			"C", "U", "F", "W", "I", "A", "B", "E", "H", "D"
 		);
 
-		$this->assertSame($expected, Celsus_Test_Mixer_Component::extractLabelsToArray($results));
+		$this->assertSame($expected, $results->extractLabelsToArray());
 	}
 
 	public function testShouldBeAbleToDefineAStepProgramToVaryTheAmountTakenFromEachSource() {
@@ -71,7 +71,7 @@ class Celsus_Mixer_Operation_RoundRobin_ByPreviousOperationTest extends PHPUnit_
 			"C", "F", "I", "B", "E", "H", "A", "D", "G", "W"
 		);
 
-		$this->assertSame($expected, Celsus_Test_Mixer_Component::extractLabelsToArray($partialA));
+		$this->assertSame($expected, $partialA->extractLabelsToArray());
 
 		$partialB = $mixer->setOperators(array(
 			new Celsus_Mixer_Operation_Select_Simple(array(
@@ -83,7 +83,7 @@ class Celsus_Mixer_Operation_RoundRobin_ByPreviousOperationTest extends PHPUnit_
 			"U", "W", "A", "B", "C"
 		);
 
-		$this->assertSame($expected, Celsus_Test_Mixer_Component::extractLabelsToArray($partialB));
+		$this->assertSame($expected, $partialB->extractLabelsToArray());
 
 		// Now, interleave the results from the previous two mixes.
 		$results = $mixer->setSources(array(
@@ -102,6 +102,6 @@ class Celsus_Mixer_Operation_RoundRobin_ByPreviousOperationTest extends PHPUnit_
 			"C", "U", "W", "F", "A", "B", "I", "E", "H", "D"
 		);
 
-		$this->assertSame($expected, Celsus_Test_Mixer_Component::extractLabelsToArray($results));
+		$this->assertSame($expected, $results->extractLabelsToArray());
 	}
 }

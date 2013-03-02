@@ -21,7 +21,7 @@ class Celsus_Mixer_Operation_RoundRobin_BySourceTest extends PHPUnit_Framework_T
 
 		$results = $operator->process($sourceData);
 		$this->assertSame('Celsus_Mixer_Component_Group', get_class($results));
-		$this->assertSame($expected, Celsus_Test_Mixer_Component::extractLabelsToArray($results));
+		$this->assertSame($expected, $results->extractLabelsToArray());
 	}
 
 	public function testInsufficientResultsShouldCauseAllItemsToBeUsed() {
@@ -44,7 +44,7 @@ class Celsus_Mixer_Operation_RoundRobin_BySourceTest extends PHPUnit_Framework_T
 		// Test that the available results are combined, and returns what is possible.
 
 		$results = $operator->process($sourceData);
-		$this->assertSame($expected, Celsus_Test_Mixer_Component::extractLabelsToArray($results));
+		$this->assertSame($expected, $results->extractLabelsToArray());
 	}
 
 	public function testTooManyResultsShouldCauseExcessResultsToBeDiscarded() {
@@ -67,7 +67,7 @@ class Celsus_Mixer_Operation_RoundRobin_BySourceTest extends PHPUnit_Framework_T
 		// Test that the available results are combined, and returns what is possible.
 
 		$results = $operator->process($sourceData);
-		$this->assertSame($expected, Celsus_Test_Mixer_Component::extractLabelsToArray($results));
+		$this->assertSame($expected, $results->extractLabelsToArray());
 	}
 
 	public function testOneSourceHavingLessResultsThanOthersShouldNotCauseIssues() {
@@ -94,7 +94,7 @@ class Celsus_Mixer_Operation_RoundRobin_BySourceTest extends PHPUnit_Framework_T
 		);
 
 		$results = $operator->process($sourceData);
-		$this->assertSame($expected, Celsus_Test_Mixer_Component::extractLabelsToArray($results));
+		$this->assertSame($expected, $results->extractLabelsToArray());
 	}
 
 	public function testSimilarResultsFromDifferentSourcesShouldBeMerged() {
@@ -115,7 +115,7 @@ class Celsus_Mixer_Operation_RoundRobin_BySourceTest extends PHPUnit_Framework_T
 		);
 
 		$results = $operator->process($sourceData);
-		$this->assertSame($expected, Celsus_Test_Mixer_Component::extractLabelsToArray($results));
+		$this->assertSame($expected, $results->extractLabelsToArray());
 	}
 
 	public function testSuppliedResultSetShouldNotBeModified() {
@@ -163,6 +163,6 @@ class Celsus_Mixer_Operation_RoundRobin_BySourceTest extends PHPUnit_Framework_T
 
 		$results = $operator->process($sourceData);
 		$this->assertSame('Celsus_Mixer_Component_Group', get_class($results));
-		$this->assertSame($expected, Celsus_Test_Mixer_Component::extractLabelsToArray($results));
+		$this->assertSame($expected, $results->extractLabelsToArray());
 	}
 }
