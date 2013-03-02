@@ -4,7 +4,7 @@ class Celsus_Mixer_Operation_Boost_BySourceTest extends PHPUnit_Framework_TestCa
 
 	// Tests
 
-	public function estResultsShouldBeBoostedBySpecifiedFactorForEachSource() {
+	public function testResultsShouldBeBoostedBySpecifiedFactorForEachSource() {
 		$operator = new Celsus_Mixer_Operation_Boost_BySource(array(
 			'boost' => array(
 				Celsus_Test_Mixer_Source::SOURCE_TYPE_A => 1.1,

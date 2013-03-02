@@ -162,7 +162,6 @@ class Celsus_Mixer {
  * Combination strategies:
  *
  * Decorate Only: Take all the results from source A, replace the source as source B for all items in B that are in A. Repeat for C.
- * Summed Confidence: Simply add all the confidences together.
  *
  *	// + Boosting
 	// + Deduplicating

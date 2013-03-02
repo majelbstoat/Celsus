@@ -10,4 +10,6 @@ class Celsus_Mixer_Operation_RoundRobin_ByPreviousOperation extends Celsus_Mixer
 	protected $_keyField = 'operations';
 
 	protected $_name = 'roundRobinByPreviousProcess';
+
+	protected $_considerMultipleSources = false;
 }

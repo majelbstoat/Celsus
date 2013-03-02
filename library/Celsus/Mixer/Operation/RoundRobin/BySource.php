@@ -16,6 +16,8 @@ class Celsus_Mixer_Operation_RoundRobin_BySource extends Celsus_Mixer_Operation 
 
 	protected $_name = 'roundRobinBySource';
 
+	protected $_considerMultipleSources = true;
+
 	/**
 	 * @see Celsus_Mixer_Operation_Interface::process()
 	 */
@@ -26,7 +28,7 @@ class Celsus_Mixer_Operation_RoundRobin_BySource extends Celsus_Mixer_Operation 
 		$processedItems = array();
 
 		// First, break the monolithic results out by source.
-		$splitResults = $this->_separateByField($results, $this->_keyField);
+		$splitResults = $this->_separateByField($results, $this->_keyField, $this->_considerMultipleSources);
 
 		$steps = $this->_generateSteps($splitResults);
 
