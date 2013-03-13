@@ -21,7 +21,7 @@ class Celsus_Mixer_Operation_RoundRobin_BySource extends Celsus_Mixer_Operation 
 	/**
 	 * @see Celsus_Mixer_Operation_Interface::process()
 	 */
-	protected function _process(Celsus_Mixer_Component_Group $results) {
+	protected function _process(Celsus_Pipeline_Result_Interface $results) {
 
 		$returnCount = 0;
 		$return = new Celsus_Mixer_Component_Group();

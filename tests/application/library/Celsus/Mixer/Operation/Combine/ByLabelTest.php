@@ -1,11 +1,11 @@
 <?php
 
-class Celsus_Mixer_Operation_Combine_DecorateFirstTest extends PHPUnit_Framework_TestCase {
+class Celsus_Mixer_Operation_Combine_ByLabelTest extends PHPUnit_Framework_TestCase {
 
 	// Tests
 
 	public function testResultsCanBeCombinedByTakingTheFirstItemAndAppendingSubsequentSources() {
-		$operator = new Celsus_Mixer_Operation_Combine_DecorateFirst();
+		$operator = new Celsus_Mixer_Operation_Combine_ByLabel();
 
 		$sourceDefinition = array(
 			//            10   20   30   40

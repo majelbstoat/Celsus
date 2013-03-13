@@ -15,7 +15,7 @@ class Celsus_Mixer_Operation_Select_Simple extends Celsus_Mixer_Operation {
 
 	protected $_name = 'selectSimple';
 
-	protected function _process(Celsus_Mixer_Component_Group $results) {
+	protected function _process(Celsus_Pipeline_Result_Interface $results) {
 
 		$returnCount = 0;
 		$return = new Celsus_Mixer_Component_Group();

@@ -11,12 +11,12 @@ class Celsus_Mixer_Operation_RoundRobin_ByPreviousOperationTest extends PHPUnit_
 		Celsus_Test_Mixer_Source_B::setDefaultResults(array('T', 'V', 'D', 'E', 'F'));
 		Celsus_Test_Mixer_Source_C::setDefaultResults(array('X', 'Y', 'G', 'H', 'I'));
 
-		$partialA = $mixer->setOperators(array(
+		$partialA = $mixer->setOperations(array(
 			new Celsus_Mixer_Operation_Sort_ByConfidence(array(
 				'direction' => SORT_ASC,
 				'count' => 10
 			))
-		))->mix();
+		))->process();
 
 		$expected = array(
 			"C", "F", "I", "B", "E", "H", "A", "D", "G", "W"
@@ -24,11 +24,11 @@ class Celsus_Mixer_Operation_RoundRobin_ByPreviousOperationTest extends PHPUnit_
 
 		$this->assertSame($expected, $partialA->extractLabelsToArray());
 
-		$partialB = $mixer->setOperators(array(
+		$partialB = $mixer->setOperations(array(
 			new Celsus_Mixer_Operation_Select_Simple(array(
 				'count' => 5
 			))
-		))->mix();
+		))->process();
 
 		$expected = array(
 			"U", "W", "A", "B", "C"
@@ -40,11 +40,11 @@ class Celsus_Mixer_Operation_RoundRobin_ByPreviousOperationTest extends PHPUnit_
 		$results = $mixer->setSources(array(
 			$partialA,
 			$partialB
-		))->setOperators(array(
+		))->setOperations(array(
 			new Celsus_Mixer_Operation_RoundRobin_ByPreviousOperation(array(
 				'count' => 10
 			)),
-		))->mix();
+		))->process();
 
 		$expected = array(
 			"C", "U", "F", "W", "I", "A", "B", "E", "H", "D"
@@ -60,12 +60,12 @@ class Celsus_Mixer_Operation_RoundRobin_ByPreviousOperationTest extends PHPUnit_
 		Celsus_Test_Mixer_Source_B::setDefaultResults(array('T', 'V', 'D', 'E', 'F'));
 		Celsus_Test_Mixer_Source_C::setDefaultResults(array('X', 'Y', 'G', 'H', 'I'));
 
-		$partialA = $mixer->setOperators(array(
+		$partialA = $mixer->setOperations(array(
 			new Celsus_Mixer_Operation_Sort_ByConfidence(array(
 				'direction' => SORT_ASC,
 				'count' => 10
 			))
-		))->mix();
+		))->process();
 
 		$expected = array(
 			"C", "F", "I", "B", "E", "H", "A", "D", "G", "W"
@@ -73,11 +73,11 @@ class Celsus_Mixer_Operation_RoundRobin_ByPreviousOperationTest extends PHPUnit_
 
 		$this->assertSame($expected, $partialA->extractLabelsToArray());
 
-		$partialB = $mixer->setOperators(array(
+		$partialB = $mixer->setOperations(array(
 			new Celsus_Mixer_Operation_Select_Simple(array(
 				'count' => 5
 			))
-		))->mix();
+		))->process();
 
 		$expected = array(
 			"U", "W", "A", "B", "C"
@@ -89,14 +89,14 @@ class Celsus_Mixer_Operation_RoundRobin_ByPreviousOperationTest extends PHPUnit_
 		$results = $mixer->setSources(array(
 			$partialA,
 			$partialB
-		))->setOperators(array(
+		))->setOperations(array(
 			new Celsus_Mixer_Operation_RoundRobin_ByPreviousOperation(array(
 				'count' => 10,
 				'steps' => array(
 					$partialB->getType() => 2
 				)
 			)),
-		))->mix();
+		))->process();
 
 		$expected = array(
 			"C", "U", "W", "F", "A", "B", "I", "E", "H", "D"

@@ -1,6 +1,6 @@
 <?php
 
-interface Celsus_Mixer_Source_Interface {
+interface Celsus_Pipeline_Source_Interface {
 
 	/**
 	 * Returns the array of types valid for this source set.

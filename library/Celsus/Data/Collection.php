@@ -17,7 +17,8 @@ class Celsus_Data_Collection extends Celsus_Data implements Iterator, Countable,
 	public function __construct($items = array()) {
 		$classname = get_class($this);
 		foreach ($items as $item) {
-			if (get_class($item) !== $classname) {
+
+			if (!is_object($item) || (get_class($item) !== $classname)) {
 				$item = new $this->_objectClass($item);
 			}
 			$this->_objects[] = $item;

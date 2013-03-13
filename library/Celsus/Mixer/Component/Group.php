@@ -1,14 +1,8 @@
 <?php
 
-class Celsus_Mixer_Component_Group extends Celsus_Data_Collection implements Celsus_Mixer_Source_Interface {
+class Celsus_Mixer_Component_Group extends Celsus_Pipeline_Result_Group {
 
 	protected $_objectClass = 'Celsus_Mixer_Component';
-
-	protected $_type = null;
-
-	public static function getTypes() {}
-
-	public static function getSource($type, array $config = array()) {}
 
 	public function extractLabelsToArray() {
 		$return = array();
@@ -26,29 +20,21 @@ class Celsus_Mixer_Component_Group extends Celsus_Data_Collection implements Cel
 		return $this->_extractFieldByLabelToArray('sources');
 	}
 
-	public function setType($type) {
-		$this->_type = $type;
-
-		return $this;
-	}
-
-	public function getType() {
-		return $this->_type;
-	}
-
-	public function noteOperation($operation) {
+	protected function _extractFieldByLabelToArray($field) {
+		$return = array();
 		foreach ($this->_objects as $component) {
-			array_unshift($component->operations, $operation);
+			$return[$component->label] = $component->$field;
 		}
-
-		return $this;
+		return $return;
 	}
 
 	/**
 	 * Allowing a component group to yield itself allows the result of one mixing to be used
 	 * as the input to another.
 	 *
-	 * @see Celsus_Mixer_Source_Interface::yield()
+	 * Provides a mechanism by which certain items can be excluded.
+	 *
+	 * @see Celsus_Pipeline_Source_Interface::yield()
 	 */
 	public function yield(array $config = array()) {
 
@@ -59,13 +45,5 @@ class Celsus_Mixer_Component_Group extends Celsus_Data_Collection implements Cel
 		return $this->filter(function($component) use ($labels) {
 			return !isset($labels[$component->label]);
 		});
-	}
-
-	protected function _extractFieldByLabelToArray($field) {
-		$return = array();
-		foreach ($this->_objects as $component) {
-			$return[$component->label] = $component->$field;
-		}
-		return $return;
 	}
 }

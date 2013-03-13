@@ -15,7 +15,7 @@ class Celsus_Mixer_Operation_Boost_BySource extends Celsus_Mixer_Operation {
 
 	protected $_name = 'boostBySource';
 
-	protected function _process(Celsus_Mixer_Component_Group $results) {
+	protected function _process(Celsus_Pipeline_Result_Interface $results) {
 
 		$return = new Celsus_Mixer_Component_Group();
 		$processedItems = array();

@@ -1,11 +1,11 @@
 <?php
 
-class Celsus_Mixer_Component extends Celsus_Data_Struct {
+class Celsus_Mixer_Component extends Celsus_Pipeline_Result {
 
 	/**
 	 * The confidence of the result expressed from 0 - 100.
 	 *
-	 * @var int $weight;
+	 * @var int $weight
 	 */
 	public $confidence = null;
 
@@ -32,11 +32,5 @@ class Celsus_Mixer_Component extends Celsus_Data_Struct {
 	 */
 	public $sources = array();
 
-	/**
-	 * The operations that took place on this component.
-	 *
-	 * @var array $operations
-	 */
-	public $operations = array();
 
 }

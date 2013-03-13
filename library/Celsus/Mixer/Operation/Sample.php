@@ -16,7 +16,7 @@ class Celsus_Mixer_Operation_Sample extends Celsus_Mixer_Operation {
 
 	protected $_name = 'backfill';
 
-	protected function _process(Celsus_Mixer_Component_Group $results) {
+	protected function _process(Celsus_Pipeline_Result_Interface $results) {
 
 		if (!$this->_config['samplePercent'] || !$this->_config['sources']) {
 			throw new Celsus_Exception("A sample percent and at least one source are required to sample content", Celsus_Http::INTERNAL_SERVER_ERROR);

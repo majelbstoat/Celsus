@@ -1,0 +1,24 @@
+package testing;
+
+// Enum for countries.
+enum Country {
+	UK = 0;
+	USA = 1;
+	FRANCE = 2;
+}
+
+message Person {
+	optional string username = 1;
+	optional string firstName = 2;
+	optional string lastName = 3;
+	optional string birthday = 4;
+	repeated Address addresses = 5;
+}
+
+message Address {
+	optional string street = 1;
+	optional string city = 2;
+	optional string state = 3;
+	optional string postcode = 4;
+	optional Country country = 5;
+}

@@ -12,7 +12,7 @@ abstract class Celsus_Mixer_Operation_Select_ByInteger extends Celsus_Mixer_Oper
 		'maximum' => null
 	);
 
-	protected function _process(Celsus_Mixer_Component_Group $results) {
+	protected function _process(Celsus_Pipeline_Result_Interface $results) {
 
 		if (null === $this->_config['minimum'] && null === $this->_config['maximum']) {
 			throw new Celsus_Exception("Either a minimum or a maximum must be specified");

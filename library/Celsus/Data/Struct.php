@@ -54,13 +54,12 @@ class Celsus_Data_Struct extends Celsus_Data {
 	}
 
 	/**
-	 * Merges another Celsus_Data_Object into this one.  The objects must both
-	 * be of the same name.
+	 * Merges another Celsus_Data_Struct into this one.
 	 *
 	 * @param string $field
 	 * @param mixed $value
 	 */
-	public function mergeData(Celsus_Data_Struct $new) {
+	public function mergeData(self $new) {
 		$data = $new->toArray();
 		foreach ($data as $field => $value) {
 			$this->$field = $value;

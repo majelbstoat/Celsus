@@ -1,6 +1,6 @@
 <?php
 
-abstract class Celsus_Test_Mixer_Source extends Celsus_Mixer_Source {
+abstract class Celsus_Test_Mixer_Source extends Celsus_Pipeline_Source {
 
 	const SOURCE_TYPE_A = 'A';
 	const SOURCE_TYPE_B = 'B';

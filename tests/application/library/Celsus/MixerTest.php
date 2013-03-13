@@ -16,7 +16,7 @@ class Celsus_MixerTest extends Celsus_TestCase {
 
 		$sourceData = Celsus_Test_Mixer_Source::generateSimpleComponentGroupSet($sourceDefinition);
 
-		$mixer->setSources($sourceData)->setOperators(array(
+		$mixer->setSources($sourceData)->setOperations(array(
 			new Celsus_Mixer_Operation_Select_Simple(array(
 				'count' => 5
 			)),
@@ -27,7 +27,7 @@ class Celsus_MixerTest extends Celsus_TestCase {
 			"A", "E", "B", "C", "D"
 		);
 
-		$results = $mixer->mix();
+		$results = $mixer->process();
 
 		$this->assertSame($expected, $results->extractLabelsToArray());
 	}
@@ -43,13 +43,13 @@ class Celsus_MixerTest extends Celsus_TestCase {
 
 		$sourceData = Celsus_Test_Mixer_Source::generateSimpleComponentGroupSet($sourceDefinition);
 
-		$mixer->setSources($sourceData)->setOperators(array(
+		$mixer->setSources($sourceData)->setOperations(array(
 			new Celsus_Mixer_Operation_Select_Simple(),
 		));
 
-		$partialA = $mixer->mix();
+		$partialA = $mixer->process();
 
-		$this->assertObjectIsInstanceOf($partialA, 'Celsus_Mixer_Source_Interface');
+		$this->assertObjectIsInstanceOf($partialA, 'Celsus_Pipeline_Source_Interface');
 
 		// Generate a second simple intermediate result with two entries.
 		$sourceDefinition = array(
@@ -58,21 +58,21 @@ class Celsus_MixerTest extends Celsus_TestCase {
 
 		$sourceData = Celsus_Test_Mixer_Source::generateSimpleComponentGroupSet($sourceDefinition);
 
-		$mixer->setSources($sourceData)->setOperators(array(
+		$mixer->setSources($sourceData)->setOperations(array(
 			new Celsus_Mixer_Operation_Select_Simple(),
 		));
 
-		$partialB = $mixer->mix();
+		$partialB = $mixer->process();
 
 		// Mix the two intermediate results together.
 		$mixer->setSources(array(
 			$partialA,
 			$partialB
-		))->setOperators(array(
+		))->setOperations(array(
 			new Celsus_Mixer_Operation_RoundRobin_BySource()
 		));
 
-		$results = $mixer->mix();
+		$results = $mixer->process();
 
 		$expected = array(
 			"A", "C", "B", "D"
@@ -88,7 +88,7 @@ class Celsus_MixerTest extends Celsus_TestCase {
 		Celsus_Test_Mixer_Source_B::setDefaultResults(array('T', 'V'));
 		Celsus_Test_Mixer_Source_C::setDefaultResults(array('X', 'Y'));
 
-		$results = $mixer->mix();
+		$results = $mixer->process();
 
 		$expected = array(
 			"U", "W", "T", "V", "X", "Y"
@@ -108,7 +108,7 @@ class Celsus_MixerTest extends Celsus_TestCase {
 			'count' => 2
 		))->configureSource(Celsus_Test_Mixer_Source::SOURCE_TYPE_C, array(
 			'count' => 2
-		))->mix();
+		))->process();
 
 		$expected = array(
 			"U", "W", "T", "V", "D", "E", "F", "X", "Y"

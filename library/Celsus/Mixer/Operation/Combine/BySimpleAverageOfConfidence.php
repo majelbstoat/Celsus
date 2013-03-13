@@ -9,7 +9,7 @@ class Celsus_Mixer_Operation_Combine_BySimpleAverageOfConfidence extends Celsus_
 
 	protected $_name = 'combineBySimpleAverageOfConfidence';
 
-	protected function _process(Celsus_Mixer_Component_Group $results) {
+	protected function _process(Celsus_Pipeline_Result_Interface $results) {
 
 		$return = new Celsus_Mixer_Component_Group();
 		$iterations = array();

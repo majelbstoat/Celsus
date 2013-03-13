@@ -1,6 +1,6 @@
 <?php
 
-abstract class Celsus_Mixer_Source implements Celsus_Mixer_Source_Interface {
+abstract class Celsus_Pipeline_Source implements Celsus_Pipeline_Source_Interface {
 
 	protected static $_types = array();
 

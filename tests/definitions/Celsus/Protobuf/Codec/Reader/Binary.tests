@@ -1,0 +1,8 @@
+Celsus_Protobuf_Codec_Reader_Binary
+Should be able to read a signed 64bit int.
+Should be able to read a signed 32bit int.
+Should be able to read a string.
+Should be able to read an enum.
+Should be able to read a message.
+Should be able to read a repeated field.
+

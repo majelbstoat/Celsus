@@ -6,11 +6,11 @@
  *
  * @author majelbstoat
  */
-class Celsus_Mixer_Operation_Combine_DecorateFirst extends Celsus_Mixer_Operation {
+class Celsus_Mixer_Operation_Combine_ByLabel extends Celsus_Mixer_Operation {
 
-	protected $_name = 'combineDecorateFirst';
+	protected $_name = 'combineByLabel';
 
-	protected function _process(Celsus_Mixer_Component_Group $results) {
+	protected function _process(Celsus_Pipeline_Result_Interface $results) {
 
 		$return = new Celsus_Mixer_Component_Group();
 		$map = array();
